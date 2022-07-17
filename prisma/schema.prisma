@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User{
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  email String? @unique
+  username String @unique
+  password String?
+  role String?
+  refreshes Refresh[] @relation("UserRefreshes")
+  creatorRecords Record[] @relation("CreatorRecords")
+  perfomerRecords Record[] @relation("PerfomerRecords")
+}
+
+model Refresh{
+  id String @id @default(uuid())
+  session String @unique @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  userId Int?
+  user User? @relation("UserRefreshes", fields: [userId], references: [id])
+}
+
+model Record{
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  creatorId Int
+  creator User @relation("CreatorRecords", fields: [creatorId], references: [id])
+  isCompleted Boolean
+  comment String?
+  perfomerId Int?
+  perfomer User? @relation("PerfomerRecords", fields: [perfomerId], references: [id])
+  shouldPerfomerConfirmViewing Boolean?
+  isViewingConfirmedByPerfomer Boolean?
+  perfomerViewingDate DateTime?
+  formStep FormStep? @relation
+  befaringStep BefaringStep? @relation
+  offerStep OfferStep? @relation
+}
+
+model FormStep{
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  clientName String?
+  phone String?
+  email String?
+  city String?
+  address String?
+  meetingDate DateTime?
+  whereClientFound String?
+  recordId Int @unique
+  record Record @relation(fields: [recordId], references: [id])
+  steps Step[]
+}
+
+model BefaringStep{
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  offerDate DateTime?
+  infoSendingDate DateTime?
+  recordId Int @unique
+  record Record @relation(fields: [recordId], references: [id])
+  steps Step[]
+}
+
+model OfferStep{
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  wasOfferSent Boolean
+  recordId Int @unique
+  record Record @relation(fields: [recordId], references: [id])
+  steps Step[]
+}
+
+model Step{
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  formStepId Int?
+  formStep FormStep? @relation(fields: [formStepId], references: [id])
+  befaringStepId Int?
+  befaringStep BefaringStep? @relation(fields: [befaringStepId], references: [id])
+  offerStepId Int?
+  offerStep OfferStep? @relation(fields: [offerStepId], references: [id])
+  orderId Int
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model Order{
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  steps Step[]
+  isFormStepCompleted Boolean
+  isBefaringStepCompleted Boolean
+  isOfferStepCompleted Boolean
+}
