@@ -4,7 +4,9 @@ import {
     PropNames,
     StepName,
     ISendButtonsOutputRef,
+    FormCheckType,
 } from '../../types'
+import { getOrderStatus } from '../../utilities'
 
 interface ISendButtons {
     step?: StepType
@@ -12,7 +14,10 @@ interface ISendButtons {
     curStepName?: StepName
     prevStepName?: StepName
     dataRef?: RefObject<ISendButtonsOutputRef>
-    formCheck?: Function
+    formCheck?: FormCheckType // for nextBtn (checking main condition)
+    prevFormCheck?: FormCheckType // for prevBtn (checking aux condition)
+    isPrevFormChecked?: boolean
+    isMainConditon?: boolean // nextBtn - true, prevBtn - false
 }
 
 const SendButtons: FC<ISendButtons> = ({
@@ -22,84 +27,48 @@ const SendButtons: FC<ISendButtons> = ({
     dataRef,
     formCheck,
     prevStepName,
+    prevFormCheck = () => {},
+    isPrevFormChecked = true,
+    isMainConditon = true,
 }) => {
-    const curStepIsProceedToNextName = `${curStepName}IsProceedToNext` as PropNames<
-        StepType
-    >
-
-    const prevStepIsProceedToNextName = `${prevStepName}IsProceedToNext` as PropNames<
-        StepType
-    >
-
-    const curStepIsCompletedName = `${curStepName}IsCompleted` as PropNames<
-        StepType
-    >
-
-    const prevStepIsCompletedName = `${prevStepName}IsCompleted` as PropNames<
-        StepType
-    >
-
-    const curStepShouldPerfomerConfirmViewName = `${curStepName}ShouldPerfomerConfirmView` as PropNames<
-        StepType
-    >
-
-    const curStepIsProceedToNext = step?.[curStepIsProceedToNextName]
-    const prevStepIsProceedToNext = step?.[prevStepIsProceedToNextName]
-    const curStepIsCompleted = step?.[curStepIsCompletedName]
-    const prevStepIsCompleted = step?.[prevStepIsCompletedName]
-
-    console.log({
-        curStepIsProceedToNext,
-        prevStepIsProceedToNext,
-        curStepIsCompleted,
-        prevStepIsCompleted,
-    })
-
-    const isCurrent =
-        prevStepIsProceedToNext &&
-        prevStepIsCompleted &&
-        !curStepIsProceedToNext &&
-        !curStepIsCompleted
-    const isEdit =
-        prevStepIsProceedToNext &&
-        prevStepIsCompleted &&
-        curStepIsProceedToNext &&
-        !curStepIsCompleted
-    const IsProceedToNext =
-        prevStepIsProceedToNext &&
-        prevStepIsCompleted &&
-        curStepIsProceedToNext &&
-        curStepIsCompleted
-    const IsProceedToEdit =
-        prevStepIsProceedToNext &&
-        !prevStepIsCompleted &&
-        !curStepIsProceedToNext &&
-        !curStepIsCompleted
-
-    console.log({ isCurrent, isEdit, IsProceedToEdit, IsProceedToNext })
+    const {
+        isCurrent,
+        isEdit,
+        isProceedToNext,
+        isProceedToEdit,
+    } = getOrderStatus({ curStepName, prevStepName, step })
 
     const isCompletedRef = useRef<HTMLInputElement>(null)
     const uncompleteSaveRef = useRef<HTMLInputElement>(null)
     const shouldPerfomerConfirmViewRef = useRef<HTMLInputElement>(null)
+    const isAltCompletedRef = useRef<HTMLInputElement>(null)
 
     const getResults = () => {
         return {
             [`${curStepName}IsProceedToNext`]:
                 isCurrent || isEdit
                     ? isCompletedRef.current?.checked
-                    : IsProceedToNext
+                    : isProceedToNext
                     ? true
                     : false,
             [`${curStepName}IsCompleted`]:
                 isCurrent || isEdit
                     ? isCompletedRef.current?.checked
-                    : IsProceedToNext
+                    : isProceedToNext
                     ? true
                     : false,
             [`${curStepName}ShouldPerfomerConfirmView`]:
                 isCurrent || isEdit
                     ? isCompletedRef.current?.checked
                     : shouldPerfomerConfirmViewRef.current?.checked,
+            [`${prevStepName}IsCompleted`]:
+                isCurrent || isEdit
+                    ? !isAltCompletedRef.current?.checked
+                    : isProceedToNext
+                    ? true
+                    : isProceedToEdit
+                    ? false
+                    : false,
         }
     }
 
@@ -109,39 +78,57 @@ const SendButtons: FC<ISendButtons> = ({
 
     useEffect(() => {
         if (formCheck) {
-            formCheck(false)
+            formCheck({ showMessage: false })
         }
     }, [formCheck])
 
+    useEffect(() => {
+        if (prevFormCheck) {
+            prevFormCheck({ showMessage: false })
+        }
+    }, [prevFormCheck])
+
     return (
         <div>
-            {(isCurrent || isEdit) && (
+            {(isCurrent || isEdit) && isMainConditon && (
                 <>
                     <input
                         type="checkbox"
-                        name={curStepIsCompletedName}
+                        name="nextCheckbox"
                         defaultChecked={true}
                         ref={isCompletedRef}
                     />
                     Skończ i przekaż dalej
                 </>
             )}
-            {(IsProceedToEdit || IsProceedToNext) && !isFormChecked && (
+            {(isCurrent || isEdit) && !isMainConditon && (
                 <>
                     <input
-                        name="uncompleteSave"
                         type="checkbox"
-                        defaultChecked={false}
-                        ref={uncompleteSaveRef}
+                        name="prevCheckbox"
+                        defaultChecked={true}
+                        ref={isAltCompletedRef}
                     />
-                    Zapisz z niekompletnymi danymi.
+                    Zakończ i przekaż poprzedniemu użytkownikowi.
                 </>
             )}
-            {(IsProceedToEdit || IsProceedToNext) && (
+            {(isProceedToEdit || isProceedToNext) &&
+                (isMainConditon ? !isFormChecked : !isPrevFormChecked) && (
+                    <>
+                        <input
+                            name="uncompleteCheckbox"
+                            type="checkbox"
+                            defaultChecked={false}
+                            ref={uncompleteSaveRef}
+                        />
+                        Zapisz z niekompletnymi danymi.
+                    </>
+                )}
+            {(isProceedToEdit || isProceedToNext) && (
                 <>
                     <input
                         type="checkbox"
-                        name={curStepShouldPerfomerConfirmViewName}
+                        name="confirmCheckbox"
                         defaultChecked={false}
                         ref={shouldPerfomerConfirmViewRef}
                     />
