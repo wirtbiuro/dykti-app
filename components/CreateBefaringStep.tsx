@@ -1,112 +1,268 @@
-import React, { SyntheticEvent, useRef, FC } from 'react'
-import { IOrder, CreateBefaringStepReqData } from '../types'
-import Calendar from './Calendar'
-import { useCreateBefaringStepMutation } from '../state/apiSlice'
-import useMeetingDate from '../hooks/useMeetingDate'
-import { DateTime } from 'luxon'
-import { FormStyled } from '../styles/styled-components'
+import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
+import { FormStyled, CreateFormStyled } from '../styles/styled-components'
+import {
+    IOrder,
+    WithValueNFocus,
+    PropNames,
+    IWithOrder,
+    StepType,
+    IOutputRef,
+    ISendButtonsOutputRef,
+} from '../types'
+import { useCreateOrderMutation } from '../state/apiSlice'
+import FormInput from './UI/FormInput'
+import CalendarWithTime from './CalendarWithTime'
+import SendButtons from './UI/SendButtons'
 
-type FormType = {
-    wasOfferSent: { checked: boolean; focus: Function }
-    comment: { value: string; focus: Function }
+interface AuxFields {
+    uncompleteSave: boolean
 }
-
-// interface FormElement extends HTMLFormElement {}
-// interface FormElement extends FormType {}
-
+type FormFields = StepType & AuxFields
+type FieldsToSend = StepType & {
+    order?: IOrder
+}
+type FormType = WithValueNFocus<FormFields>
+type Names = PropNames<FormFields>
 type FormElement = HTMLFormElement & FormType
 
-type CreateBefaringStepType = {
-    order: IOrder
-    wasOfferSent?: boolean
-    comment?: string
-    meetingDate?: string
-}
+const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
+    const [createOrder] = useCreateOrderMutation()
 
-const CreateBefaringStep: FC<CreateBefaringStepType> = ({
-    order,
-    wasOfferSent,
-    comment,
-    meetingDate,
-}) => {
-    const [createBefaringStep] = useCreateBefaringStepMutation()
-
-    const [selectedDate, setSelectedDate] = useMeetingDate(meetingDate)
-
-    console.log({ meetingDate, selectedDate })
-
-    const wasOfferSentErrRef = useRef<HTMLInputElement>(null)
-    const commentErrRef = useRef<HTMLInputElement>(null)
     const formRef = useRef<FormElement>(null)
 
-    function formCheck(
-        target: (EventTarget & FormType) | HTMLFormElement
-    ): boolean {
-        wasOfferSentErrRef.current!.innerHTML = ''
-        return true
+    const prevStep = order?.steps[order.steps.length - 1]
+
+    const commentDataRef = useRef<IOutputRef>({
+        check: () => {},
+        getValue: () => {},
+        showError: () => {},
+        getErrTitleElement: () => {},
+    })
+
+    const meetingDateOutputRef = useRef<IOutputRef>({
+        check: () => {},
+        getValue: () => {},
+        showError: () => {},
+        getErrTitleElement: () => {},
+    })
+
+    const docsSendDateOutputRef = useRef<IOutputRef>({
+        check: () => {},
+        getValue: () => {},
+        showError: () => {},
+        getErrTitleElement: () => {},
+    })
+
+    const offerDateOutputRef = useRef<IOutputRef>({
+        check: () => {},
+        getValue: () => {},
+        showError: () => {},
+        getErrTitleElement: () => {},
+    })
+
+    const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
+        getResults: () => {},
+    })
+
+    const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
+
+    const formCheck: (showMessage?: boolean) => void = (
+        showMessage = false
+    ) => {
+        console.log('form check')
+
+        // if (!formInputOutputRef.current?.check()) {
+        //     showMessage ? formInputOutputRef.current?.showError() : null
+        //     return setIsFormChecked(false)
+        // }
+
+        if (!meetingDateOutputRef.current?.check()) {
+            showMessage ? meetingDateOutputRef.current?.showError() : null
+            return setIsFormChecked(false)
+        }
+        if (!docsSendDateOutputRef.current?.check()) {
+            showMessage ? docsSendDateOutputRef.current?.showError() : null
+            return setIsFormChecked(false)
+        }
+        if (!offerDateOutputRef.current?.check()) {
+            showMessage ? offerDateOutputRef.current?.showError() : null
+            return setIsFormChecked(false)
+        }
+
+        console.log('form checked')
+
+        return setIsFormChecked(true)
+    }
+
+    const formChanged = (e: SyntheticEvent<HTMLFormElement>) => {
+        formCheck(false)
     }
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault()
+
+        console.log('submit')
+
         const target = e.target as typeof e.target & FormType
-        if (!formCheck(target)) return
 
-        const data: CreateBefaringStepReqData = {
-            wasOfferSent: target.wasOfferSent.checked,
-            comment: target.comment.value,
-            meetingDate: selectedDate,
-            orderId: order.id,
-            formStepId: order.steps[order.steps.length - 1].formStep.id,
+        if (
+            (target.uncompleteSave &&
+                !target.uncompleteSave?.checked &&
+                !isFormChecked) ||
+            (target.beffaringStepIsCompleted &&
+                target.beffaringStepIsCompleted?.checked &&
+                !isFormChecked)
+        )
+            return formCheck(true)
+
+        console.log('Submit Form')
+
+        const _createOrder = createOrder as (data: FieldsToSend) => void
+
+        console.log('meeting date', meetingDateOutputRef.current.getValue())
+
+        const data: FieldsToSend = {
+            beffaringStepComment: commentDataRef.current.getValue(),
+
+            ...sendButtonsOutputRef.current.getResults(),
+
+            // beffaringStepIsCompleted: !order?.steps[order.steps.length - 1]
+            //     .beffaringStepIsProceedToNext
+            //     ? target.beffaringStepIsCompleted?.checked
+            //     : isFormChecked,
+            // beffaringStepShouldPerfomerConfirmView: order?.steps[
+            //     order.steps.length - 1
+            // ].beffaringStepIsProceedToNext
+            //     ? target.beffaringStepShouldPerfomerConfirmView?.checked
+            //     : true,
+
+            formStepMeetingDate: meetingDateOutputRef.current.check()
+                ? meetingDateOutputRef.current.getValue()
+                : null,
+
+            beffaringStepDocsSendDate: docsSendDateOutputRef.current.check()
+                ? docsSendDateOutputRef.current.getValue()
+                : null,
+
+            beffaringStepOfferDate: offerDateOutputRef.current.check()
+                ? offerDateOutputRef.current.getValue()
+                : null,
+
+            // beffaringStepIsProceedToNext:
+            //     !order?.steps[order.steps.length - 1]
+            //         .beffaringStepIsProceedToNext ??
+            //     target.beffaringStepIsCompleted?.checked,
+
+            order,
         }
-        console.log('Submit Form', { data })
 
-        createBefaringStep(data)
-    }
+        console.log({ data })
 
-    const formChanged = (e: SyntheticEvent<HTMLFormElement>) => {
-        const target = e.target as HTMLFormElement
-        switch (target.name) {
-            case 'wasOfferSent':
-                wasOfferSentErrRef.current!.innerHTML = ''
-        }
+        _createOrder(data)
     }
 
     return (
-        <FormStyled>
-            <form onSubmit={submit} onChange={formChanged} ref={formRef}>
-                <h3>Termin spotkania:</h3>
+        <div style={{ display: isVisible ? 'block' : 'none' }}>
+            <CreateFormStyled>
+                <FormStyled>
+                    <form
+                        ref={formRef}
+                        onChange={formChanged}
+                        onSubmit={submit}
+                    >
+                        <p>Termin spotkania: </p>
 
-                <Calendar
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                />
+                        <CalendarWithTime
+                            defaultDate={order && prevStep?.formStepMeetingDate}
+                            dataRef={meetingDateOutputRef}
+                        />
 
-                <h3>Komentarz:</h3>
+                        <br />
+                        <br />
+                        <p>Data wysłania dokumentów, zdjęć: </p>
 
-                <div className="withErr">
-                    <div className="formError" ref={commentErrRef}></div>
-                    <input
-                        type="text"
-                        name="comment"
-                        placeholder="Komentarz"
-                        defaultValue={comment ?? ''}
-                    />
-                </div>
+                        <CalendarWithTime
+                            defaultDate={
+                                order && prevStep?.beffaringStepDocsSendDate
+                            }
+                            dataRef={docsSendDateOutputRef}
+                        />
 
-                <div className="withErr">
-                    <div className="formError" ref={wasOfferSentErrRef}></div>
-                    <input
-                        type="checkbox"
-                        name="wasOfferSent"
-                        defaultChecked={wasOfferSent}
-                    />
-                    Czy oferta została wysłana?
-                </div>
+                        <br />
+                        <br />
+                        <p>Kiedy należy przygotować ofertę?</p>
 
-                <input type="submit" value="Dalej" />
-            </form>
-        </FormStyled>
+                        <CalendarWithTime
+                            defaultDate={
+                                order && prevStep?.beffaringStepOfferDate
+                            }
+                            dataRef={offerDateOutputRef}
+                        />
+
+                        <p>Komentarz: </p>
+                        <FormInput
+                            placeholder="komentarz"
+                            defaultValue={
+                                order?.steps[order.steps.length - 1]
+                                    .beffaringStepComment
+                            }
+                            dataRef={commentDataRef}
+                        />
+
+                        <SendButtons
+                            curStepName="beffaringStep"
+                            prevStepName="formStep"
+                            dataRef={sendButtonsOutputRef}
+                            isFormChecked={isFormChecked}
+                            step={order?.steps[order.steps.length - 1]}
+                            formCheck={formCheck}
+                        />
+
+                        {/* {!order?.steps[order.steps.length - 1]
+                            .beffaringStepIsProceedToNext && (
+                            <>
+                                <input
+                                    type="checkbox"
+                                    name="beffaringStepIsCompleted"
+                                    defaultChecked={true}
+                                />
+                                Skończ i przekaż dalej
+                            </>
+                        )}
+                        {order?.steps[order.steps.length - 1]
+                            .beffaringStepIsProceedToNext &&
+                            !isFormChecked && (
+                                <FormInput<Names> name="uncompleteSave">
+                                    <>
+                                        <input
+                                            type="checkbox"
+                                            name="uncompleteSave"
+                                            defaultChecked={false}
+                                        />
+                                        Zapisz z niekompletnymi danymi.
+                                    </>
+                                </FormInput>
+                            )}
+                        {order?.steps[order.steps.length - 1]
+                            .beffaringStepIsProceedToNext && (
+                            <FormInput name="formStepShouldPerfomerConfirmView">
+                                <>
+                                    <input
+                                        type="checkbox"
+                                        name="beffaringStepShouldPerfomerConfirmView"
+                                        defaultChecked={false}
+                                    />
+                                    Czy następny użytkownik musi potwierdzić
+                                    przeglądanie zmiany.
+                                </>
+                            </FormInput>
+                        )} */}
+                        <input type="submit" value="Zapisz" />
+                    </form>
+                </FormStyled>
+            </CreateFormStyled>
+        </div>
     )
 }
 
-export default CreateBefaringStep
+export default CreateForm

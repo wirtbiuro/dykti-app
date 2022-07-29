@@ -1,7 +1,6 @@
 import React, {
     SyntheticEvent,
     useRef,
-    FormEvent,
     useEffect,
     useState,
     FC,
@@ -9,53 +8,36 @@ import React, {
 } from 'react'
 import { FormStyled, CreateFormStyled } from '../styles/styled-components'
 import {
-    IQuery,
     IOrder,
-    IFormStep,
-    EditableTypes,
     WithValueNFocus,
     PropNames,
-    ToSendToApi,
     IWithOrder,
+    StepType,
 } from '../types'
-import {
-    useCreateUserMutation,
-    useGetUserQuery,
-    useLoginMutation,
-    useCreateOrderMutation,
-    useGetCompletedOrdersQuery,
-} from '../state/apiSlice'
-import Step from './Step'
+import { useCreateOrderMutation } from '../state/apiSlice'
 import Calendar from './Calendar'
 import { DateTime } from 'luxon'
-import FormInput, { CreateFormFormInput } from './UI/FormInput'
+import FormInput from './UI/FormInput'
 import { Modal } from 'antd'
 import { showErrorFormModal } from '../utilities'
 
-type TypedStep = IFormStep
-
 interface AuxFields {
-    comment: string
-    hours: string
-    minutes: string
-    isCompleted: boolean
-    shouldPerfomerConfirmViewing: boolean
+    hours: number | 'hh'
+    minutes: number | 'mm'
 }
 
-type FormFields = EditableTypes<TypedStep> & AuxFields
-type FieldsToSend = ToSendToApi<TypedStep>
+type FormFields = StepType & AuxFields
+type FieldsToSend = StepType & {
+    order?: IOrder
+}
 
 type FormType = WithValueNFocus<FormFields>
 
 export type Names = PropNames<FormFields>
 
-interface FormElement extends HTMLFormElement {}
-interface FormElement extends FormType {}
+type FormElement = HTMLFormElement & FormType
 
 const CreateForm: FC<IWithOrder> = ({ order }) => {
-    console.log({ order })
-    const userQueryData = useGetUserQuery()
-    const { data: ordersData }: IQuery<IOrder> = useGetCompletedOrdersQuery()
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
@@ -68,16 +50,10 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
     const [addressErr, setAddressErr] = useState<HTMLDivElement | null>()
     const [hoursErr, setHoursErr] = useState<HTMLDivElement | null>()
 
-    const [historyOrderId, setHistoryOrderId] = useState<number | null>()
-
     const [selectedDate, setSelectedDate] = useState<DateTime>(DateTime.now())
 
-    console.log({ selectedDate })
-
     const meetingDate = useMemo(() => {
-        return (
-            order && order.steps[order.steps.length - 1].formStep.meetingDate!
-        )
+        return order && order.steps[order.steps.length - 1].formStepMeetingDate
     }, [order])
 
     const defaultDate = useMemo(() => {
@@ -98,11 +74,9 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
     const formCheck: (
         target: EventTarget & WithValueNFocus<FormFields>
     ) => boolean = (target) => {
-        console.log('form check', target.hours.value)
-
-        if (target.clientName?.value?.trim() === '') {
+        if (target.formStepClientName?.value?.trim() === '') {
             showErrorFormModal({
-                element: target.clientName as HTMLInputElement,
+                element: target.formStepClientName as HTMLInputElement,
                 errElement: nameErr!,
                 modal: Modal,
             })
@@ -110,24 +84,23 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
         }
 
         if (
-            (!order?.id && !target.isCompleted.checked) ||
+            (!order?.id && !target.formStepIsCompleted?.checked) ||
             (order?.id &&
-                !order?.steps[order.steps.length - 1].formStep.record
-                    .isCompleted)
+                !order?.steps[order.steps.length - 1].formStepIsCompleted)
         ) {
             return true
         }
 
         if (
-            target.phone?.value?.trim() === '' &&
-            target.email?.value?.trim() === ''
+            target.formStepPhone?.value?.trim() === '' &&
+            target.formStepEmail?.value?.trim() === ''
         ) {
             showErrorFormModal({
-                element: target.phone as HTMLInputElement,
+                element: target.formStepPhone as HTMLInputElement,
                 errElement: phoneErr!,
                 modal: Modal,
                 onOk: () => {
-                    const phone = target.phone as HTMLInputElement
+                    const phone = target.formStepPhone as HTMLInputElement
                     phone.focus()
                     phoneErr!.innerHTML = 'Telefon chy E-mail'
                     emailErr!.innerHTML = 'Telefon chy E-mail'
@@ -136,18 +109,18 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
             return false
         }
 
-        if (target.city?.value?.trim() === '') {
+        if (target.formStepCity?.value?.trim() === '') {
             showErrorFormModal({
-                element: target.city as HTMLInputElement,
+                element: target.formStepCity as HTMLInputElement,
                 errElement: cityErr!,
                 modal: Modal,
             })
             return false
         }
 
-        if (target.address?.value?.trim() === '') {
+        if (target.formStepAddress?.value?.trim() === '') {
             showErrorFormModal({
-                element: target.address as HTMLInputElement,
+                element: target.formStepAddress as HTMLInputElement,
                 errElement: addressErr!,
                 modal: Modal,
             })
@@ -176,15 +149,15 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
         const target = e.target as HTMLFormElement
         const name = target.name as Names
         switch (name) {
-            case 'clientName':
+            case 'formStepClientName':
                 nameErr!.innerHTML = ''
-            case 'phone':
-            case 'email':
+            case 'formStepPhone':
+            case 'formStepEmail':
                 phoneErr!.innerHTML = ''
                 emailErr!.innerHTML = ''
-            case 'city':
+            case 'formStepCity':
                 cityErr!.innerHTML = ''
-            case 'address':
+            case 'formStepAddress':
                 addressErr!.innerHTML = ''
             case 'hours':
             case 'minutes':
@@ -202,15 +175,12 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
         if (!formCheck(target)) return
 
         console.log('Submit Form')
-        console.log(target.address)
-        console.log(target.hours?.value)
-        console.log(target.comment?.value)
 
         const _createOrder = createOrder as (data: FieldsToSend) => void
 
         const _selectedDate =
             formRef.current?.hours.value !== 'hh' &&
-            formRef.current?.hours.value !== 'mm'
+            formRef.current?.minutes.value !== 'mm'
                 ? DateTime.fromObject({
                       year: selectedDate.year,
                       month: selectedDate.month,
@@ -221,18 +191,17 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
                 : undefined
 
         const data: FieldsToSend = {
-            comment: target.comment.value.trim(),
-            address: target.address?.value?.trim(),
-            city: target.city?.value?.trim(),
-            clientName: target.clientName?.value?.trim(),
-            whereClientFound: target.whereClientFound?.value?.trim(),
-            email: target.email?.value?.trim(),
-            phone: target.phone?.value?.trim(),
-            isCompleted: order ? true : target.isCompleted.checked,
-            shouldPerfomerConfirmViewing: order
-                ? target.shouldPerfomerConfirmViewing.checked
-                : true,
-            meetingDate: _selectedDate,
+            formStepComment: target.formStepComment?.value?.trim(),
+            formStepAddress: target.formStepAddress?.value?.trim(),
+            formStepCity: target.formStepCity?.value?.trim(),
+            formStepClientName: target.formStepClientName?.value?.trim(),
+            formStepWhereClientFound: target.formStepWhereClientFound?.value?.trim(),
+            formStepEmail: target.formStepEmail?.value?.trim(),
+            formStepPhone: target.formStepPhone?.value?.trim(),
+            formStepIsCompleted: target.formStepIsCompleted?.checked,
+            formStepShouldPerfomerConfirmView:
+                target.formStepShouldPerfomerConfirmView?.checked,
+            formStepMeetingDate: _selectedDate,
             order,
         }
 
@@ -249,56 +218,55 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
             <FormStyled>
                 <form onSubmit={submit} ref={formRef} onChange={formChanged}>
                     <p>Informacja klientów: </p>
-                    <CreateFormFormInput
-                        name="clientName"
+                    <FormInput
+                        name="formStepClientName"
                         placeholder="imię i nazwisko klienta"
-                        setErr={setNameErr}
+                        // setErr={setNameErr}
                         defaultValue={
-                            order?.steps[order.steps.length - 1].formStep
-                                .clientName
+                            order?.steps[order.steps.length - 1]
+                                .formStepClientName
                         }
                     />
-                    <CreateFormFormInput
-                        name="phone"
+                    <FormInput
+                        name="formStepPhone"
                         placeholder="Numer kontaktowy"
-                        setErr={setPhoneErr}
+                        // setErr={setPhoneErr}
                         defaultValue={
-                            order?.steps[order.steps.length - 1].formStep.phone
+                            order?.steps[order.steps.length - 1].formStepPhone
                         }
                     />
-                    <CreateFormFormInput
-                        name="email"
+                    <FormInput
+                        name="formStepEmail"
                         placeholder="E-mail"
-                        setErr={setEmailErr}
+                        // setErr={setEmailErr}
                         defaultValue={
-                            order?.steps[order.steps.length - 1].formStep.email
+                            order?.steps[order.steps.length - 1].formStepEmail
                         }
                     />
                     <p>Adres zamówienia: </p>
-                    <CreateFormFormInput
-                        name="city"
+                    <FormInput
+                        name="formStepCity"
                         placeholder="Miasto"
-                        setErr={setCityErr}
+                        // setErr={setCityErr}
                         defaultValue={
-                            order?.steps[order.steps.length - 1].formStep.city
+                            order?.steps[order.steps.length - 1].formStepCity
                         }
                     />
-                    <CreateFormFormInput
-                        setErr={setAddressErr}
-                        name="address"
+                    <FormInput
+                        // setErr={setAddressErr}
+                        name="formStepAddress"
                         placeholder="Adres obiektu"
                         defaultValue={
-                            order?.steps[order.steps.length - 1].formStep
-                                .address
+                            order?.steps[order.steps.length - 1].formStepAddress
                         }
                     />
                     <p>Gdzie znaleziono klienta: </p>
-                    <CreateFormFormInput
-                        name="whereClientFound"
+                    <FormInput
+                        name="formStepWhereClientFound"
                         placeholder="Gdzie znaleziono klienta"
                         defaultValue={
-                            order?.steps[order.steps.length - 1].formStep
-                                .whereClientFound
+                            order?.steps[order.steps.length - 1]
+                                .formStepWhereClientFound
                         }
                     />
                     <p>Czas spotkania:</p>
@@ -306,7 +274,10 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
                         selectedDate={selectedDate}
                         setSelectedDate={setSelectedDate}
                     />
-                    <FormInput name="hoursAndMinutes" setErr={setHoursErr}>
+                    <FormInput
+                        name="hoursAndMinutes"
+                        // setErr={setHoursErr}
+                    >
                         <>
                             <select name="hours" defaultValue={defaultHours}>
                                 <option>hh</option>
@@ -341,37 +312,41 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
                         </>
                     </FormInput>
                     <p>Komentarz: </p>
-                    <CreateFormFormInput
-                        name="comment"
+                    <FormInput
+                        name="formStepComment"
                         placeholder="komentarz"
                         defaultValue={
-                            order?.steps[order.steps.length - 1].formStep.record
-                                .comment
+                            order?.steps[order.steps.length - 1].formStepComment
                         }
                     />
                     {!order && (
                         <>
-                            <input type="checkbox" name="isCompleted" />
+                            <input
+                                type="checkbox"
+                                name="formStepIsCompleted"
+                                defaultChecked={true}
+                            />
                             Skończ i przekaż dalej
                         </>
                     )}
                     {order && (
-                        <CreateFormFormInput name="shouldPerfomerConfirmViewing">
+                        <FormInput name="formStepShouldPerfomerConfirmView">
                             <>
                                 <input
                                     type="checkbox"
-                                    name="shouldPerfomerConfirmViewing"
+                                    name="formStepShouldPerfomerConfirmView"
+                                    defaultChecked={false}
                                 />
                                 Czy następny użytkownik musi potwierdzić
                                 przeglądanie zmiany.
                             </>
-                        </CreateFormFormInput>
+                        </FormInput>
                     )}
                     <input type="submit" value="Zapisz" />
                 </form>
             </FormStyled>
 
-            <h2>Przekazane dalej:</h2>
+            {/* <h2>Przekazane dalej:</h2> */}
 
             {/* {ordersData && (
                 <OrderStyled>

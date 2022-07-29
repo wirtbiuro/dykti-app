@@ -32,6 +32,8 @@ const Calendar: FC<CalendarType> = ({ selectedDate, setSelectedDate }) => {
             year: currentYear,
             month: currentMonth,
             day: 1,
+            hour: selectedDate.hour,
+            minute: selectedDate.minute,
         })
 
         const currentDay = firstCurMonthDate.weekday

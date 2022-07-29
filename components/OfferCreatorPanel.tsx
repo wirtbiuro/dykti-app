@@ -3,30 +3,25 @@ import { IQuery, IOrder } from '../types'
 import {
     useGetOrdersQuery,
     useGetCompletedOrdersQuery,
-    useConfirmViewingByPerfomerMutation,
-    useCreateOrderMutation,
 } from '../state/apiSlice'
-import CreateBefaringStep from './CreateBefaringStep'
-import { OrderStyled, StepStyled } from '../styles/styled-components'
-import Step from './Step'
-import { DateTime } from 'luxon'
+import CreateOfferStep from './CreateOfferStep'
 import Orders from './Orders'
 
-const BefaringPanel = () => {
+const OfferCreatorPanel = () => {
     const { data }: IQuery<IOrder> = useGetOrdersQuery()
     const { data: processedData }: IQuery<IOrder> = useGetCompletedOrdersQuery()
 
     const completedOrdersData = processedData?.filter(
-        (order) => order.steps[order.steps.length - 1].beffaringStepIsCompleted
+        (order) => order.steps[order.steps.length - 1].offerStepIsCompleted
     )
     const editedOrdersData = processedData?.filter(
-        (order) => !order.steps[order.steps.length - 1].beffaringStepIsCompleted
+        (order) => !order.steps[order.steps.length - 1].offerStepIsCompleted
     )
     const currentData = data?.filter(
-        (order) => order.steps[order.steps.length - 1].formStepIsCompleted
+        (order) => order.steps[order.steps.length - 1].beffaringStepIsCompleted
     )
     const passedForEditData = data?.filter(
-        (order) => !order.steps[order.steps.length - 1].formStepIsCompleted
+        (order) => !order.steps[order.steps.length - 1].beffaringStepIsCompleted
     )
 
     if (!data || !completedOrdersData) return <>Ładowanie danych...</>
@@ -37,35 +32,35 @@ const BefaringPanel = () => {
 
             <Orders
                 orders={currentData}
-                children={<CreateBefaringStep />}
-                stepName="beffaringStep"
+                children={<CreateOfferStep />}
+                stepName="offerStep"
             />
 
             <h2>Do poprawienia:</h2>
 
             <Orders
                 orders={editedOrdersData}
-                children={<CreateBefaringStep />}
-                stepName="beffaringStep"
+                children={<CreateOfferStep />}
+                stepName="offerStep"
             />
 
             <h2>Przekazane dalej:</h2>
 
             <Orders
                 orders={completedOrdersData}
-                children={<CreateBefaringStep />}
-                stepName="beffaringStep"
+                children={<CreateOfferStep />}
+                stepName="offerStep"
             />
 
             <h2>Przekazane do poprawienia:</h2>
 
             <Orders
                 orders={passedForEditData}
-                children={<CreateBefaringStep />}
-                stepName="beffaringStep"
+                children={<CreateOfferStep />}
+                stepName="offerStep"
             />
         </>
     )
 }
 
-export default BefaringPanel
+export default OfferCreatorPanel

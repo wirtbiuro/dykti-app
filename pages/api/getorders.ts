@@ -8,7 +8,6 @@ import { Role } from '../../types'
 async function getorders(req: NextApiRequest, res: NextApiResponse) {
     const { completed } = req.query
     const isCompleted = completed === 'true' ? true : false
-
     const prisma = new PrismaClient()
 
     const { userId } = req.body
@@ -22,33 +21,57 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
     const role = user!.role as Role
 
     const whereStrategy: Record<Role, any> = {
-        FormCreator: {
-            isFormStepCompleted: isCompleted,
-        },
-        BefaringUser: {
-            isFormStepCompleted: true,
-            isBefaringStepCompleted: isCompleted,
-        },
+        FormCreator: isCompleted
+            ? {
+                  some: {
+                      formStepIsProceedToNext: true,
+                  },
+              }
+            : {
+                  none: {
+                      formStepIsProceedToNext: undefined,
+                  },
+              },
+        BefaringUser: isCompleted
+            ? {
+                  some: {
+                      formStepIsProceedToNext: true,
+                      beffaringStepIsProceedToNext: true,
+                  },
+              }
+            : {
+                  some: {
+                      formStepIsProceedToNext: true,
+                  },
+                  none: {
+                      formStepIsProceedToNext: true,
+                      beffaringStepIsProceedToNext: true,
+                  },
+              },
+        OfferCreator: isCompleted
+            ? {
+                  some: {
+                      offerStepIsProceedToNext: true,
+                  },
+              }
+            : {
+                  some: {
+                      beffaringStepIsProceedToNext: true,
+                  },
+                  none: {
+                      beffaringStepIsProceedToNext: true,
+                      offerStepIsProceedToNext: true,
+                  },
+              },
     }
 
     try {
         const orders = await prisma.order.findMany({
-            where: whereStrategy[role],
+            where: {
+                steps: whereStrategy[role],
+            },
             include: {
-                steps: {
-                    include: {
-                        formStep: {
-                            include: {
-                                record: true,
-                            },
-                        },
-                        befaringStep: {
-                            include: {
-                                record: true,
-                            },
-                        },
-                    },
-                },
+                steps: true,
             },
         })
 

@@ -1,7 +1,7 @@
 import { NextApiRequest } from 'next'
 import { DateTime } from 'luxon'
 
-export type Role = 'FormCreator' | 'BefaringUser'
+export type Role = 'FormCreator' | 'BefaringUser' | 'OfferCreator'
 
 export interface NextApiRequestWithHeaders extends NextApiRequest {
     headers: any
@@ -24,18 +24,9 @@ export type WithValueNFocus<T> = {
     }
 }
 
-export interface IAuxApi {
-    comment?: string
-    userId: number
-    isCompleted: boolean
-    shouldPerfomerConfirmViewing: boolean
-    order?: IOrder
-}
-
-export type ApiBodyType<T> = EditableTypes<T> & IAuxApi
-export type ToSendToApi<T> = Omit<ApiBodyType<T>, 'userId'>
-
 export type PropNames<T> = keyof T
+
+export type StepName = 'formStep' | 'beffaringStep' | 'offerStep'
 
 export interface IQuery<T> {
     isError: boolean
@@ -47,49 +38,69 @@ export interface IQuery<T> {
 export interface IOrder {
     id: number
     createdAt: string
-    steps: Array<IStep>
-    isFormStepCompleted: boolean
-    isBefaringStepCompleted: boolean
-    isOfferStepCompleted: boolean
+    steps: Array<StepType>
 }
 
-export interface IStep {
-    id: number
-    createdAt: string
-    formStep: IFormStep
-    befaringStep: IBefaringStep
-    offerStep: IOfferStep
+export interface IOutputRef {
+    check: Function
+    getValue: Function
+    showError: Function
+    getErrTitleElement: Function
 }
+
+export type StepType = {
+    id?: number
+    createdAt?: string
+} & IFormStep &
+    IBefaringStep &
+    IOfferStep
 
 export interface IFormStep {
-    id: number
-    createdAt: string
-    clientName?: string
-    phone?: string
-    email?: string
-    city?: string
-    address?: string
-    meetingDate?: DateTime | string
-    whereClientFound?: string
-    recordId: number
-    record: IRecord
+    formStepCreatedAt?: string
+    formStepClientName?: string
+    formStepPhone?: string
+    formStepEmail?: string
+    formStepCity?: string
+    formStepAddress?: string
+    formStepMeetingDate?: DateTime | string
+    formStepWhereClientFound?: string
+    formStepCreatorId?: number
+    formStepCreator?: IUser
+    formStepIsCompleted?: boolean
+    formStepIsProceedToNext?: boolean
+    formStepComment?: string
+    formStepShouldPerfomerConfirmView?: boolean
 }
 
 export interface IBefaringStep {
-    id: number
-    createdAt: string
-    recordId: number
-    record: IRecord
-    offerDate?: string
-    infoSendingDate?: string
+    beffaringStepPrevStepConfirmationDate?: DateTime | string
+    beffaringStepCreatedAt?: DateTime | string
+    beffaringStepOfferDate?: DateTime | string
+    beffaringStepInfoSendingDate?: DateTime | string
+    beffaringStepCreatorId?: number
+    beffaringStepCreator?: IUser
+    beffaringStepIsCompleted?: boolean
+    beffaringStepIsProceedToNext?: boolean
+    beffaringStepComment?: string
+    beffaringStepShouldPerfomerConfirmView?: boolean
+    beffaringStepDocsSendDate?: DateTime | string
 }
 
 export interface IOfferStep {
-    id: number
-    createdAt: string
-    recordId: number
-    record: IRecord
-    wasOfferSent: boolean
+    offerStepPrevStepConfirmationDate?: boolean
+
+    offerStepAreBefDocsGood?: boolean
+    offerStepBefComments?: string
+    offerStepOfferDate?: DateTime | string
+    offerStepComment?: string
+
+    offerStepIsCompleted?: boolean
+    offerStepIsProceedToNext?: boolean
+    offerStepShouldPerfomerConfirmView?: boolean
+
+    offerStepCreatedAt?: DateTime | string
+    offerStepCreatorId?: number
+    offerStepCreator?: IUser
 }
 
 export interface IRecord {
@@ -104,6 +115,19 @@ export interface IRecord {
     shouldPerfomerConfirmViewing: boolean
     isViewingConfirmedByPerfomer: boolean
     perfomerViewingDate: string
+}
+
+export type FieldsToSend = StepType & {
+    order?: IOrder
+}
+
+export type FormCheckType = ({ showMessage }: { showMessage: boolean }) => void
+
+export interface ISendCheckboxes {
+    nextCheckbox: boolean
+    prevCheckbox: boolean
+    uncompleteCheckbox: boolean
+    confirmCheckbox: boolean
 }
 
 export interface ITodo {
@@ -138,7 +162,7 @@ export type CreateBefaringStepReqData = {
     comment?: string
     userId?: number
     orderId: number
-    formStepId: number
+    // formStepId: number
 }
 
 export interface IgetUserRes {
@@ -157,4 +181,9 @@ export interface IServerControllerError {
 
 export interface IWithOrder {
     order?: IOrder
+    isVisible?: boolean
+}
+
+export interface ISendButtonsOutputRef {
+    getResults: Function
 }

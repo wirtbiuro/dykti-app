@@ -1,49 +1,94 @@
-import React, { useRef, FC, useEffect } from 'react'
-import { IFormStep } from '../../types'
-import { Names } from '../CreateForm'
+import React, { useRef, FC, useEffect, RefObject } from 'react'
+import { IOutputRef } from '../../types'
+import { showErrorFormModal } from '../../utilities'
+import { Modal } from 'antd'
 
 interface IFormInputProps<T = string> {
-    type?: string
-    name: T
+    type?: 'text' | 'checkbox'
+    name?: T
     placeholder?: string
-    setErr?: (el: HTMLDivElement | null) => void
     children?: JSX.Element
+    dataRef?: RefObject<IOutputRef>
+    checkFn?: Function
+    onErrorOk?: Function
     defaultValue?: string
+    defaultChecked?: boolean
 }
 
-const FormInput: FC<IFormInputProps> = ({
+function FormInput<T extends string>({
     type = 'text',
+    children,
     name,
     placeholder,
-    setErr,
-    children,
     defaultValue,
-}) => {
+    defaultChecked,
+    dataRef,
+    checkFn = (value: string | boolean) => {
+        if (typeof value === 'string') {
+            return value !== ''
+        }
+        if (typeof value === 'boolean') {
+            return value !== true
+        }
+    },
+    onErrorOk,
+}: IFormInputProps<T>) {
     const errRef = useRef<HTMLDivElement>(null)
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    const getValue = () => {
+        return inputRef.current?.type === 'text'
+            ? inputRef.current?.value
+            : inputRef.current?.checked
+    }
+
+    const check = () => {
+        return inputRef.current?.type === 'text'
+            ? checkFn(inputRef.current?.value)
+            : checkFn(inputRef.current?.checked)
+    }
+
+    const showError = () => {
+        showErrorFormModal({
+            element: inputRef.current as HTMLInputElement,
+            errElement: errRef.current as HTMLDivElement,
+            modal: Modal,
+            onOk: onErrorOk,
+        })
+    }
+
+    const onChange = () => {
+        errRef.current!.innerHTML = ''
+    }
+
+    const getErrTitleElement = () => {
+        return errRef.current
+    }
 
     useEffect(() => {
-        if (setErr) {
-            setErr(errRef.current)
+        if (dataRef) {
+            dataRef!.current!.check = check
+            dataRef!.current!.getValue = getValue
+            dataRef!.current!.showError = showError
+            dataRef!.current!.getErrTitleElement = getErrTitleElement
         }
-    }, [errRef.current])
+    }, [dataRef])
 
     return (
         <div className="withErr">
             <div className="formError" ref={errRef}></div>
-            {children ?? (
-                <input
-                    type={type}
-                    name={name}
-                    placeholder={placeholder}
-                    defaultValue={defaultValue}
-                />
-            )}
+            <input
+                ref={inputRef}
+                type={type}
+                name={name}
+                placeholder={placeholder}
+                defaultValue={defaultValue}
+                defaultChecked={defaultChecked}
+                onChange={onChange}
+            />
+            {children}
         </div>
     )
 }
-
-export const CreateFormFormInput: FC<IFormInputProps<Names>> = (props) => (
-    <FormInput {...props} />
-)
 
 export default FormInput

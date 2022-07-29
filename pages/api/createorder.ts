@@ -1,64 +1,62 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextApiRequest, NextApiResponse } from 'next'
-import { IFormStep, ApiBodyType } from '../../types'
+import { IFormStep, StepType, IOrder } from '../../types'
 import { PrismaClient } from '@prisma/client'
 import { withJwt } from '../../utilities'
+
+type ReqBodyType = {
+    order?: IOrder
+    userId?: number
+} & StepType
 
 async function createorder(req: NextApiRequest, res: NextApiResponse) {
     const prisma = new PrismaClient()
 
     try {
-        const {
-            address,
-            city,
-            clientName,
-            email,
-            meetingDate,
-            phone,
-            whereClientFound,
-            comment,
-            userId,
-            isCompleted,
-            shouldPerfomerConfirmViewing,
-            order,
-        } = req.body as ApiBodyType<IFormStep>
-
+        const { order, userId } = req.body as ReqBodyType
         console.log('req.body', req.body)
-        console.log('req.body.order', order?.steps[order.steps.length - 1])
+
+        let input = { ...req.body } as ReqBodyType
+        delete input.order
+        delete input.userId
+
+        //isCompleted field should be passed with every request. Due that field we can recognise current step.
+        if (input.formStepIsCompleted !== undefined) {
+            input.formStepCreatorId = userId
+        }
+        if (!order) {
+            input.formStepShouldPerfomerConfirmView = true
+        }
+        if (!order && input.formStepIsCompleted) {
+            input.formStepIsProceedToNext = true
+        }
+        if (input.beffaringStepIsCompleted !== undefined) {
+            input.beffaringStepCreatorId = userId
+        }
+
+        // let _data = {}
+        // let key: keyof typeof input
+        // for (key in input) {
+        //     if (input.hasOwnProperty(key)) {
+        //         const element = input[key];
+        //         _data = {..._data, element}
+        //     }
+        // }
 
         if (order) {
+            const step = {
+                ...order.steps[order.steps.length - 1],
+            } as StepType & { orderId?: number }
+            delete step.orderId
+            delete step.id
+            delete step.createdAt
             const _order = await prisma.order.update({
                 where: { id: order.id },
                 data: {
                     steps: {
                         create: {
-                            formStep: {
-                                create: {
-                                    address,
-                                    city,
-                                    clientName,
-                                    email,
-                                    phone,
-                                    whereClientFound,
-                                    meetingDate,
-                                    record: {
-                                        create: {
-                                            comment,
-                                            creatorId: userId,
-                                            isCompleted,
-                                            shouldPerfomerConfirmViewing,
-                                            isViewingConfirmedByPerfomer: false,
-                                        },
-                                    },
-                                },
-                            },
-                            befaringStep: {
-                                connect: {
-                                    id:
-                                        order.steps[order.steps.length - 1]
-                                            .befaringStep?.id,
-                                },
-                            },
+                            ...step,
+                            ...input,
                         },
                     },
                 },
@@ -72,31 +70,9 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
                 data: {
                     steps: {
                         create: {
-                            formStep: {
-                                create: {
-                                    address,
-                                    city,
-                                    clientName,
-                                    email,
-                                    meetingDate,
-                                    phone,
-                                    whereClientFound,
-                                    record: {
-                                        create: {
-                                            comment,
-                                            creatorId: userId,
-                                            isCompleted,
-                                            shouldPerfomerConfirmViewing,
-                                            isViewingConfirmedByPerfomer: false,
-                                        },
-                                    },
-                                },
-                            },
+                            ...input,
                         },
                     },
-                    isFormStepCompleted: isCompleted,
-                    isBefaringStepCompleted: false,
-                    isOfferStepCompleted: false,
                 },
             })
 

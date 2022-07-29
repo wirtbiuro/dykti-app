@@ -1,34 +1,56 @@
-import React, { FC } from 'react'
-import { IStep } from '../types'
+import React, { FC, useEffect, useState } from 'react'
+import { StepType } from '../types'
 import { StepComponentStyled } from '../styles/styled-components'
 import { DateTime } from 'luxon'
 
 type StepProps = {
-    step: IStep
+    step: StepType
+    prevStep?: StepType
 }
 
-function Step({ step }: StepProps) {
-    return (
+function Step({ step, prevStep }: StepProps) {
+    const [changes, setChanges] = useState<Array<string>>()
+
+    useEffect(() => {
+        const changes = []
+        let key: keyof typeof step
+        for (key in step) {
+            if (step.hasOwnProperty(key)) {
+                if (prevStep && step[key] !== prevStep[key]) {
+                    changes.push(`${prevStep[key]} --> ${step[key]}`)
+                }
+            }
+        }
+        setChanges(changes)
+    }, [])
+
+    return prevStep ? (
+        <StepComponentStyled>{changes?.join(',  ')}</StepComponentStyled>
+    ) : (
         <StepComponentStyled>
-            {step.formStep && (
+            <div className="prop">
+                <p className="description">id:</p>
+                <p className="value">{step.id} </p>
+            </div>
+            {step.formStepClientName && (
                 <div className="prop">
                     <p className="description">Dane klienta:</p>
                     <p className="value">
-                        {step.formStep.clientName} {step.formStep.email}{' '}
-                        {step.formStep.phone}
+                        {step.formStepClientName} {step.formStepEmail}{' '}
+                        {step.formStepPhone}
                     </p>
                 </div>
             )}
-            {step.formStep?.whereClientFound && (
+            {step.formStepWhereClientFound && (
                 <div className="prop">
                     <p className="description">Skąd znaleziono klienta: </p>
-                    <p className="value">{step.formStep?.whereClientFound}</p>
+                    <p className="value">{step.formStepWhereClientFound}</p>
                 </div>
             )}
-            {step.formStep?.record.comment && (
+            {step.formStepComment && (
                 <div className="prop">
                     <p className="description">Komentarz:</p>
-                    <p className="value">{step.formStep.record.comment}</p>
+                    <p className="value">{step.formStepComment}</p>
                 </div>
             )}
             {/* {step.formStep.record.createdAt && (
@@ -37,40 +59,41 @@ function Step({ step }: StepProps) {
                     <p className="value">{step.formStep.record.createdAt}</p>
                 </div>
             )} */}
-            {step.formStep?.record.creator && (
+            {step.formStepCreator && (
                 <div className="prop">
                     <p className="description">Stworzone przez:</p>
-                    <p className="value">
-                        {step.formStep.record.creator.username}
-                    </p>
+                    <p className="value">{step.formStepCreator.username}</p>
                 </div>
             )}
-            {step.formStep?.record.perfomerViewingDate && (
+            {step.beffaringStepPrevStepConfirmationDate && (
                 <div className="prop">
                     <p className="description">Przyjęty do realizacji:</p>
                     <p className="value">
-                        {step.formStep.record.perfomerViewingDate}
+                        {step.beffaringStepPrevStepConfirmationDate as string}
                     </p>
                 </div>
             )}
-            {step.formStep?.record.perfomer && (
+            {step.beffaringStepCreator && (
                 <div className="prop">
                     <p className="description">Kto przyjął:</p>
                     <p className="value">
-                        {step.formStep.record.perfomer.username}
+                        {step.beffaringStepCreator.username}
                     </p>
                 </div>
             )}
-            {step.befaringStep?.infoSendingDate && (
+            {step.beffaringStepInfoSendingDate && (
                 <div className="prop">
                     <p className="description">Data wysłania dokumentów:</p>
+                    <p className="value">
+                        {step.beffaringStepInfoSendingDate as string}
+                    </p>
                 </div>
             )}
-            {step.formStep.meetingDate && (
+            {step.formStepMeetingDate && (
                 <div className="prop">
                     <p className="description">Termin spotkania:</p>
                     <p className="value">
-                        {step.formStep.meetingDate as string}
+                        {step.formStepMeetingDate as string}
                     </p>
                 </div>
             )}

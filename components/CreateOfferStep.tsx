@@ -1,31 +1,21 @@
 import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
 import { FormStyled, CreateFormStyled } from '../styles/styled-components'
 import {
-    IOrder,
     WithValueNFocus,
-    PropNames,
     IWithOrder,
-    StepType,
     IOutputRef,
     ISendButtonsOutputRef,
     FormCheckType,
+    ISendCheckboxes,
+    FieldsToSend,
 } from '../types'
 import { useCreateOrderMutation } from '../state/apiSlice'
 import FormInput from './UI/FormInput'
 import CalendarWithTime from './CalendarWithTime'
 import SendButtons from './UI/SendButtons'
-import { getOrderStatus } from '../utilities'
+import { getOrderStatus, submitForm, initOutputRef } from '../utilities'
 
-interface AuxFields {
-    nextCheckbox: boolean
-    prevCheckbox: boolean
-    uncompleteCheckbox: boolean
-    confirmCheckbox: boolean
-}
-type FieldsToSend = StepType & {
-    order?: IOrder
-}
-type FormType = WithValueNFocus<AuxFields>
+type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
 const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
@@ -35,35 +25,10 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
 
     const prevStep = order?.steps[order.steps.length - 1]
 
-    const areDocsGoodDataRef = useRef<IOutputRef>({
-        check: () => {},
-        getValue: () => {},
-        showError: () => {},
-        getErrTitleElement: () => {},
-    })
-
-    const befCommentsRef = useRef<IOutputRef>({
-        check: () => {},
-        getValue: () => {},
-        showError: () => {},
-        getErrTitleElement: () => {},
-    })
-
-    const commentDataRef = useRef<IOutputRef>({
-        check: () => {},
-        getValue: () => {},
-        showError: () => {},
-        getErrTitleElement: () => {},
-    })
-
-    const offerDateOutputRef = useRef<IOutputRef>({
-        check: () => {},
-        getValue: () => {},
-        showError: () => {
-            console.log('default offerDateOutputRef')
-        },
-        getErrTitleElement: () => {},
-    })
+    const areDocsGoodDataRef = useRef<IOutputRef>(initOutputRef())
+    const befCommentsRef = useRef<IOutputRef>(initOutputRef())
+    const commentDataRef = useRef<IOutputRef>(initOutputRef())
+    const offerDateOutputRef = useRef<IOutputRef>(initOutputRef())
 
     const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
         getResults: () => {},
@@ -77,17 +42,6 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
             ? prevStep?.offerStepAreBefDocsGood
             : true
     )
-
-    const {
-        isCurrent,
-        isEdit,
-        isProceedToNext,
-        isProceedToEdit,
-    } = getOrderStatus({
-        curStepName: 'offerStep',
-        prevStepName: 'beffaringStep',
-        step: prevStep,
-    })
 
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
@@ -124,84 +78,39 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault()
         const target = e.target as typeof e.target & FormType
-        areDocsGood ? submitToNext(target) : submitToPrev(target)
-    }
-
-    const submitToNext = async (
-        target: EventTarget & WithValueNFocus<AuxFields>
-    ) => {
-        console.log('submit to next')
-        if (
-            (isCurrent || isEdit) &&
-            target.nextCheckbox.checked &&
-            !isFormChecked
-        ) {
-            return formCheck({ showMessage: true })
-        }
-
-        if (
-            (isProceedToNext || isProceedToEdit) &&
-            !target.uncompleteCheckbox?.checked &&
-            !isFormChecked
-        ) {
-            return formCheck({ showMessage: true })
-        }
-
-        console.log('Submit Form')
-
         const _createOrder = createOrder as (data: FieldsToSend) => void
 
-        const data: FieldsToSend = {
-            order,
-            offerStepAreBefDocsGood: true,
-            offerStepOfferDate:
-                offerDateOutputRef.current.check() === true
-                    ? offerDateOutputRef.current.getValue()
-                    : null,
-            offerStepComment: commentDataRef.current.getValue(),
-            offerStepBefComments: null,
-            ...sendButtonsOutputRef.current.getResults(),
-        }
-
-        console.log({ data })
-        _createOrder(data)
-    }
-
-    const submitToPrev = async (
-        target: EventTarget & WithValueNFocus<AuxFields>
-    ) => {
-        console.log('submit to prev')
-        if (
-            (isCurrent || isEdit) &&
-            target.prevCheckbox.checked &&
-            !isPrevFormChecked
-        ) {
-            return prevFormCheck({ showMessage: true })
-        }
-
-        if (
-            (isProceedToNext || isProceedToEdit) &&
-            !target.uncompleteCheckbox?.checked &&
-            !isPrevFormChecked
-        ) {
-            return prevFormCheck({ showMessage: true })
-        }
-
-        console.log('Submit Form to prev')
-
-        const _createOrder = createOrder as (data: FieldsToSend) => void
-
-        const data: FieldsToSend = {
-            order,
-            offerStepAreBefDocsGood: false,
-            offerStepOfferDate: null,
-            offerStepComment: null,
-            offerStepBefComments: befCommentsRef.current.getValue(),
-            ...sendButtonsOutputRef.current.getResults(),
-        }
-
-        console.log({ data })
-        _createOrder(data)
+        submitForm({
+            target,
+            isMainCondition: areDocsGood,
+            curStepName: 'offerStep',
+            prevStepName: 'beffaringStep',
+            step: prevStep!,
+            formCheck,
+            prevFormCheck,
+            isPrevFormChecked,
+            isFormChecked,
+            toPrevSendData: {
+                order,
+                offerStepAreBefDocsGood: false,
+                offerStepOfferDate: null,
+                offerStepComment: null,
+                offerStepBefComments: befCommentsRef.current.getValue(),
+                ...sendButtonsOutputRef.current.getResults(),
+            },
+            toNextSendData: {
+                order,
+                offerStepAreBefDocsGood: true,
+                offerStepOfferDate:
+                    offerDateOutputRef.current.check() === true
+                        ? offerDateOutputRef.current.getValue()
+                        : null,
+                offerStepComment: commentDataRef.current.getValue(),
+                offerStepBefComments: null,
+                ...sendButtonsOutputRef.current.getResults(),
+            },
+            createOrder: _createOrder,
+        })
     }
 
     return (
