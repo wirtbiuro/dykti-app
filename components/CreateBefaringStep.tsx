@@ -8,11 +8,16 @@ import {
     StepType,
     IOutputRef,
     ISendButtonsOutputRef,
+    FormCheckType,
+    ISendCheckboxes,
 } from '../types'
 import { useCreateOrderMutation } from '../state/apiSlice'
 import FormInput from './UI/FormInput'
 import CalendarWithTime from './CalendarWithTime'
 import SendButtons from './UI/SendButtons'
+import { initOutputRef, submitForm } from '../utilities'
+import { DateTime } from 'luxon'
+import { flushSync } from 'react-dom'
 
 interface AuxFields {
     uncompleteSave: boolean
@@ -21,7 +26,7 @@ type FormFields = StepType & AuxFields
 type FieldsToSend = StepType & {
     order?: IOrder
 }
-type FormType = WithValueNFocus<FormFields>
+type FormType = WithValueNFocus<ISendCheckboxes>
 type Names = PropNames<FormFields>
 type FormElement = HTMLFormElement & FormType
 
@@ -32,52 +37,37 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
 
     const prevStep = order?.steps[order.steps.length - 1]
 
-    const commentDataRef = useRef<IOutputRef>({
-        check: () => {},
-        getValue: () => {},
-        showError: () => {},
-        getErrTitleElement: () => {},
-    })
-
-    const meetingDateOutputRef = useRef<IOutputRef>({
-        check: () => {},
-        getValue: () => {},
-        showError: () => {},
-        getErrTitleElement: () => {},
-    })
-
-    const docsSendDateOutputRef = useRef<IOutputRef>({
-        check: () => {},
-        getValue: () => {},
-        showError: () => {},
-        getErrTitleElement: () => {},
-    })
-
-    const offerDateOutputRef = useRef<IOutputRef>({
-        check: () => {},
-        getValue: () => {},
-        showError: () => {},
-        getErrTitleElement: () => {},
-    })
+    const commentDataRef = useRef<IOutputRef>(initOutputRef())
+    const meetingDateOutputRef = useRef<IOutputRef>(initOutputRef())
+    const docsSendDateOutputRef = useRef<IOutputRef>(initOutputRef())
+    const offerDateOutputRef = useRef<IOutputRef>(initOutputRef())
+    const wasThereMeetingRef = useRef<IOutputRef>(initOutputRef())
+    const wasMeetingCheckboxName = 'wasMeetingCheckbox'
 
     const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
         getResults: () => {},
     })
 
+    const prevStepMeetingStringDate = prevStep?.formStepMeetingDate as string
+    const prevMeetingDateValueRef = useRef<DateTime>(
+        DateTime.fromISO(prevStepMeetingStringDate)
+    )
+
     const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
+    const [wasThereMeeting, setWasThereMeeting] = useState<boolean>(false)
+    const [isMeetingDateChecked, setIsMeetingDateChecked] = useState<boolean>(
+        false
+    )
 
-    const formCheck: (showMessage?: boolean) => void = (
-        showMessage = false
-    ) => {
+    const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
-
-        // if (!formInputOutputRef.current?.check()) {
-        //     showMessage ? formInputOutputRef.current?.showError() : null
-        //     return setIsFormChecked(false)
-        // }
 
         if (!meetingDateOutputRef.current?.check()) {
             showMessage ? meetingDateOutputRef.current?.showError() : null
+            return setIsFormChecked(false)
+        }
+        if (!wasThereMeetingRef.current?.check()) {
+            showMessage ? wasThereMeetingRef.current?.showError() : null
             return setIsFormChecked(false)
         }
         if (!docsSendDateOutputRef.current?.check()) {
@@ -95,70 +85,76 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
     }
 
     const formChanged = (e: SyntheticEvent<HTMLFormElement>) => {
-        formCheck(false)
+        console.log(
+            'form changed wasThereMeetingRef.current.getValue()',
+            wasThereMeetingRef.current.getValue()
+        )
+        console.log({ prevStep })
+        console.log(
+            'prevStep?.beffaringStepWasThereMeeting',
+            prevStep?.beffaringStepWasThereMeeting
+        )
+        if (
+            !wasThereMeetingRef.current.getValue() &&
+            prevStep?.beffaringStepWasThereMeeting
+        ) {
+            setWasThereMeeting(prevStep?.beffaringStepWasThereMeeting)
+        }
+        setIsMeetingDateChecked(meetingDateOutputRef.current.check())
+
+        if (e) {
+            flushSync(() => {
+                setWasThereMeeting(wasThereMeetingRef.current.getValue())
+                setIsMeetingDateChecked(meetingDateOutputRef.current.check())
+            })
+
+            const target = e.target as typeof e.target & HTMLInputElement
+            console.log({ targetName: target.name })
+            if (
+                target.name === wasMeetingCheckboxName &&
+                meetingDateOutputRef.current.check()
+            ) {
+                console.log('set default offer date')
+                const meetingDate = meetingDateOutputRef.current.getValue() as DateTime
+                console.log({ meetingDate })
+                offerDateOutputRef.current.setValue(
+                    meetingDate?.endOf('day').plus({ days: 7 })
+                )
+                console.log('offerDate', offerDateOutputRef.current)
+            }
+        }
+        formCheck({ showMessage: false })
     }
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault()
-
-        console.log('submit')
-
         const target = e.target as typeof e.target & FormType
-
-        if (
-            (target.uncompleteSave &&
-                !target.uncompleteSave?.checked &&
-                !isFormChecked) ||
-            (target.beffaringStepIsCompleted &&
-                target.beffaringStepIsCompleted?.checked &&
-                !isFormChecked)
-        )
-            return formCheck(true)
-
-        console.log('Submit Form')
-
         const _createOrder = createOrder as (data: FieldsToSend) => void
 
-        console.log('meeting date', meetingDateOutputRef.current.getValue())
-
-        const data: FieldsToSend = {
-            beffaringStepComment: commentDataRef.current.getValue(),
-
-            ...sendButtonsOutputRef.current.getResults(),
-
-            // beffaringStepIsCompleted: !order?.steps[order.steps.length - 1]
-            //     .beffaringStepIsProceedToNext
-            //     ? target.beffaringStepIsCompleted?.checked
-            //     : isFormChecked,
-            // beffaringStepShouldPerfomerConfirmView: order?.steps[
-            //     order.steps.length - 1
-            // ].beffaringStepIsProceedToNext
-            //     ? target.beffaringStepShouldPerfomerConfirmView?.checked
-            //     : true,
-
-            formStepMeetingDate: meetingDateOutputRef.current.check()
-                ? meetingDateOutputRef.current.getValue()
-                : null,
-
-            beffaringStepDocsSendDate: docsSendDateOutputRef.current.check()
-                ? docsSendDateOutputRef.current.getValue()
-                : null,
-
-            beffaringStepOfferDate: offerDateOutputRef.current.check()
-                ? offerDateOutputRef.current.getValue()
-                : null,
-
-            // beffaringStepIsProceedToNext:
-            //     !order?.steps[order.steps.length - 1]
-            //         .beffaringStepIsProceedToNext ??
-            //     target.beffaringStepIsCompleted?.checked,
-
-            order,
-        }
-
-        console.log({ data })
-
-        _createOrder(data)
+        submitForm({
+            target,
+            isMainCondition: true,
+            curStepName: 'beffaringStep',
+            prevStepName: 'formStep',
+            step: prevStep!,
+            formCheck,
+            isFormChecked,
+            toNextSendData: {
+                order,
+                formStepMeetingDate: meetingDateOutputRef.current.check()
+                    ? meetingDateOutputRef.current.getValue()
+                    : null,
+                beffaringStepWasThereMeeting: wasThereMeetingRef.current.getValue(),
+                beffaringStepDocsSendDate: docsSendDateOutputRef.current.check()
+                    ? docsSendDateOutputRef.current.getValue()
+                    : null,
+                beffaringStepOfferDate: offerDateOutputRef.current.check()
+                    ? offerDateOutputRef.current.getValue()
+                    : null,
+                ...sendButtonsOutputRef.current.getResults(),
+            },
+            createOrder: _createOrder,
+        })
     }
 
     return (
@@ -175,29 +171,56 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                         <CalendarWithTime
                             defaultDate={order && prevStep?.formStepMeetingDate}
                             dataRef={meetingDateOutputRef}
+                            formChanged={formChanged}
                         />
+                        {isMeetingDateChecked && (
+                            <FormInput
+                                type="checkbox"
+                                dataRef={wasThereMeetingRef}
+                                defaultChecked={
+                                    typeof prevStep?.beffaringStepWasThereMeeting ===
+                                    'boolean'
+                                        ? prevStep?.beffaringStepWasThereMeeting
+                                        : false
+                                }
+                                name={wasMeetingCheckboxName}
+                                checkFn={(value: boolean) => value}
+                            >
+                                <>Czy było spotkanie?</>
+                            </FormInput>
+                        )}
 
-                        <br />
-                        <br />
-                        <p>Data wysłania dokumentów, zdjęć: </p>
+                        {wasThereMeeting && isMeetingDateChecked && (
+                            <>
+                                <br />
+                                <br />
+                                <p>Data wysłania dokumentów, zdjęć: </p>
 
-                        <CalendarWithTime
-                            defaultDate={
-                                order && prevStep?.beffaringStepDocsSendDate
-                            }
-                            dataRef={docsSendDateOutputRef}
-                        />
+                                <CalendarWithTime
+                                    defaultDate={
+                                        order &&
+                                        prevStep?.beffaringStepDocsSendDate
+                                    }
+                                    dataRef={docsSendDateOutputRef}
+                                    isTimeEnabled={false}
+                                    formChanged={formChanged}
+                                />
 
-                        <br />
-                        <br />
-                        <p>Kiedy należy przygotować ofertę?</p>
+                                <br />
+                                <br />
+                                <p>Kiedy należy przygotować ofertę?</p>
 
-                        <CalendarWithTime
-                            defaultDate={
-                                order && prevStep?.beffaringStepOfferDate
-                            }
-                            dataRef={offerDateOutputRef}
-                        />
+                                <CalendarWithTime
+                                    defaultDate={
+                                        order &&
+                                        prevStep?.beffaringStepOfferDate
+                                    }
+                                    dataRef={offerDateOutputRef}
+                                    isTimeEnabled={false}
+                                    formChanged={formChanged}
+                                />
+                            </>
+                        )}
 
                         <p>Komentarz: </p>
                         <FormInput
@@ -218,45 +241,6 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                             formCheck={formCheck}
                         />
 
-                        {/* {!order?.steps[order.steps.length - 1]
-                            .beffaringStepIsProceedToNext && (
-                            <>
-                                <input
-                                    type="checkbox"
-                                    name="beffaringStepIsCompleted"
-                                    defaultChecked={true}
-                                />
-                                Skończ i przekaż dalej
-                            </>
-                        )}
-                        {order?.steps[order.steps.length - 1]
-                            .beffaringStepIsProceedToNext &&
-                            !isFormChecked && (
-                                <FormInput<Names> name="uncompleteSave">
-                                    <>
-                                        <input
-                                            type="checkbox"
-                                            name="uncompleteSave"
-                                            defaultChecked={false}
-                                        />
-                                        Zapisz z niekompletnymi danymi.
-                                    </>
-                                </FormInput>
-                            )}
-                        {order?.steps[order.steps.length - 1]
-                            .beffaringStepIsProceedToNext && (
-                            <FormInput name="formStepShouldPerfomerConfirmView">
-                                <>
-                                    <input
-                                        type="checkbox"
-                                        name="beffaringStepShouldPerfomerConfirmView"
-                                        defaultChecked={false}
-                                    />
-                                    Czy następny użytkownik musi potwierdzić
-                                    przeglądanie zmiany.
-                                </>
-                            </FormInput>
-                        )} */}
                         <input type="submit" value="Zapisz" />
                     </form>
                 </FormStyled>

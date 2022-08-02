@@ -70,6 +70,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
     }
 
     const formChanged = (e: SyntheticEvent<HTMLFormElement>) => {
+        console.log('formChanged')
         setAreDocsGood(areDocsGoodDataRef.current.getValue()) //Check the main condition
         formCheck({ showMessage: false })
         prevFormCheck({ showMessage: false })
@@ -154,6 +155,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                                         order && prevStep?.offerStepOfferDate
                                     }
                                     dataRef={offerDateOutputRef}
+                                    isTimeEnabled={true}
+                                    formChanged={formChanged}
                                 />
                                 <br />
                                 <br />

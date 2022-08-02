@@ -63,6 +63,21 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
                       offerStepIsProceedToNext: true,
                   },
               },
+        ContractCreator: isCompleted
+            ? {
+                  some: {
+                      contractStepIsProceedToNext: true,
+                  },
+              }
+            : {
+                  some: {
+                      offerStepIsProceedToNext: true,
+                  },
+                  none: {
+                      offerStepIsProceedToNext: true,
+                      contractStepIsProceedToNext: true,
+                  },
+              },
     }
 
     try {

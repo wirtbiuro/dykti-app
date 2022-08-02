@@ -5,11 +5,13 @@ import { IQuery, IUser } from '../types'
 import BefaringPanel from './BefaringPanel'
 import CreatorFormPanel from './CreatorFormPanel'
 import OfferCreatorPanel from './OfferCreatorPanel'
+import ContractCreatorPanel from './ContractCreatorPanel'
 
 const roleStrategy = {
     FormCreator: <CreatorFormPanel />,
     BefaringUser: <BefaringPanel />,
     OfferCreator: <OfferCreatorPanel />,
+    ContractCreator: <ContractCreatorPanel />,
 }
 
 const Main = () => {

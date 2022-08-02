@@ -21,6 +21,7 @@ interface ICalendarWithHours<T> {
     minutesName: T
     isVisibleHook: [boolean, React.Dispatch<React.SetStateAction<boolean>>]
     currentDateRef: React.MutableRefObject<string>
+    isTimeEnabled?: boolean
 }
 
 function CalendarWithHours<T extends string>({
@@ -32,6 +33,7 @@ function CalendarWithHours<T extends string>({
     minutesName,
     isVisibleHook,
     currentDateRef,
+    isTimeEnabled = true,
 }: ICalendarWithHours<T>) {
     const _defaultDate = useMemo(() => {
         return defaultDate ? DateTime.fromISO(defaultDate as string) : null
@@ -103,13 +105,16 @@ function CalendarWithHours<T extends string>({
         }
     }
 
-    const isDate =
-        (selectedDate &&
-            hoursRef.current?.value !== 'hh' &&
-            minutesRef.current?.value !== 'mm') ||
-        (defaultDate && isFirstLoad)
+    const isDate = isTimeEnabled
+        ? (selectedDate &&
+              hoursRef.current?.value !== 'hh' &&
+              minutesRef.current?.value !== 'mm') ||
+          (defaultDate && isFirstLoad)
+        : defaultDate && isFirstLoad
 
-    const currentDate = isDate ? selectedDate.toISO() : 'DD:MM:YYYY hh:mm'
+    const currentDate = isDate
+        ? selectedDate.toISO()
+        : `DD:MM:YYYY${isTimeEnabled ? ` hh:mm` : ''}`
 
     currentDateRef.current = currentDate
 
@@ -124,50 +129,52 @@ function CalendarWithHours<T extends string>({
                     selectedDate={selectedDate}
                     setSelectedDate={setSelectedDate}
                 />
-                <FormInput
-                    name="hoursAndMinutes"
-                    // setErr={setHoursErr}
-                >
-                    <>
-                        <select
-                            name={hoursName}
-                            onChange={changeTime}
-                            ref={hoursRef}
-                            value={isHours ? selectedDate.hour : 'hh'}
-                        >
-                            <option>hh</option>
-                            <option value={7}>07</option>
-                            <option value={8}>08</option>
-                            <option value={9}>09</option>
-                            <option value={10}>10</option>
-                            <option value={11}>11</option>
-                            <option value={12}>12</option>
-                            <option value={13}>13</option>
-                            <option value={14}>14</option>
-                            <option value={15}>15</option>
-                            <option value={16}>16</option>
-                            <option value={17}>17</option>
-                            <option value={18}>18</option>
-                            <option value={19}>19</option>
-                            <option value={20}>20</option>
-                            <option value={21}>21</option>
-                        </select>
-                        <select
-                            name={minutesName}
-                            onChange={changeTime}
-                            ref={minutesRef}
-                            value={isMinutes ? selectedDate.minute : 'mm'}
-                        >
-                            <option>mm</option>
-                            <option value={0}>00</option>
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={30}>30</option>
-                            <option value={40}>40</option>
-                            <option value={50}>50</option>
-                        </select>
-                    </>
-                </FormInput>
+                {isTimeEnabled && (
+                    <FormInput
+                        name="hoursAndMinutes"
+                        // setErr={setHoursErr}
+                    >
+                        <>
+                            <select
+                                name={hoursName}
+                                onChange={changeTime}
+                                ref={hoursRef}
+                                value={isHours ? selectedDate.hour : 'hh'}
+                            >
+                                <option>hh</option>
+                                <option value={7}>07</option>
+                                <option value={8}>08</option>
+                                <option value={9}>09</option>
+                                <option value={10}>10</option>
+                                <option value={11}>11</option>
+                                <option value={12}>12</option>
+                                <option value={13}>13</option>
+                                <option value={14}>14</option>
+                                <option value={15}>15</option>
+                                <option value={16}>16</option>
+                                <option value={17}>17</option>
+                                <option value={18}>18</option>
+                                <option value={19}>19</option>
+                                <option value={20}>20</option>
+                                <option value={21}>21</option>
+                            </select>
+                            <select
+                                name={minutesName}
+                                onChange={changeTime}
+                                ref={minutesRef}
+                                value={isMinutes ? selectedDate.minute : 'mm'}
+                            >
+                                <option>mm</option>
+                                <option value={0}>00</option>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={30}>30</option>
+                                <option value={40}>40</option>
+                                <option value={50}>50</option>
+                            </select>
+                        </>
+                    </FormInput>
+                )}
             </div>
         </>
     )

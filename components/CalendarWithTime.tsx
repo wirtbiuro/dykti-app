@@ -16,9 +16,16 @@ import { IOutputRef } from '../types'
 interface ICalendarWithTime {
     defaultDate?: string | DateTime | undefined
     dataRef?: RefObject<IOutputRef>
+    isTimeEnabled?: boolean
+    formChanged?: Function
 }
 
-function CalendarWithTime({ defaultDate, dataRef }: ICalendarWithTime) {
+function CalendarWithTime({
+    defaultDate,
+    dataRef,
+    isTimeEnabled = true,
+    formChanged = () => {},
+}: ICalendarWithTime) {
     const _defaultDate = useMemo(() => {
         return defaultDate ? DateTime.fromISO(defaultDate as string) : false
     }, [])
@@ -29,6 +36,27 @@ function CalendarWithTime({ defaultDate, dataRef }: ICalendarWithTime) {
     const [isHours, setIsHours] = useState(_defaultDate ? true : false)
     const [isFirstLoad, setIsFirstLoad] = useState(true)
 
+    // const [isReset, setIsReset] = useState(!_defaultDate && isFirstLoad)
+    const [isReset, setIsReset] = useState(!_defaultDate)
+    const isResetRef = useRef<boolean>()
+    useEffect(() => {
+        console.log('isReset useEffect')
+        console.log('hoursRef.current?.value', hoursRef.current?.value)
+        if (isTimeEnabled && isReset) {
+            console.log('hoursRef.current?.value')
+            hoursRef.current!.value = 'hh'
+            minutesRef.current!.value = 'mm'
+            setIsHours(false)
+            setIsMinutes(false)
+            console.log('hoursRef.current?.value', hoursRef.current?.value)
+        }
+        isResetRef.current = isReset
+        formChanged()
+        console.log('isReset useEffect after formChanged')
+        console.log('hoursRef.current?.value', hoursRef.current?.value)
+        // setUpdatePage(!updatePage)
+    }, [isReset])
+
     const selectedDateRef = useRef<DateTime>(selectedDate)
 
     useEffect(() => {
@@ -38,7 +66,17 @@ function CalendarWithTime({ defaultDate, dataRef }: ICalendarWithTime) {
     }, [_defaultDate])
 
     useEffect(() => {
+        console.log('selected Date changed')
         selectedDateRef.current = selectedDate
+        console.log('not first load', !isFirstLoad)
+        if (!isFirstLoad) {
+            setIsReset(false)
+            // setIsFirstLoad(false)
+        }
+        if (isFirstLoad) {
+            setIsFirstLoad(false)
+        }
+        formChanged()
     }, [selectedDate])
 
     const hoursRef = useRef<HTMLSelectElement>(null)
@@ -47,6 +85,7 @@ function CalendarWithTime({ defaultDate, dataRef }: ICalendarWithTime) {
     console.log(hoursRef.current)
 
     const clicked = (e: SyntheticEvent<HTMLButtonElement>) => {
+        console.log('clicked')
         e.preventDefault()
         setIsVisible(!isVisible)
         setIsFirstLoad(false)
@@ -97,19 +136,26 @@ function CalendarWithTime({ defaultDate, dataRef }: ICalendarWithTime) {
         }
     }
 
+    console.log('hoursRef.current?.value', hoursRef.current?.value)
+
     const isDate =
         (selectedDate &&
             hoursRef.current?.value !== 'hh' &&
             minutesRef.current?.value !== 'mm') ||
-        (_defaultDate && isFirstLoad)
+        // (_defaultDate && isFirstLoad && !isReset)
+        (_defaultDate && !isReset)
 
-    const currentDate = isDate ? selectedDate?.toISO() : 'DD:MM:YYYY hh:mm'
+    const timeEnabledCurrentDate = isDate
+        ? selectedDate.toISO()
+        : `DD:MM:YYYY hh:mm`
 
-    console.log({ _defaultDate })
-    console.log({ selectedDate })
-    console.log({ isMinutes })
-    console.log({ isDate })
-    console.log({ isFirstLoad })
+    const NoTimeEnabledCurrentDate = isReset
+        ? `DD:MM:YYYY`
+        : selectedDate.toISO()
+
+    const currentDate = isTimeEnabled
+        ? timeEnabledCurrentDate
+        : NoTimeEnabledCurrentDate
 
     const errRef = useRef<HTMLDivElement>(null)
 
@@ -117,11 +163,23 @@ function CalendarWithTime({ defaultDate, dataRef }: ICalendarWithTime) {
         return selectedDateRef.current
     }
 
+    const setValue = (date: DateTime) => {
+        setSelectedDate(date)
+        setIsReset(false)
+    }
+
     const check = () => {
-        return (
-            hoursRef.current?.value !== 'hh' &&
-            minutesRef.current?.value !== 'mm'
-        )
+        if (isTimeEnabled) {
+            console.log('check after reset')
+            console.log('hoursRef.current?.value', hoursRef.current?.value)
+            return (
+                hoursRef.current?.value !== 'hh' &&
+                minutesRef.current?.value !== 'mm'
+            )
+        } else {
+            console.log('isReset', isResetRef.current)
+            return !isResetRef.current
+        }
     }
 
     const showError = () => {
@@ -135,10 +193,18 @@ function CalendarWithTime({ defaultDate, dataRef }: ICalendarWithTime) {
                 flushSync(() => {
                     setIsVisible(true)
                 })
+                // setIsReset(false)
                 hours?.value === 'hh' ? hours.focus() : minutes?.focus()
                 errRef.current!.innerHTML = 'określ czas'
             },
         })
+    }
+
+    const reset = (e: SyntheticEvent<HTMLButtonElement>) => {
+        e.preventDefault()
+        console.log('reset')
+        setIsReset(true)
+        setIsFirstLoad(false)
     }
 
     const getErrTitleElement = () => {
@@ -148,6 +214,7 @@ function CalendarWithTime({ defaultDate, dataRef }: ICalendarWithTime) {
     useEffect(() => {
         dataRef!.current!.check = check
         dataRef!.current!.getValue = getValue
+        dataRef!.current!.setValue = setValue
         dataRef!.current!.showError = showError
         dataRef!.current!.getErrTitleElement = getErrTitleElement
     }, [dataRef])
@@ -156,53 +223,60 @@ function CalendarWithTime({ defaultDate, dataRef }: ICalendarWithTime) {
         <>
             {currentDate}
             <button onClick={clicked}>
-                {isVisible ? 'Zamknij' : isDate ? 'Zmień datę' : 'Ustalić datę'}
+                {isVisible
+                    ? 'Zamknij'
+                    : isDate && !isReset
+                    ? 'Zmień datę'
+                    : 'Ustalić datę'}
             </button>
+            <button onClick={reset}>Resetowanie</button>
             <div style={{ display: isVisible ? 'block' : 'none' }}>
                 <Calendar
                     selectedDate={selectedDate}
                     setSelectedDate={setSelectedDate}
                 />
                 <div ref={errRef}></div>
-                <>
-                    <select
-                        name="hours"
-                        onChange={changeTime}
-                        ref={hoursRef}
-                        value={isHours ? selectedDate?.hour : 'hh'}
-                    >
-                        <option>hh</option>
-                        <option value={7}>07</option>
-                        <option value={8}>08</option>
-                        <option value={9}>09</option>
-                        <option value={10}>10</option>
-                        <option value={11}>11</option>
-                        <option value={12}>12</option>
-                        <option value={13}>13</option>
-                        <option value={14}>14</option>
-                        <option value={15}>15</option>
-                        <option value={16}>16</option>
-                        <option value={17}>17</option>
-                        <option value={18}>18</option>
-                        <option value={19}>19</option>
-                        <option value={20}>20</option>
-                        <option value={21}>21</option>
-                    </select>
-                    <select
-                        name="minutes"
-                        onChange={changeTime}
-                        ref={minutesRef}
-                        value={isMinutes ? selectedDate?.minute : 'mm'}
-                    >
-                        <option>mm</option>
-                        <option value={0}>00</option>
-                        <option value={10}>10</option>
-                        <option value={20}>20</option>
-                        <option value={30}>30</option>
-                        <option value={40}>40</option>
-                        <option value={50}>50</option>
-                    </select>
-                </>
+                {isTimeEnabled && (
+                    <>
+                        <select
+                            name="hours"
+                            onChange={changeTime}
+                            ref={hoursRef}
+                            value={isHours ? selectedDate?.hour : 'hh'}
+                        >
+                            <option>hh</option>
+                            <option value={7}>07</option>
+                            <option value={8}>08</option>
+                            <option value={9}>09</option>
+                            <option value={10}>10</option>
+                            <option value={11}>11</option>
+                            <option value={12}>12</option>
+                            <option value={13}>13</option>
+                            <option value={14}>14</option>
+                            <option value={15}>15</option>
+                            <option value={16}>16</option>
+                            <option value={17}>17</option>
+                            <option value={18}>18</option>
+                            <option value={19}>19</option>
+                            <option value={20}>20</option>
+                            <option value={21}>21</option>
+                        </select>
+                        <select
+                            name="minutes"
+                            onChange={changeTime}
+                            ref={minutesRef}
+                            value={isMinutes ? selectedDate?.minute : 'mm'}
+                        >
+                            <option>mm</option>
+                            <option value={0}>00</option>
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={30}>30</option>
+                            <option value={40}>40</option>
+                            <option value={50}>50</option>
+                        </select>
+                    </>
+                )}
             </div>
         </>
     )

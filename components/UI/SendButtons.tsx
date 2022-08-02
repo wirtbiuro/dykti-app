@@ -77,6 +77,7 @@ const SendButtons: FC<ISendButtons> = ({
     }, [dataRef])
 
     useEffect(() => {
+        console.log('send buttons form check')
         if (formCheck) {
             formCheck({ showMessage: false })
         }

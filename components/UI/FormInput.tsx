@@ -65,10 +65,17 @@ function FormInput<T extends string>({
         return errRef.current
     }
 
+    const setValue = (value: string | boolean) => {
+        typeof value === 'string'
+            ? (inputRef.current!.value = value)
+            : (inputRef.current!.checked = value)
+    }
+
     useEffect(() => {
         if (dataRef) {
             dataRef!.current!.check = check
             dataRef!.current!.getValue = getValue
+            dataRef!.current!.setValue = setValue
             dataRef!.current!.showError = showError
             dataRef!.current!.getErrTitleElement = getErrTitleElement
         }

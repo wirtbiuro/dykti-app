@@ -21,6 +21,7 @@ model User{
   createdFormSteps Step[] @relation("UserCreatedFormSteps")
   createdBefaringSteps Step[] @relation("UserCreatedBefaringSteps")
   createdOfferSteps Step[] @relation("UserCreatedOfferSteps")
+  createdContractSteps Step[] @relation("UserCreatedContractSteps")
 }
 
 model Refresh{
@@ -53,6 +54,7 @@ model Step{
 
   beffaringStepPrevStepConfirmationDate DateTime?
   beffaringStepCreatedAt DateTime?
+  beffaringStepWasThereMeeting Boolean?
   beffaringStepOfferDate DateTime?
   beffaringStepInfoSendingDate DateTime?
   beffaringStepCreatorId Int?
@@ -74,6 +76,20 @@ model Step{
   offerStepCreatedAt DateTime?
   offerStepCreatorId Int?
   offerStepCreator User? @relation("UserCreatedOfferSteps", fields: [offerStepCreatorId], references: [id])
+
+  contractStepPrevStepConfirmationDate DateTime?
+  contractStepOfferSendingDate DateTime?
+  contractStepAreOfferChanges Boolean?
+  contractStepOfferChangesComment String?
+  contractStepIsOfferAccepted Boolean?
+  contractStepContractDate DateTime?
+  contractStepOfferRejectionReason String?
+  contractStepIsCompleted Boolean?
+  contractStepIsProceedToNext Boolean?
+  contractStepShouldPerfomerConfirmView Boolean?
+  contractStepCreatedAt DateTime?
+  contractStepCreatorId Int?
+  contractStepCreator User? @relation("UserCreatedContractSteps", fields: [contractStepCreatorId], references: [id])
 
   orderId Int
   order Order? @relation(fields: [orderId], references: [id])

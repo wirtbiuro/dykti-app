@@ -164,10 +164,10 @@ interface ISubmitFormProps {
     prevStepName: StepName
     step: StepType
     formCheck: FormCheckType
-    prevFormCheck: FormCheckType
+    prevFormCheck?: FormCheckType
     isFormChecked: boolean
-    isPrevFormChecked: boolean
-    toPrevSendData: FieldsToSend
+    isPrevFormChecked?: boolean
+    toPrevSendData?: FieldsToSend
     toNextSendData: FieldsToSend
     createOrder: (data: FieldsToSend) => void
 }
@@ -183,10 +183,10 @@ export const submitForm: SubmitFormType = async ({
     prevStepName,
     step,
     toNextSendData,
-    toPrevSendData,
+    toPrevSendData = {},
     createOrder,
     isPrevFormChecked,
-    prevFormCheck,
+    prevFormCheck = () => {},
 }) => {
     const {
         isCurrent,
@@ -202,11 +202,14 @@ export const submitForm: SubmitFormType = async ({
     isMainCondition ? submitToNext() : submitToPrev()
 
     async function submitToNext() {
+        console.log('submit')
+        console.log({ isCurrent, isEdit, isProceedToNext, isProceedToEdit })
         if (
             (isCurrent || isEdit) &&
-            target.nextCheckbox.checked &&
+            target.nextCheckbox?.checked &&
             !isFormChecked
         ) {
+            console.log('1')
             return formCheck({ showMessage: true })
         }
 
@@ -215,8 +218,10 @@ export const submitForm: SubmitFormType = async ({
             !target.uncompleteCheckbox?.checked &&
             !isFormChecked
         ) {
+            console.log('2')
             return formCheck({ showMessage: true })
         }
+        console.log({ toNextSendData })
         createOrder(toNextSendData)
     }
 
@@ -243,6 +248,7 @@ export const submitForm: SubmitFormType = async ({
 export const initOutputRef = () => ({
     check: () => {},
     getValue: () => {},
+    setValue: () => {},
     showError: () => {},
     getErrTitleElement: () => {},
 })

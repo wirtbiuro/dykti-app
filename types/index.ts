@@ -1,7 +1,11 @@
 import { NextApiRequest } from 'next'
 import { DateTime } from 'luxon'
 
-export type Role = 'FormCreator' | 'BefaringUser' | 'OfferCreator'
+export type Role =
+    | 'FormCreator'
+    | 'BefaringUser'
+    | 'OfferCreator'
+    | 'ContractCreator'
 
 export interface NextApiRequestWithHeaders extends NextApiRequest {
     headers: any
@@ -26,7 +30,11 @@ export type WithValueNFocus<T> = {
 
 export type PropNames<T> = keyof T
 
-export type StepName = 'formStep' | 'beffaringStep' | 'offerStep'
+export type StepName =
+    | 'formStep'
+    | 'beffaringStep'
+    | 'offerStep'
+    | 'contractStep'
 
 export interface IQuery<T> {
     isError: boolean
@@ -44,16 +52,20 @@ export interface IOrder {
 export interface IOutputRef {
     check: Function
     getValue: Function
+    setValue: Function
     showError: Function
     getErrTitleElement: Function
 }
+
+export type FormChangedType = ({}: { isFirstLoad: boolean }) => void
 
 export type StepType = {
     id?: number
     createdAt?: string
 } & IFormStep &
     IBefaringStep &
-    IOfferStep
+    IOfferStep &
+    IContractStep
 
 export interface IFormStep {
     formStepCreatedAt?: string
@@ -75,6 +87,7 @@ export interface IFormStep {
 export interface IBefaringStep {
     beffaringStepPrevStepConfirmationDate?: DateTime | string
     beffaringStepCreatedAt?: DateTime | string
+    beffaringStepWasThereMeeting?: boolean
     beffaringStepOfferDate?: DateTime | string
     beffaringStepInfoSendingDate?: DateTime | string
     beffaringStepCreatorId?: number
@@ -87,7 +100,7 @@ export interface IBefaringStep {
 }
 
 export interface IOfferStep {
-    offerStepPrevStepConfirmationDate?: boolean
+    offerStepPrevStepConfirmationDate?: DateTime | string
 
     offerStepAreBefDocsGood?: boolean
     offerStepBefComments?: string
@@ -101,6 +114,22 @@ export interface IOfferStep {
     offerStepCreatedAt?: DateTime | string
     offerStepCreatorId?: number
     offerStepCreator?: IUser
+}
+
+export interface IContractStep {
+    contractStepPrevStepConfirmationDate?: DateTime | string
+    contractStepOfferSendingDate?: DateTime | string
+    contractStepAreOfferChanges?: boolean
+    contractStepOfferChangesComment?: string
+    contractStepIsOfferAccepted?: boolean
+    contractStepContractDate?: DateTime | string
+    contractStepOfferRejectionReason?: string
+    contractStepIsCompleted?: boolean
+    contractStepIsProceedToNext?: boolean
+    contractStepShouldPerfomerConfirmView?: boolean
+    contractStepCreatedAt?: DateTime | string
+    contractStepCreatorId?: number
+    contractStepCreator?: IUser
 }
 
 export interface IRecord {
