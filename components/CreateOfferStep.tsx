@@ -3,7 +3,6 @@ import { FormStyled, CreateFormStyled } from '../styles/styled-components'
 import {
     WithValueNFocus,
     IWithOrder,
-    IOutputRef,
     ISendButtonsOutputRef,
     FormCheckType,
     ISendCheckboxes,
@@ -13,7 +12,10 @@ import { useCreateOrderMutation } from '../state/apiSlice'
 import FormInput from './UI/FormInput'
 import CalendarWithTime from './CalendarWithTime'
 import SendButtons from './UI/SendButtons'
-import { getOrderStatus, submitForm, initOutputRef } from '../utilities'
+import { submitForm } from '../utilities'
+import { useFormInput } from '../hooks/useFormInput'
+import { useCalendarData } from '../hooks/useCalendarData'
+import { flushSync } from 'react-dom'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -25,10 +27,10 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
 
     const prevStep = order?.steps[order.steps.length - 1]
 
-    const areDocsGoodDataRef = useRef<IOutputRef>(initOutputRef())
-    const befCommentsRef = useRef<IOutputRef>(initOutputRef())
-    const commentDataRef = useRef<IOutputRef>(initOutputRef())
-    const offerDateOutputRef = useRef<IOutputRef>(initOutputRef())
+    const areDocsGoodData = useFormInput()
+    const befCommentsData = useFormInput()
+    const commentData = useFormInput()
+    const offerDateData = useCalendarData()
 
     const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
         getResults: () => {},
@@ -37,17 +39,17 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
     const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
     const [isPrevFormChecked, setIsPrevFormChecked] = useState<boolean>(false)
 
-    const [areDocsGood, setAreDocsGood] = useState<boolean>(
-        typeof prevStep?.offerStepAreBefDocsGood === 'boolean'
-            ? prevStep?.offerStepAreBefDocsGood
-            : true
-    )
+    useEffect(() => {
+        formCheck({ showMessage: false })
+        prevFormCheck({ showMessage: false })
+    }, [offerDateData.isChecked, befCommentsData.isChecked])
 
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
 
-        if (!offerDateOutputRef.current?.check()) {
-            showMessage ? offerDateOutputRef.current?.showError() : null
+        if (!offerDateData.isChecked) {
+            console.log('offer date error')
+            showMessage ? offerDateData?.showError() : null
             return setIsFormChecked(false)
         }
 
@@ -59,8 +61,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
     const prevFormCheck: FormCheckType = ({ showMessage }) => {
         console.log('prev form check')
 
-        if (!befCommentsRef.current?.check()) {
-            showMessage ? befCommentsRef.current?.showError() : null
+        if (!befCommentsData.isChecked) {
+            showMessage ? befCommentsData.showError() : null
             return setIsPrevFormChecked(false)
         }
 
@@ -69,21 +71,26 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
         return setIsPrevFormChecked(true)
     }
 
-    const formChanged = (e: SyntheticEvent<HTMLFormElement>) => {
-        console.log('formChanged')
-        setAreDocsGood(areDocsGoodDataRef.current.getValue()) //Check the main condition
-        formCheck({ showMessage: false })
-        prevFormCheck({ showMessage: false })
-    }
-
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault()
         const target = e.target as typeof e.target & FormType
         const _createOrder = createOrder as (data: FieldsToSend) => void
 
+        flushSync(() => {
+            formCheck({
+                showMessage: !target.uncompleteCheckbox?.checked,
+            })
+        })
+
+        if (!isFormChecked && !target.uncompleteCheckbox?.checked) {
+            return
+        }
+
+        console.log('submit')
+
         submitForm({
             target,
-            isMainCondition: areDocsGood,
+            isMainCondition: areDocsGoodData.isChecked,
             curStepName: 'offerStep',
             prevStepName: 'beffaringStep',
             step: prevStep!,
@@ -96,17 +103,14 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                 offerStepAreBefDocsGood: false,
                 offerStepOfferDate: null,
                 offerStepComment: null,
-                offerStepBefComments: befCommentsRef.current.getValue(),
+                offerStepBefComments: befCommentsData.value,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             toNextSendData: {
                 order,
                 offerStepAreBefDocsGood: true,
-                offerStepOfferDate:
-                    offerDateOutputRef.current.check() === true
-                        ? offerDateOutputRef.current.getValue()
-                        : null,
-                offerStepComment: commentDataRef.current.getValue(),
+                offerStepOfferDate: offerDateData.value,
+                offerStepComment: commentData.value,
                 offerStepBefComments: null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
@@ -118,24 +122,21 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
         <div style={{ display: isVisible ? 'block' : 'none' }}>
             <CreateFormStyled>
                 <FormStyled>
-                    <form
-                        ref={formRef}
-                        onChange={formChanged}
-                        onSubmit={submit}
-                    >
+                    <form ref={formRef} onSubmit={submit}>
                         <FormInput
                             type="checkbox"
-                            dataRef={areDocsGoodDataRef}
+                            connection={areDocsGoodData}
                             defaultChecked={
                                 typeof prevStep?.offerStepAreBefDocsGood ===
                                 'boolean'
                                     ? prevStep?.offerStepAreBefDocsGood
                                     : true
                             }
+                            checkFn={(value: boolean) => value === true}
                         >
                             <>Czy dokumenty od Befaring Mana są w porządku?</>
                         </FormInput>
-                        {!areDocsGood && (
+                        {!areDocsGoodData.isChecked && (
                             <>
                                 <p>Co jest nie tak z dokumentami?: </p>
                                 <FormInput
@@ -143,20 +144,19 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                                     defaultValue={
                                         prevStep?.offerStepBefComments
                                     }
-                                    dataRef={befCommentsRef}
+                                    connection={befCommentsData}
                                 />
                             </>
                         )}
-                        {areDocsGood && (
+                        {areDocsGoodData.isChecked && (
                             <>
                                 <p>Data oferty: </p>
                                 <CalendarWithTime
                                     defaultDate={
                                         order && prevStep?.offerStepOfferDate
                                     }
-                                    dataRef={offerDateOutputRef}
+                                    connection={offerDateData}
                                     isTimeEnabled={true}
-                                    formChanged={formChanged}
                                 />
                                 <br />
                                 <br />
@@ -164,7 +164,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                                 <FormInput
                                     placeholder="komentarz"
                                     defaultValue={prevStep?.offerStepComment}
-                                    dataRef={commentDataRef}
+                                    connection={commentData}
                                 />
                             </>
                         )}
@@ -175,7 +175,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                             isFormChecked={isFormChecked}
                             step={order?.steps[order.steps.length - 1]}
                             formCheck={formCheck}
-                            isMainConditon={areDocsGood}
+                            isMainCondition={areDocsGoodData.isChecked}
                             isPrevFormChecked={isPrevFormChecked}
                             prevFormCheck={prevFormCheck}
                         />

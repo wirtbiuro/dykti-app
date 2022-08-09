@@ -1,5 +1,16 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { DateTime } from 'luxon'
+import { FieldsToSend, Role } from '../types'
+
+const orderProvidesTags: Array<{ type: 'Order'; id: Role }> = [
+    { type: 'Order', id: 'BefaringUser' },
+    { type: 'Order', id: 'ContractChecker' },
+    { type: 'Order', id: 'ContractCreator' },
+    { type: 'Order', id: 'ContractPreparer' },
+    { type: 'Order', id: 'FormCreator' },
+    { type: 'Order', id: 'OfferCreator' },
+    { type: 'Order', id: 'WorkRespUser' },
+]
 
 export const dyktiApi = createApi({
     reducerPath: 'userApi',
@@ -7,24 +18,27 @@ export const dyktiApi = createApi({
         baseUrl: 'http://localhost:3000/api/',
     }),
     tagTypes: ['User', 'Order'],
-    endpoints: (build) => ({
+    endpoints: (build: any) => ({
         getUser: build.query({
             query: () => `getuser`,
-            providesTags: (res, err, args) => {
+            providesTags: (res: any, err: any, args: any) => {
                 console.log({ res, err, args })
                 return [{ type: 'User' }]
             },
             // providesTags: ['User'],
         }),
         getOrders: build.query({
-            query: () => `getorders`,
-            providesTags: [{ type: 'User' }, { type: 'Order' }],
+            query: (role: Role) => `getorders?role=${role}`,
+
+            providesTags: [{ type: 'User' }, ...orderProvidesTags],
         }),
         getCompletedOrders: build.query({
-            query: () => `getorders?completed=true`,
-            providesTags: [{ type: 'User' }, { type: 'Order' }],
-            transformResponse: (response, meta, arg) => {
-                return response.sort((a, b) => {
+            query: (role: Role) => `getorders?completed=true&role=${role}`,
+
+            providesTags: [{ type: 'User' }, ...orderProvidesTags],
+
+            transformResponse: (response: any, meta: any, arg: any) => {
+                return response.sort((a: any, b: any) => {
                     return (
                         DateTime.fromISO(b.createdAt).toMillis() -
                         DateTime.fromISO(a.createdAt).toMillis()
@@ -33,48 +47,53 @@ export const dyktiApi = createApi({
             },
         }),
         createUser: build.mutation({
-            query(user) {
+            query(user: any) {
                 return {
                     url: 'createuser',
                     method: 'POST',
                     body: user,
                 }
             },
-            invalidatesTags: (res, err, arg) => {
+            invalidatesTags: (res: any, err: any, arg: any) => {
                 console.log('invalidates tags', { res, err, arg })
                 return [{ type: 'User' }]
             },
             // invalidatesTags: ['User'],
-            transformResponse: (response, meta, arg) => {
+            transformResponse: (response: any, meta: any, arg: any) => {
                 console.log({ response })
                 return response.user
             },
         }),
         login: build.mutation({
-            query(user) {
+            query(user: any) {
                 return {
                     url: 'login',
                     method: 'POST',
                     body: user,
                 }
             },
-            invalidatesTags: (res, err, arg) => [{ type: 'User' }],
-            transformResponse: (response, meta, arg) => {
+            invalidatesTags: (res: any, err: any, arg: any) => [
+                { type: 'User' },
+            ],
+            transformResponse: (response: any, meta: any, arg: any) => {
                 return response.user
             },
         }),
         createOrder: build.mutation({
-            query(order) {
+            query(order: FieldsToSend) {
                 return {
                     url: 'createorder',
                     method: 'POST',
                     body: order,
                 }
             },
-            invalidatesTags: [{ type: 'Order' }],
+            invalidatesTags: (result: any, error: any, args: any) => {
+                console.log({ args })
+                return [{ type: 'Order', id: args.role }]
+            },
         }),
         createBefaringStep: build.mutation({
-            query(data) {
+            query(data: any) {
                 return {
                     url: 'createbefaringstep',
                     method: 'POST',
@@ -84,7 +103,7 @@ export const dyktiApi = createApi({
             invalidatesTags: [{ type: 'Order' }],
         }),
         confirmViewingByPerfomer: build.mutation({
-            query(data) {
+            query(data: any) {
                 return {
                     url: 'confirmviewingbyperfomer',
                     method: 'POST',

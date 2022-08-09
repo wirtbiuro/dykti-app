@@ -16,12 +16,14 @@ model User{
   email String? @unique
   username String @unique
   password String?
-  role String?
+  role String[]
   refreshes Refresh[] @relation("UserRefreshes")
   createdFormSteps Step[] @relation("UserCreatedFormSteps")
   createdBefaringSteps Step[] @relation("UserCreatedBefaringSteps")
   createdOfferSteps Step[] @relation("UserCreatedOfferSteps")
   createdContractSteps Step[] @relation("UserCreatedContractSteps")
+  createdContractCheckerSteps Step[] @relation("UserCreatedContractCheckerSteps")
+  createdContractCreatorSteps Step[] @relation("UserCreatedContractCreatorSteps")
 }
 
 model Refresh{
@@ -82,14 +84,47 @@ model Step{
   contractStepAreOfferChanges Boolean?
   contractStepOfferChangesComment String?
   contractStepIsOfferAccepted Boolean?
-  contractStepContractDate DateTime?
+  contractStepSentForVerificationDate DateTime?
   contractStepOfferRejectionReason String?
+
   contractStepIsCompleted Boolean?
   contractStepIsProceedToNext Boolean?
   contractStepShouldPerfomerConfirmView Boolean?
   contractStepCreatedAt DateTime?
   contractStepCreatorId Int?
   contractStepCreator User? @relation("UserCreatedContractSteps", fields: [contractStepCreatorId], references: [id])
+
+  contractCheckerStepPrevStepConfirmationDate DateTime?
+  contractCheckerStepIsContractChecked Boolean?
+  contractCheckerStepWorkStartDate DateTime?
+  contractCheckerStepComments String?
+
+  contractCheckerStepIsCompleted Boolean?
+  contractCheckerStepIsProceedToNext Boolean?
+  contractCheckerStepShouldPerfomerConfirmView Boolean?
+  contractCheckerStepCreatedAt DateTime?
+  contractCheckerStepCreatorId Int?
+  contractCheckerStepCreator User? @relation("UserCreatedContractCheckerSteps", fields: [contractCheckerStepCreatorId], references: [id])
+
+  contractCreatorStepPrevStepConfirmationDate DateTime?
+  contractCreatorStepContractSendingDate DateTime?
+  contractCreatorStepIsContractAccepted Boolean?
+  contractCreatorStepContractRejectionReason String?
+
+  contractCreatorStepIsCompleted Boolean?
+  contractCreatorStepIsProceedToNext Boolean?
+  contractCreatorStepShouldPerfomerConfirmView Boolean?
+  contractCreatorStepCreatedAt DateTime?
+  contractCreatorStepCreatorId Int?
+  contractCreatorStepCreator User? @relation("UserCreatedContractCreatorSteps", fields: [contractCreatorStepCreatorId], references: [id])
+
+  workStepPrevStepConfirmationDate DateTime?
+  workStepTeam String?
+  workStepWorkEndDay DateTime?
+
+  workStepIsCompleted Boolean?
+  workStepIsProceedToNext Boolean?
+  workStepShouldPerfomerConfirmView Boolean?
 
   orderId Int
   order Order? @relation(fields: [orderId], references: [id])

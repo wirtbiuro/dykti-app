@@ -5,7 +5,10 @@ export type Role =
     | 'FormCreator'
     | 'BefaringUser'
     | 'OfferCreator'
+    | 'ContractPreparer'
+    | 'ContractChecker'
     | 'ContractCreator'
+    | 'WorkRespUser'
 
 export interface NextApiRequestWithHeaders extends NextApiRequest {
     headers: any
@@ -35,6 +38,9 @@ export type StepName =
     | 'beffaringStep'
     | 'offerStep'
     | 'contractStep'
+    | 'contractCheckerStep'
+    | 'contractCreatorStep'
+    | 'workStep'
 
 export interface IQuery<T> {
     isError: boolean
@@ -65,7 +71,10 @@ export type StepType = {
 } & IFormStep &
     IBefaringStep &
     IOfferStep &
-    IContractStep
+    IContractStep &
+    IContractCheckerStep &
+    IContractCreatorStep &
+    IWorkStep
 
 export interface IFormStep {
     formStepCreatedAt?: string
@@ -122,7 +131,7 @@ export interface IContractStep {
     contractStepAreOfferChanges?: boolean
     contractStepOfferChangesComment?: string
     contractStepIsOfferAccepted?: boolean
-    contractStepContractDate?: DateTime | string
+    contractStepSentForVerificationDate?: DateTime | string
     contractStepOfferRejectionReason?: string
     contractStepIsCompleted?: boolean
     contractStepIsProceedToNext?: boolean
@@ -130,6 +139,44 @@ export interface IContractStep {
     contractStepCreatedAt?: DateTime | string
     contractStepCreatorId?: number
     contractStepCreator?: IUser
+}
+
+export interface IContractCheckerStep {
+    contractCheckerStepPrevStepConfirmationDate?: DateTime | string
+    contractCheckerStepIsContractChecked?: boolean
+    contractCheckerStepWorkStartDate?: DateTime | string
+    contractCheckerStepComments?: string
+
+    contractCheckerStepIsCompleted?: boolean
+    contractCheckerStepIsProceedToNext?: boolean
+    contractCheckerStepShouldPerfomerConfirmView?: boolean
+    contractCheckerStepCreatedAt?: DateTime | string
+    contractCheckerStepCreatorId?: number
+    contractCheckerStepCreator?: IUser
+}
+
+export interface IContractCreatorStep {
+    contractCreatorStepPrevStepConfirmationDate?: DateTime | string
+    contractCreatorStepContractSendingDate?: DateTime | string
+    contractCreatorStepIsContractAccepted?: boolean
+    contractCreatorStepContractRejectionReason?: string
+
+    contractCreatorStepIsCompleted?: boolean
+    contractCreatorStepIsProceedToNext?: boolean
+    contractCreatorStepShouldPerfomerConfirmView?: boolean
+    contractCreatorStepCreatedAt?: DateTime | string
+    contractCreatorStepCreatorId?: number
+    contractCreatorStepCreator?: IUser
+}
+
+export interface IWorkStep {
+    workStepPrevStepConfirmationDate?: DateTime | string
+    workStepTeam?: string
+    workStepWorkEndDay?: DateTime | string
+
+    workStepIsCompleted?: boolean
+    workStepIsProceedToNext?: boolean
+    workStepShouldPerfomerConfirmView?: boolean
 }
 
 export interface IRecord {
@@ -148,6 +195,7 @@ export interface IRecord {
 
 export type FieldsToSend = StepType & {
     order?: IOrder
+    role?: Role
 }
 
 export type FormCheckType = ({ showMessage }: { showMessage: boolean }) => void
@@ -170,7 +218,7 @@ export interface ITodo {
 export interface IUser {
     username: string
     id: string
-    role: Role
+    role: Array<Role>
 }
 
 export interface IAuth {

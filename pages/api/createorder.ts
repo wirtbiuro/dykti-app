@@ -1,24 +1,26 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextApiRequest, NextApiResponse } from 'next'
-import { IFormStep, StepType, IOrder } from '../../types'
+import { IFormStep, StepType, IOrder, Role } from '../../types'
 import { PrismaClient } from '@prisma/client'
 import { withJwt } from '../../utilities'
 
 type ReqBodyType = {
     order?: IOrder
     userId?: number
+    role?: Role
 } & StepType
 
 async function createorder(req: NextApiRequest, res: NextApiResponse) {
     const prisma = new PrismaClient()
 
     try {
-        const { order, userId } = req.body as ReqBodyType
+        const { order, userId, role } = req.body as ReqBodyType
         console.log('req.body', req.body)
 
         let input = { ...req.body } as ReqBodyType
         delete input.order
         delete input.userId
+        delete input.role
 
         //isCompleted field should be passed with every request. Due that field we can recognise current step.
         if (input.formStepIsCompleted !== undefined) {

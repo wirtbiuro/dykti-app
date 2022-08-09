@@ -17,7 +17,7 @@ interface ISendButtons {
     formCheck?: FormCheckType // for nextBtn (checking main condition)
     prevFormCheck?: FormCheckType // for prevBtn (checking aux condition)
     isPrevFormChecked?: boolean
-    isMainConditon?: boolean // nextBtn - true, prevBtn - false
+    isMainCondition?: boolean // nextBtn - true, prevBtn - false
 }
 
 const SendButtons: FC<ISendButtons> = ({
@@ -29,7 +29,7 @@ const SendButtons: FC<ISendButtons> = ({
     prevStepName,
     prevFormCheck = () => {},
     isPrevFormChecked = true,
-    isMainConditon = true,
+    isMainCondition = true,
 }) => {
     const {
         isCurrent,
@@ -76,22 +76,22 @@ const SendButtons: FC<ISendButtons> = ({
         dataRef!.current!.getResults = getResults
     }, [dataRef])
 
-    useEffect(() => {
-        console.log('send buttons form check')
-        if (formCheck) {
-            formCheck({ showMessage: false })
-        }
-    }, [formCheck])
+    // useEffect(() => {
+    //     console.log('send buttons form check')
+    //     if (formCheck) {
+    //         formCheck({ showMessage: false })
+    //     }
+    // }, [formCheck])
 
-    useEffect(() => {
-        if (prevFormCheck) {
-            prevFormCheck({ showMessage: false })
-        }
-    }, [prevFormCheck])
+    // useEffect(() => {
+    //     if (prevFormCheck) {
+    //         prevFormCheck({ showMessage: false })
+    //     }
+    // }, [prevFormCheck])
 
     return (
         <div>
-            {(isCurrent || isEdit) && isMainConditon && (
+            {(isCurrent || isEdit) && isMainCondition && (
                 <>
                     <input
                         type="checkbox"
@@ -102,7 +102,7 @@ const SendButtons: FC<ISendButtons> = ({
                     Skończ i przekaż dalej
                 </>
             )}
-            {(isCurrent || isEdit) && !isMainConditon && (
+            {(isCurrent || isEdit) && !isMainCondition && (
                 <>
                     <input
                         type="checkbox"
@@ -114,7 +114,7 @@ const SendButtons: FC<ISendButtons> = ({
                 </>
             )}
             {(isProceedToEdit || isProceedToNext) &&
-                (isMainConditon ? !isFormChecked : !isPrevFormChecked) && (
+                (isMainCondition ? !isFormChecked : !isPrevFormChecked) && (
                     <>
                         <input
                             name="uncompleteCheckbox"

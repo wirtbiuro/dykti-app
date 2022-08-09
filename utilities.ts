@@ -252,3 +252,31 @@ export const initOutputRef = () => ({
     showError: () => {},
     getErrTitleElement: () => {},
 })
+
+type getWhereStrategyByStepsType = (
+    prevStepName: StepName,
+    curStepName: StepName,
+    isCompleted: boolean
+) => {}
+
+export const getWhereStrategyBySteps: getWhereStrategyByStepsType = (
+    prevStepName,
+    curStepName,
+    isCompleted
+) => {
+    return isCompleted
+        ? {
+              some: {
+                  [`${curStepName}IsProceedToNext`]: true,
+              },
+          }
+        : {
+              some: {
+                  [`${prevStepName}IsProceedToNext`]: true,
+              },
+              none: {
+                  [`${prevStepName}IsProceedToNext`]: true,
+                  [`${curStepName}IsProceedToNext`]: true,
+              },
+          }
+}

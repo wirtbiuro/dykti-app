@@ -4,27 +4,29 @@ import {
     useGetOrdersQuery,
     useGetCompletedOrdersQuery,
 } from '../state/apiSlice'
-import CreateOfferStep from './CreateOfferStep'
 import Orders from './Orders'
 import CreateContractStep from './CreateContractStep'
+import CreateContractCheckerStep from './CreateContractCheckerStep'
 
-const ContractCreatorPanel = () => {
-    const { data }: IQuery<IOrder> = useGetOrdersQuery('ContractCreator')
+const ContractCheckerPanel = () => {
+    const { data }: IQuery<IOrder> = useGetOrdersQuery('ContractChecker')
     const { data: processedData }: IQuery<IOrder> = useGetCompletedOrdersQuery(
-        'ContractCreator'
+        'ContractChecker'
     )
 
     const completedOrdersData = processedData?.filter(
-        (order) => order.steps[order.steps.length - 1].contractStepIsCompleted
+        (order) =>
+            order.steps[order.steps.length - 1].contractCheckerStepIsCompleted
     )
     const editedOrdersData = processedData?.filter(
-        (order) => !order.steps[order.steps.length - 1].contractStepIsCompleted
+        (order) =>
+            !order.steps[order.steps.length - 1].contractCheckerStepIsCompleted
     )
     const currentData = data?.filter(
-        (order) => order.steps[order.steps.length - 1].offerStepIsCompleted
+        (order) => order.steps[order.steps.length - 1].contractStepIsCompleted
     )
     const passedForEditData = data?.filter(
-        (order) => !order.steps[order.steps.length - 1].offerStepIsCompleted
+        (order) => !order.steps[order.steps.length - 1].contractStepIsCompleted
     )
 
     if (!data || !completedOrdersData) return <>Ładowanie danych...</>
@@ -35,35 +37,35 @@ const ContractCreatorPanel = () => {
 
             <Orders
                 orders={currentData}
-                children={<CreateContractStep />}
-                stepName="contractStep"
+                children={<CreateContractCheckerStep />}
+                stepName="contractCheckerStep"
             />
 
             <h2>Do poprawienia:</h2>
 
             <Orders
                 orders={editedOrdersData}
-                children={<CreateContractStep />}
-                stepName="contractStep"
+                children={<CreateContractCheckerStep />}
+                stepName="contractCheckerStep"
             />
 
             <h2>Przekazane dalej:</h2>
 
             <Orders
                 orders={completedOrdersData}
-                children={<CreateContractStep />}
-                stepName="contractStep"
+                children={<CreateContractCheckerStep />}
+                stepName="contractCheckerStep"
             />
 
             <h2>Przekazane do poprawienia:</h2>
 
             <Orders
                 orders={passedForEditData}
-                children={<CreateContractStep />}
-                stepName="contractStep"
+                children={<CreateContractCheckerStep />}
+                stepName="contractCheckerStep"
             />
         </>
     )
 }
 
-export default ContractCreatorPanel
+export default ContractCheckerPanel

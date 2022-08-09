@@ -12,17 +12,18 @@ import { showErrorFormModal } from '../utilities'
 import { Modal } from 'antd'
 import { flushSync } from 'react-dom'
 import { IOutputRef } from '../types'
+import { useCalendarDataType } from '../hooks/useCalendarData'
 
 interface ICalendarWithTime {
     defaultDate?: string | DateTime | undefined
-    dataRef?: RefObject<IOutputRef>
+    connection?: useCalendarDataType
     isTimeEnabled?: boolean
     formChanged?: Function
 }
 
 function CalendarWithTime({
     defaultDate,
-    dataRef,
+    connection,
     isTimeEnabled = true,
     formChanged = () => {},
 }: ICalendarWithTime) {
@@ -38,24 +39,6 @@ function CalendarWithTime({
 
     // const [isReset, setIsReset] = useState(!_defaultDate && isFirstLoad)
     const [isReset, setIsReset] = useState(!_defaultDate)
-    const isResetRef = useRef<boolean>()
-    useEffect(() => {
-        console.log('isReset useEffect')
-        console.log('hoursRef.current?.value', hoursRef.current?.value)
-        if (isTimeEnabled && isReset) {
-            console.log('hoursRef.current?.value')
-            hoursRef.current!.value = 'hh'
-            minutesRef.current!.value = 'mm'
-            setIsHours(false)
-            setIsMinutes(false)
-            console.log('hoursRef.current?.value', hoursRef.current?.value)
-        }
-        isResetRef.current = isReset
-        formChanged()
-        console.log('isReset useEffect after formChanged')
-        console.log('hoursRef.current?.value', hoursRef.current?.value)
-        // setUpdatePage(!updatePage)
-    }, [isReset])
 
     const selectedDateRef = useRef<DateTime>(selectedDate)
 
@@ -66,23 +49,31 @@ function CalendarWithTime({
     }, [_defaultDate])
 
     useEffect(() => {
-        console.log('selected Date changed')
+        console.log('useeffect selected date')
         selectedDateRef.current = selectedDate
-        console.log('not first load', !isFirstLoad)
         if (!isFirstLoad) {
             setIsReset(false)
-            // setIsFirstLoad(false)
         }
         if (isFirstLoad) {
             setIsFirstLoad(false)
         }
-        formChanged()
+        check({ isReset: !isFirstLoad ? false : isReset })
     }, [selectedDate])
+
+    useEffect(() => {
+        console.log('useeffect isreset', isReset)
+
+        if (isTimeEnabled && isReset) {
+            hoursRef.current!.value = 'hh'
+            minutesRef.current!.value = 'mm'
+            setIsHours(false)
+            setIsMinutes(false)
+        }
+        check({ isReset })
+    }, [isReset])
 
     const hoursRef = useRef<HTMLSelectElement>(null)
     const minutesRef = useRef<HTMLSelectElement>(null)
-
-    console.log(hoursRef.current)
 
     const clicked = (e: SyntheticEvent<HTMLButtonElement>) => {
         console.log('clicked')
@@ -136,31 +127,42 @@ function CalendarWithTime({
         }
     }
 
-    console.log('hoursRef.current?.value', hoursRef.current?.value)
+    // const isDate =
+    //     (selectedDate &&
+    //         hoursRef.current?.value !== 'hh' &&
+    //         minutesRef.current?.value !== 'mm') ||
+    //     (_defaultDate && isFirstLoad && !isReset)
 
-    const isDate =
-        (selectedDate &&
-            hoursRef.current?.value !== 'hh' &&
-            minutesRef.current?.value !== 'mm') ||
-        // (_defaultDate && isFirstLoad && !isReset)
-        (_defaultDate && !isReset)
+    // const timeEnabledCurrentDate = isDate
+    //     ? selectedDate.toISO()
+    //     : `DD:MM:YYYY hh:mm`
 
-    const timeEnabledCurrentDate = isDate
-        ? selectedDate.toISO()
-        : `DD:MM:YYYY hh:mm`
+    // const NoTimeEnabledCurrentDate = isReset
+    //     ? `DD:MM:YYYY`
+    //     : selectedDate.toISO()
 
-    const NoTimeEnabledCurrentDate = isReset
-        ? `DD:MM:YYYY`
-        : selectedDate.toISO()
-
-    const currentDate = isTimeEnabled
-        ? timeEnabledCurrentDate
-        : NoTimeEnabledCurrentDate
+    // const currentDate = isTimeEnabled
+    //     ? timeEnabledCurrentDate
+    //     : NoTimeEnabledCurrentDate
 
     const errRef = useRef<HTMLDivElement>(null)
 
     const getValue = () => {
-        return selectedDateRef.current
+        const isDate =
+            (selectedDate &&
+                hoursRef.current?.value !== 'hh' &&
+                minutesRef.current?.value !== 'mm') ||
+            (_defaultDate && isFirstLoad && !isReset)
+
+        const timeEnabledCurrentDate = isDate ? selectedDate : null
+
+        const NoTimeEnabledCurrentDate = isReset ? null : selectedDate
+
+        const currentDate = isTimeEnabled
+            ? timeEnabledCurrentDate
+            : NoTimeEnabledCurrentDate
+
+        return currentDate
     }
 
     const setValue = (date: DateTime) => {
@@ -168,17 +170,23 @@ function CalendarWithTime({
         setIsReset(false)
     }
 
-    const check = () => {
+    const check = ({ isReset = !_defaultDate }: { isReset: boolean }) => {
+        console.log('check')
         if (isTimeEnabled) {
-            console.log('check after reset')
-            console.log('hoursRef.current?.value', hoursRef.current?.value)
-            return (
+            const isChecked =
                 hoursRef.current?.value !== 'hh' &&
                 minutesRef.current?.value !== 'mm'
-            )
+            connection?.__setIsChecked(isChecked)
+            connection?.__setValue(getValue())
+
+            return isChecked
         } else {
-            console.log('isReset', isResetRef.current)
-            return !isResetRef.current
+            console.log({ isReset })
+            const isChecked = !isReset
+            connection?.__setIsChecked(isChecked)
+            connection?.__setValue(getValue())
+
+            return isChecked
         }
     }
 
@@ -212,23 +220,26 @@ function CalendarWithTime({
     }
 
     useEffect(() => {
-        dataRef!.current!.check = check
-        dataRef!.current!.getValue = getValue
-        dataRef!.current!.setValue = setValue
-        dataRef!.current!.showError = showError
-        dataRef!.current!.getErrTitleElement = getErrTitleElement
-    }, [dataRef])
+        connection?.__setShowError(() => showError)
+        connection?.__setCheck(() => check)
+        connection?.__setSetValue(() => setValue)
+        connection?.__setValue(getValue())
+        connection?.__setErrTitleElement(getErrTitleElement())
+    }, [])
 
     return (
         <>
-            {currentDate}
+            {connection?.value?.toISO()}
             <button onClick={clicked}>
                 {isVisible
                     ? 'Zamknij'
-                    : isDate && !isReset
+                    : connection?.value && !isReset
                     ? 'Zmień datę'
                     : 'Ustalić datę'}
             </button>
+            Checked: {connection?.isChecked ? 'true' : 'false'}
+            isReset: {isReset ? 'true' : 'false'}
+            Value: {connection?.value?.toString()}
             <button onClick={reset}>Resetowanie</button>
             <div style={{ display: isVisible ? 'block' : 'none' }}>
                 <Calendar

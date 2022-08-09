@@ -2,27 +2,28 @@ import React, { useRef, FC, useEffect, RefObject } from 'react'
 import { IOutputRef } from '../../types'
 import { showErrorFormModal } from '../../utilities'
 import { Modal } from 'antd'
+import { useFormInputType } from '../../hooks/useFormInput'
 
 interface IFormInputProps<T = string> {
     type?: 'text' | 'checkbox'
     name?: T
     placeholder?: string
     children?: JSX.Element
-    dataRef?: RefObject<IOutputRef>
     checkFn?: Function
     onErrorOk?: Function
     defaultValue?: string
     defaultChecked?: boolean
+    connection?: useFormInputType
 }
 
 function FormInput<T extends string>({
+    connection,
     type = 'text',
     children,
     name,
     placeholder,
     defaultValue,
     defaultChecked,
-    dataRef,
     checkFn = (value: string | boolean) => {
         if (typeof value === 'string') {
             return value !== ''
@@ -37,15 +38,21 @@ function FormInput<T extends string>({
     const inputRef = useRef<HTMLInputElement>(null)
 
     const getValue = () => {
+        console.log('form input get value')
         return inputRef.current?.type === 'text'
             ? inputRef.current?.value
             : inputRef.current?.checked
     }
 
     const check = () => {
-        return inputRef.current?.type === 'text'
-            ? checkFn(inputRef.current?.value)
-            : checkFn(inputRef.current?.checked)
+        console.log('form input check')
+        const isChecked =
+            inputRef.current?.type === 'text'
+                ? checkFn(inputRef.current?.value)
+                : checkFn(inputRef.current?.checked)
+        console.log({ isChecked })
+        connection?.__setIsChecked(isChecked)
+        return isChecked
     }
 
     const showError = () => {
@@ -58,7 +65,11 @@ function FormInput<T extends string>({
     }
 
     const onChange = () => {
+        console.log('form input changed', connection)
         errRef.current!.innerHTML = ''
+        check()
+        connection?.__setValue(getValue())
+        connection?.__setErrTitleElement(getErrTitleElement())
     }
 
     const getErrTitleElement = () => {
@@ -72,14 +83,14 @@ function FormInput<T extends string>({
     }
 
     useEffect(() => {
-        if (dataRef) {
-            dataRef!.current!.check = check
-            dataRef!.current!.getValue = getValue
-            dataRef!.current!.setValue = setValue
-            dataRef!.current!.showError = showError
-            dataRef!.current!.getErrTitleElement = getErrTitleElement
-        }
-    }, [dataRef])
+        check()
+        console.log({ connection })
+        connection?.__setShowError(() => showError)
+        connection?.__setCheck(() => check)
+        connection?.__setSetValue(() => setValue)
+        connection?.__setValue(getValue())
+        connection?.__setErrTitleElement(getErrTitleElement())
+    }, [])
 
     return (
         <div className="withErr">
