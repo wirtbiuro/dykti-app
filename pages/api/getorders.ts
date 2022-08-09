@@ -42,33 +42,33 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
                       },
                   },
             BefaringUser: getWhereStrategyBySteps(
-                'beffaringStep',
                 'formStep',
+                'beffaringStep',
                 isCompleted
             ),
             OfferCreator: getWhereStrategyBySteps(
-                'offerStep',
                 'beffaringStep',
+                'offerStep',
                 isCompleted
             ),
             ContractPreparer: getWhereStrategyBySteps(
-                'contractStep',
                 'offerStep',
+                'contractStep',
                 isCompleted
             ),
             ContractChecker: getWhereStrategyBySteps(
-                'contractCheckerStep',
                 'contractStep',
+                'contractCheckerStep',
                 isCompleted
             ),
             ContractCreator: getWhereStrategyBySteps(
-                'contractCreatorStep',
                 'contractCheckerStep',
+                'contractCreatorStep',
                 isCompleted
             ),
             WorkRespUser: getWhereStrategyBySteps(
-                'workStep',
                 'contractCreatorStep',
+                'workStep',
                 isCompleted
             ),
         }

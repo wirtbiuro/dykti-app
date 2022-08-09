@@ -8,8 +8,10 @@ import CreateOfferStep from './CreateOfferStep'
 import Orders from './Orders'
 
 const OfferCreatorPanel = () => {
-    const { data }: IQuery<IOrder> = useGetOrdersQuery()
-    const { data: processedData }: IQuery<IOrder> = useGetCompletedOrdersQuery()
+    const { data }: IQuery<IOrder> = useGetOrdersQuery('OfferCreator')
+    const { data: processedData }: IQuery<IOrder> = useGetCompletedOrdersQuery(
+        'OfferCreator'
+    )
 
     const completedOrdersData = processedData?.filter(
         (order) => order.steps[order.steps.length - 1].offerStepIsCompleted

@@ -95,11 +95,7 @@ interface IgetOrderStatusTypeProps {
     step?: StepType
 }
 
-type getOrderStatusType = ({
-    curStepName,
-    prevStepName,
-    step,
-}: IgetOrderStatusTypeProps) => {
+type getOrderStatusType = ({}: IgetOrderStatusTypeProps) => {
     isCurrent: boolean
     isEdit: boolean
     isProceedToNext: boolean
@@ -155,6 +151,38 @@ export const getOrderStatus: getOrderStatusType = ({
         !curStepIsProceedToNext &&
         !curStepIsCompleted
     return { isCurrent, isEdit, isProceedToNext, isProceedToEdit }
+}
+
+type GetFirstStepOrderStatusType = ({}: {
+    curStepName?: StepName
+    step?: StepType
+}) => {
+    isCurrent: boolean
+    isEdit: boolean
+    isProceedToNext: boolean
+    isProceedToEdit: false
+}
+
+export const getFirstStepOrderStatus: GetFirstStepOrderStatusType = ({
+    curStepName,
+    step,
+}) => {
+    const curStepIsProceedToNextName = `${curStepName}IsProceedToNext` as PropNames<
+        StepType
+    >
+
+    const curStepIsCompletedName = `${curStepName}IsCompleted` as PropNames<
+        StepType
+    >
+
+    const curStepIsProceedToNext = step?.[curStepIsProceedToNextName] as boolean
+    const curStepIsCompleted = step?.[curStepIsCompletedName] as boolean
+
+    const isCurrent = !curStepIsProceedToNext && !curStepIsCompleted
+    const isEdit = curStepIsProceedToNext && !curStepIsCompleted
+    const isProceedToNext = curStepIsProceedToNext && curStepIsCompleted
+
+    return { isCurrent, isEdit, isProceedToNext, isProceedToEdit: false }
 }
 
 interface ISubmitFormProps {
@@ -242,6 +270,55 @@ export const submitForm: SubmitFormType = async ({
             return prevFormCheck({ showMessage: true })
         }
         createOrder(toPrevSendData)
+    }
+}
+
+type SubmitFirstFormPropsType = Omit<
+    ISubmitFormProps,
+    | 'isMainCondition'
+    | 'prevStepName'
+    | 'toPrevSendData'
+    | 'isPrevFormChecked'
+    | 'prevFormCheck'
+>
+
+type SubmitFirstFormType = ({}: SubmitFirstFormPropsType) => Promise<void>
+
+export const submitFirstForm: SubmitFirstFormType = async ({
+    target,
+    curStepName,
+    formCheck,
+    isFormChecked,
+    step,
+    toNextSendData,
+    createOrder,
+}) => {
+    const { isCurrent, isProceedToNext, isEdit } = getFirstStepOrderStatus({
+        step,
+        curStepName,
+    })
+
+    submitToNext()
+
+    async function submitToNext() {
+        console.log('submit')
+        if (
+            (isCurrent || isEdit) &&
+            target.nextCheckbox?.checked &&
+            !isFormChecked
+        ) {
+            return formCheck({ showMessage: true })
+        }
+
+        if (
+            isProceedToNext &&
+            !target.uncompleteCheckbox?.checked &&
+            !isFormChecked
+        ) {
+            return formCheck({ showMessage: true })
+        }
+        console.log({ toNextSendData })
+        createOrder(toNextSendData)
     }
 }
 

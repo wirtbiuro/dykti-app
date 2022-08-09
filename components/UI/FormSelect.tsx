@@ -19,6 +19,7 @@ function FormSelect<T extends string>({
     name,
     defaultValue,
     checkFn = (value: string) => {
+        console.log({ value })
         return value !== 'select'
     },
     onErrorOk,

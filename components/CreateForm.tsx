@@ -1,39 +1,23 @@
-import React, {
-    SyntheticEvent,
-    useRef,
-    useEffect,
-    useState,
-    FC,
-    useMemo,
-} from 'react'
+import React, { SyntheticEvent, useRef, useEffect, useState, FC } from 'react'
 import { FormStyled, CreateFormStyled } from '../styles/styled-components'
 import {
-    IOrder,
     WithValueNFocus,
-    PropNames,
     IWithOrder,
-    StepType,
+    FormCheckType,
+    FieldsToSend,
+    ISendCheckboxes,
+    ISendButtonsOutputRef,
 } from '../types'
 import { useCreateOrderMutation } from '../state/apiSlice'
-import Calendar from './Calendar'
-import { DateTime } from 'luxon'
 import FormInput from './UI/FormInput'
-import { Modal } from 'antd'
-import { showErrorFormModal } from '../utilities'
+import { submitFirstForm } from '../utilities'
+import { useFormInput } from '../hooks/useFormInput'
+import { useCalendarData } from '../hooks/useCalendarData'
+import { flushSync } from 'react-dom'
+import CalendarWithTime from './CalendarWithTime'
+import SendButtons from './UI/SendButtons'
 
-interface AuxFields {
-    hours: number | 'hh'
-    minutes: number | 'mm'
-}
-
-type FormFields = StepType & AuxFields
-type FieldsToSend = StepType & {
-    order?: IOrder
-}
-
-type FormType = WithValueNFocus<FormFields>
-
-export type Names = PropNames<FormFields>
+type FormType = WithValueNFocus<ISendCheckboxes>
 
 type FormElement = HTMLFormElement & FormType
 
@@ -42,348 +26,174 @@ const CreateForm: FC<IWithOrder> = ({ order }) => {
 
     const formRef = useRef<FormElement>(null)
 
-    //error message fields
-    const [nameErr, setNameErr] = useState<HTMLDivElement | null>()
-    const [phoneErr, setPhoneErr] = useState<HTMLDivElement | null>()
-    const [emailErr, setEmailErr] = useState<HTMLDivElement | null>()
-    const [cityErr, setCityErr] = useState<HTMLDivElement | null>()
-    const [addressErr, setAddressErr] = useState<HTMLDivElement | null>()
-    const [hoursErr, setHoursErr] = useState<HTMLDivElement | null>()
+    const prevStep = order?.steps[order.steps.length - 1]
 
-    const [selectedDate, setSelectedDate] = useState<DateTime>(DateTime.now())
+    const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
+        getResults: () => {},
+    })
 
-    const meetingDate = useMemo(() => {
-        return order && order.steps[order.steps.length - 1].formStepMeetingDate
-    }, [order])
+    const nameData = useFormInput()
+    const phoneData = useFormInput()
+    const emailData = useFormInput()
+    const cityData = useFormInput()
+    const addressData = useFormInput()
+    const commentData = useFormInput()
+    const whereClientFoundData = useFormInput()
+    const meetingDateData = useCalendarData()
 
-    const defaultDate = useMemo(() => {
-        return order && meetingDate
-            ? DateTime.fromISO(meetingDate as string)
-            : null
-    }, [order, meetingDate])
-
-    const defaultMinutes = defaultDate ? defaultDate.minute : 'mm'
-    const defaultHours = defaultDate ? defaultDate.hour : 'hh'
+    const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
 
     useEffect(() => {
-        if (order && defaultDate) {
-            setSelectedDate(defaultDate)
-        }
-    }, [order, defaultDate])
+        formCheck({ showMessage: false })
+    }, [
+        nameData.isChecked,
+        phoneData.isChecked,
+        emailData.isChecked,
+        cityData.isChecked,
+        addressData.value,
+        meetingDateData.isChecked,
+    ])
 
-    const formCheck: (
-        target: EventTarget & WithValueNFocus<FormFields>
-    ) => boolean = (target) => {
-        if (target.formStepClientName?.value?.trim() === '') {
-            showErrorFormModal({
-                element: target.formStepClientName as HTMLInputElement,
-                errElement: nameErr!,
-                modal: Modal,
-            })
-            return false
-        }
+    const formCheck: FormCheckType = ({ showMessage }) => {
+        console.log('form check')
 
-        if (
-            (!order?.id && !target.formStepIsCompleted?.checked) ||
-            (order?.id &&
-                !order?.steps[order.steps.length - 1].formStepIsCompleted)
-        ) {
-            return true
+        if (!nameData.isChecked) {
+            console.log('nameData error')
+            showMessage ? nameData.showError() : null
+            return setIsFormChecked(false)
         }
 
-        if (
-            target.formStepPhone?.value?.trim() === '' &&
-            target.formStepEmail?.value?.trim() === ''
-        ) {
-            showErrorFormModal({
-                element: target.formStepPhone as HTMLInputElement,
-                errElement: phoneErr!,
-                modal: Modal,
-                onOk: () => {
-                    const phone = target.formStepPhone as HTMLInputElement
-                    phone.focus()
-                    phoneErr!.innerHTML = 'Telefon chy E-mail'
-                    emailErr!.innerHTML = 'Telefon chy E-mail'
-                },
-            })
-            return false
+        if (!emailData.isChecked && !phoneData.isChecked) {
+            console.log('emailPhoneData error')
+            showMessage ? phoneData.showError() : null
+            return setIsFormChecked(false)
         }
 
-        if (target.formStepCity?.value?.trim() === '') {
-            showErrorFormModal({
-                element: target.formStepCity as HTMLInputElement,
-                errElement: cityErr!,
-                modal: Modal,
-            })
-            return false
+        if (!cityData.isChecked) {
+            console.log('cityData error')
+            showMessage ? cityData.showError() : null
+            return setIsFormChecked(false)
         }
 
-        if (target.formStepAddress?.value?.trim() === '') {
-            showErrorFormModal({
-                element: target.formStepAddress as HTMLInputElement,
-                errElement: addressErr!,
-                modal: Modal,
-            })
-            return false
+        if (!addressData.isChecked) {
+            console.log('addressData error')
+            showMessage ? addressData.showError() : null
+            return setIsFormChecked(false)
         }
 
-        if (target.hours?.value === 'hh' || target.minutes.value === 'mm') {
-            showErrorFormModal({
-                element: target.hours as HTMLInputElement,
-                errElement: hoursErr!,
-                modal: Modal,
-                onOk: () => {
-                    const hours = target.hours as HTMLInputElement
-                    const minutes = target.minutes as HTMLInputElement
-                    hours.value === 'hh' ? hours.focus() : minutes.focus()
-                    hoursErr!.innerHTML = 'określ czas'
-                },
-            })
-            return false
+        if (!meetingDateData.isChecked) {
+            console.log('meetingDateData error')
+            showMessage ? meetingDateData.showError() : null
+            return setIsFormChecked(false)
         }
 
-        return true
-    }
+        console.log('form checked')
 
-    const formChanged = (e: SyntheticEvent<HTMLFormElement>) => {
-        const target = e.target as HTMLFormElement
-        const name = target.name as Names
-        switch (name) {
-            case 'formStepClientName':
-                nameErr!.innerHTML = ''
-            case 'formStepPhone':
-            case 'formStepEmail':
-                phoneErr!.innerHTML = ''
-                emailErr!.innerHTML = ''
-            case 'formStepCity':
-                cityErr!.innerHTML = ''
-            case 'formStepAddress':
-                addressErr!.innerHTML = ''
-            case 'hours':
-            case 'minutes':
-                hoursErr!.innerHTML = ''
-        }
+        return setIsFormChecked(true)
     }
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault()
-
-        console.log({ order })
-
         const target = e.target as typeof e.target & FormType
-
-        if (!formCheck(target)) return
-
-        console.log('Submit Form')
-
         const _createOrder = createOrder as (data: FieldsToSend) => void
 
-        const _selectedDate =
-            formRef.current?.hours.value !== 'hh' &&
-            formRef.current?.minutes.value !== 'mm'
-                ? DateTime.fromObject({
-                      year: selectedDate.year,
-                      month: selectedDate.month,
-                      day: selectedDate.day,
-                      hour: Number(formRef.current?.hours.value),
-                      minute: Number(formRef.current?.minutes.value),
-                  })
-                : undefined
+        const uncompleteCondition =
+            target?.uncompleteCheckbox?.checked === false ||
+            target?.nextCheckbox?.checked ||
+            target?.prevCheckbox?.checked
 
-        const data: FieldsToSend = {
-            formStepComment: target.formStepComment?.value?.trim(),
-            formStepAddress: target.formStepAddress?.value?.trim(),
-            formStepCity: target.formStepCity?.value?.trim(),
-            formStepClientName: target.formStepClientName?.value?.trim(),
-            formStepWhereClientFound: target.formStepWhereClientFound?.value?.trim(),
-            formStepEmail: target.formStepEmail?.value?.trim(),
-            formStepPhone: target.formStepPhone?.value?.trim(),
-            formStepIsCompleted: target.formStepIsCompleted?.checked,
-            formStepShouldPerfomerConfirmView:
-                target.formStepShouldPerfomerConfirmView?.checked,
-            formStepMeetingDate: _selectedDate,
-            order,
+        flushSync(() => {
+            formCheck({ showMessage: uncompleteCondition })
+        })
+
+        if (!isFormChecked && uncompleteCondition) {
+            return
         }
 
-        _createOrder(data)
-
-        // target.clientInfo.value = ''
-        // target.whereClientFound.value = ''
-        // target.comment.value = ''
+        submitFirstForm({
+            target,
+            curStepName: 'formStep',
+            step: prevStep!,
+            formCheck,
+            isFormChecked,
+            toNextSendData: {
+                order,
+                formStepAddress: addressData.value,
+                formStepCity: cityData.value,
+                formStepClientName: nameData.value,
+                formStepComment: commentData.value,
+                formStepWhereClientFound: whereClientFoundData.value,
+                formStepEmail: emailData.value,
+                formStepPhone: phoneData.value,
+                formStepMeetingDate: meetingDateData.value,
+                ...sendButtonsOutputRef.current.getResults(),
+            },
+            createOrder: _createOrder,
+        })
     }
 
     return (
         <CreateFormStyled>
             <h2>Nowa Sprawa:</h2>
             <FormStyled>
-                <form onSubmit={submit} ref={formRef} onChange={formChanged}>
+                <form onSubmit={submit} ref={formRef}>
                     <p>Informacja klientów: </p>
                     <FormInput
-                        name="formStepClientName"
+                        connection={nameData}
                         placeholder="imię i nazwisko klienta"
-                        // setErr={setNameErr}
-                        defaultValue={
-                            order?.steps[order.steps.length - 1]
-                                .formStepClientName
-                        }
+                        defaultValue={prevStep?.formStepClientName}
                     />
                     <FormInput
-                        name="formStepPhone"
+                        connection={phoneData}
                         placeholder="Numer kontaktowy"
-                        // setErr={setPhoneErr}
-                        defaultValue={
-                            order?.steps[order.steps.length - 1].formStepPhone
-                        }
+                        defaultValue={prevStep?.formStepPhone}
                     />
                     <FormInput
-                        name="formStepEmail"
+                        connection={emailData}
                         placeholder="E-mail"
-                        // setErr={setEmailErr}
-                        defaultValue={
-                            order?.steps[order.steps.length - 1].formStepEmail
-                        }
+                        defaultValue={prevStep?.formStepEmail}
                     />
                     <p>Adres zamówienia: </p>
                     <FormInput
-                        name="formStepCity"
+                        connection={cityData}
                         placeholder="Miasto"
-                        // setErr={setCityErr}
-                        defaultValue={
-                            order?.steps[order.steps.length - 1].formStepCity
-                        }
+                        defaultValue={prevStep?.formStepCity}
                     />
                     <FormInput
-                        // setErr={setAddressErr}
-                        name="formStepAddress"
+                        connection={addressData}
                         placeholder="Adres obiektu"
-                        defaultValue={
-                            order?.steps[order.steps.length - 1].formStepAddress
-                        }
+                        defaultValue={prevStep?.formStepAddress}
                     />
                     <p>Gdzie znaleziono klienta: </p>
                     <FormInput
-                        name="formStepWhereClientFound"
+                        connection={whereClientFoundData}
                         placeholder="Gdzie znaleziono klienta"
-                        defaultValue={
-                            order?.steps[order.steps.length - 1]
-                                .formStepWhereClientFound
-                        }
+                        defaultValue={prevStep?.formStepWhereClientFound}
                     />
                     <p>Czas spotkania:</p>
-                    <Calendar
-                        selectedDate={selectedDate}
-                        setSelectedDate={setSelectedDate}
+                    <CalendarWithTime
+                        defaultDate={order && prevStep?.formStepMeetingDate}
+                        connection={meetingDateData}
+                        isTimeEnabled={true}
                     />
-                    <FormInput
-                        name="hoursAndMinutes"
-                        // setErr={setHoursErr}
-                    >
-                        <>
-                            <select name="hours" defaultValue={defaultHours}>
-                                <option>hh</option>
-                                <option value={7}>07</option>
-                                <option value={8}>08</option>
-                                <option value={9}>09</option>
-                                <option value={10}>10</option>
-                                <option value={11}>11</option>
-                                <option value={12}>12</option>
-                                <option value={13}>13</option>
-                                <option value={14}>14</option>
-                                <option value={15}>15</option>
-                                <option value={16}>16</option>
-                                <option value={17}>17</option>
-                                <option value={18}>18</option>
-                                <option value={19}>19</option>
-                                <option value={20}>20</option>
-                                <option value={21}>21</option>
-                            </select>
-                            <select
-                                name="minutes"
-                                defaultValue={defaultMinutes}
-                            >
-                                <option>mm</option>
-                                <option value={0}>00</option>
-                                <option value={10}>10</option>
-                                <option value={20}>20</option>
-                                <option value={30}>30</option>
-                                <option value={40}>40</option>
-                                <option value={50}>50</option>
-                            </select>
-                        </>
-                    </FormInput>
+
                     <p>Komentarz: </p>
                     <FormInput
-                        name="formStepComment"
+                        connection={commentData}
                         placeholder="komentarz"
-                        defaultValue={
-                            order?.steps[order.steps.length - 1].formStepComment
-                        }
+                        defaultValue={prevStep?.formStepComment}
                     />
-                    {!order && (
-                        <>
-                            <input
-                                type="checkbox"
-                                name="formStepIsCompleted"
-                                defaultChecked={true}
-                            />
-                            Skończ i przekaż dalej
-                        </>
-                    )}
-                    {order && (
-                        <FormInput name="formStepShouldPerfomerConfirmView">
-                            <>
-                                <input
-                                    type="checkbox"
-                                    name="formStepShouldPerfomerConfirmView"
-                                    defaultChecked={false}
-                                />
-                                Czy następny użytkownik musi potwierdzić
-                                przeglądanie zmiany.
-                            </>
-                        </FormInput>
-                    )}
+                    <SendButtons
+                        curStepName="formStep"
+                        dataRef={sendButtonsOutputRef}
+                        isFormChecked={isFormChecked}
+                        step={order?.steps[order.steps.length - 1]}
+                        formCheck={formCheck}
+                        isMainCondition={true}
+                    />
                     <input type="submit" value="Zapisz" />
                 </form>
             </FormStyled>
-
-            {/* <h2>Przekazane dalej:</h2> */}
-
-            {/* {ordersData && (
-                <OrderStyled>
-                    {ordersData.map((order) => {
-                        const step = order.steps[order.steps.length - 1]
-                        return (
-                            <StepStyled key={order.id}>
-                                <Step step={step} />
-                                {historyOrderId !== order.id && (
-                                    <button
-                                        onClick={() =>
-                                            setHistoryOrderId(order.id)
-                                        }
-                                    >
-                                        Pokaż historię zmian
-                                    </button>
-                                )}
-                                {historyOrderId === order.id && (
-                                    <button
-                                        onClick={() => setHistoryOrderId(null)}
-                                    >
-                                        Zamknij historię zmian
-                                    </button>
-                                )}
-                                {historyOrderId === order.id && (
-                                    <div>
-                                        Zmiany:
-                                        {order.steps.map((step) => (
-                                            <Step key={step.id} step={step} />
-                                        ))}
-                                    </div>
-                                )}
-                            </StepStyled>
-                        )
-                    })}
-                </OrderStyled>
-            )} */}
         </CreateFormStyled>
     )
 }

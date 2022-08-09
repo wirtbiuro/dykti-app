@@ -8,8 +8,10 @@ const CreatorFormPanel = () => {
     const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
     const [showNewOrder, setShowNewOrder] = useState<boolean>(false)
 
-    const userQueryData = useGetUserQuery()
-    const { data: ordersData }: IQuery<IOrder> = useGetCompletedOrdersQuery()
+    const userQueryData = useGetUserQuery('FormCreator')
+    const { data: ordersData }: IQuery<IOrder> = useGetCompletedOrdersQuery(
+        'FormCreator'
+    )
 
     const orderClicked = (orderId: number | null) => {
         const newOrderId = orderId === currentOrderId ? null : orderId
@@ -33,15 +35,6 @@ const CreatorFormPanel = () => {
                 {ordersData?.map((order) => {
                     return (
                         <div key={order.id}>
-                            <button
-                                onClick={() => {
-                                    orderClicked(order.id)
-                                }}
-                            >
-                                {currentOrderId === order.id
-                                    ? 'Anulować'
-                                    : 'Edytować'}
-                            </button>
                             {currentOrderId === order.id && (
                                 <CreateForm order={order} />
                             )}
@@ -54,6 +47,15 @@ const CreatorFormPanel = () => {
                                     />
                                 </div>
                             )}
+                            <button
+                                onClick={() => {
+                                    orderClicked(order.id)
+                                }}
+                            >
+                                {currentOrderId === order.id
+                                    ? 'Anulować'
+                                    : 'Edytować'}
+                            </button>
                         </div>
                     )
                 })}
