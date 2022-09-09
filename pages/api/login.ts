@@ -53,7 +53,7 @@ export default async function login(req: NextApiRequest, res: NextApiResponse) {
         }
 
         const token = jwt.sign({ userId: user?.id }, process.env.JWT_SECRET, {
-            expiresIn: 10 * 60,
+            expiresIn: 5 * 10 * 60,
         })
         const refresh = jwt.sign(
             {

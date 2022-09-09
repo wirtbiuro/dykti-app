@@ -6,21 +6,13 @@ import {
     ISendButtonsOutputRef,
     FormCheckType,
 } from '../../types'
-import {
-    getOrderStatus,
-    getFirstStepOrderStatus,
-    getNextStepName,
-    getPrevStepName,
-    getMaxPromotion,
-} from '../../utilities'
+import { getOrderStatus, getFirstStepOrderStatus } from '../../utilities'
 
 interface ISendButtons {
     step?: StepType
     isFormChecked: boolean
-    curStepName: StepName
-    passedTo: StepName
-    maxPromotion: StepName
-    nextToPass?: StepName
+    curStepName?: StepName
+    prevStepName?: StepName
     dataRef?: RefObject<ISendButtonsOutputRef>
     formCheck?: FormCheckType
     prevFormCheck?: FormCheckType
@@ -34,19 +26,14 @@ const SendButtons: FC<ISendButtons> = ({
     curStepName,
     dataRef,
     formCheck,
-    passedTo,
-    maxPromotion,
-    nextToPass,
+    prevStepName,
     prevFormCheck = () => {},
     isPrevFormChecked = true,
     isMainCondition = true,
 }) => {
-    const {
-        isCurrent,
-        isProceedToEdit,
-        isEdit,
-        isProceedToNext,
-    } = getOrderStatus({ passedTo, curStepName, maxPromotion })
+    const { isCurrent, isProceedToEdit, isEdit, isProceedToNext } = prevStepName
+        ? getOrderStatus({ curStepName, prevStepName, step })
+        : getFirstStepOrderStatus({ curStepName, step })
 
     const isCompletedRef = useRef<HTMLInputElement>(null)
     const uncompleteSaveRef = useRef<HTMLInputElement>(null)
@@ -54,29 +41,53 @@ const SendButtons: FC<ISendButtons> = ({
     const isAltCompletedRef = useRef<HTMLInputElement>(null)
 
     const getResults = () => {
-        const _passedTo = isMainCondition
-            ? isCompletedRef.current?.checked
-                ? getNextStepName(passedTo)
-                : passedTo
-            : isAltCompletedRef.current?.checked
-            ? getPrevStepName(passedTo)
-            : passedTo
-
-        const _nextToPass = nextToPass ?? _passedTo
-
         const data = {
-            passedTo: _nextToPass,
-            createdByStep: passedTo,
-            maxPromotion: getMaxPromotion(_passedTo, maxPromotion),
-            shouldConfirmView: _nextToPass !== passedTo,
+            [`${curStepName}IsProceedToNext`]:
+                isCurrent || isEdit
+                    ? isCompletedRef.current?.checked
+                    : isProceedToNext
+                    ? true
+                    : false,
+            [`${curStepName}IsCompleted`]:
+                isCurrent || isEdit
+                    ? isCompletedRef.current?.checked
+                    : isProceedToNext
+                    ? true
+                    : false,
+            [`${curStepName}ShouldPerfomerConfirmView`]:
+                isCurrent || isEdit
+                    ? isCompletedRef.current?.checked
+                    : shouldPerfomerConfirmViewRef.current?.checked,
         }
-
+        if (prevStepName) {
+            data[`${prevStepName}IsCompleted`] =
+                isCurrent || isEdit
+                    ? !isAltCompletedRef.current?.checked
+                    : isProceedToNext
+                    ? true
+                    : isProceedToEdit
+                    ? false
+                    : false
+        }
         return data
     }
 
     useEffect(() => {
         dataRef!.current!.getResults = getResults
     }, [dataRef])
+
+    // useEffect(() => {
+    //     console.log('send buttons form check')
+    //     if (formCheck) {
+    //         formCheck({ showMessage: false })
+    //     }
+    // }, [formCheck])
+
+    // useEffect(() => {
+    //     if (prevFormCheck) {
+    //         prevFormCheck({ showMessage: false })
+    //     }
+    // }, [prevFormCheck])
 
     return (
         <div>
@@ -114,7 +125,7 @@ const SendButtons: FC<ISendButtons> = ({
                         Zapisz z niekompletnymi danymi.
                     </>
                 )}
-            {/* {(isProceedToEdit || isProceedToNext) && (
+            {(isProceedToEdit || isProceedToNext) && (
                 <>
                     <input
                         type="checkbox"
@@ -125,7 +136,7 @@ const SendButtons: FC<ISendButtons> = ({
                     Czy następny użytkownik musi potwierdzić przeglądanie
                     zmiany.
                 </>
-            )} */}
+            )}
         </div>
     )
 }

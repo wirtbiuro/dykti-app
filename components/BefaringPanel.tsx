@@ -1,71 +1,35 @@
-import React, { useState } from 'react'
-import { IQuery, IOrder } from '../types'
-import {
-    useGetOrdersQuery,
-    useGetCompletedOrdersQuery,
-    useConfirmViewingByPerfomerMutation,
-    useCreateOrderMutation,
-} from '../state/apiSlice'
+import { IQuery, IOrder, stepNames, StepName } from '../types'
+import { useGetOrdersQuery, useGetCompletedOrdersQuery } from '../state/apiSlice'
 import CreateBefaringStep from './CreateBefaringStep'
-import { OrderStyled, StepStyled } from '../styles/styled-components'
-import Step from './Step'
-import { DateTime } from 'luxon'
 import Orders from './Orders'
+import { getArrIdx, getDatas } from '../utilities'
 
 const BefaringPanel = () => {
+    const currentStep: StepName = 'beffaringStep'
+
     const { data }: IQuery<IOrder> = useGetOrdersQuery('BefaringUser')
-    const { data: processedData }: IQuery<IOrder> = useGetCompletedOrdersQuery(
-        'BefaringUser'
-    )
 
-    const completedOrdersData = processedData?.filter(
-        (order) => order.steps[order.steps.length - 1].beffaringStepIsCompleted
-    )
-    const editedOrdersData = processedData?.filter(
-        (order) => !order.steps[order.steps.length - 1].beffaringStepIsCompleted
-    )
-    const currentData = data?.filter(
-        (order) => order.steps[order.steps.length - 1].formStepIsCompleted
-    )
-    const passedForEditData = data?.filter(
-        (order) => !order.steps[order.steps.length - 1].formStepIsCompleted
-    )
+    const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({ data, currentStep })
 
-    if (!data || !completedOrdersData) return <>Ładowanie danych...</>
+    if (!data) return <>Ładowanie danych...</>
 
     return (
         <>
             <h2>Sprawy bieżące:</h2>
 
-            <Orders
-                orders={currentData}
-                children={<CreateBefaringStep />}
-                stepName="beffaringStep"
-            />
+            <Orders orders={currentData} children={<CreateBefaringStep />} stepName="beffaringStep" />
 
             <h2>Do poprawienia:</h2>
 
-            <Orders
-                orders={editedOrdersData}
-                children={<CreateBefaringStep />}
-                stepName="beffaringStep"
-            />
+            <Orders orders={editedOrdersData} children={<CreateBefaringStep />} stepName="beffaringStep" />
 
             <h2>Przekazane dalej:</h2>
 
-            <Orders
-                orders={completedOrdersData}
-                children={<CreateBefaringStep />}
-                stepName="beffaringStep"
-            />
+            <Orders orders={completedOrdersData} children={<CreateBefaringStep />} stepName="beffaringStep" />
 
             <h2>Przekazane do poprawienia:</h2>
 
-            <Orders
-                orders={passedForEditData}
-                children={<CreateBefaringStep />}
-                stepName="beffaringStep"
-            />
+            <Orders orders={passedForEditData} children={<CreateBefaringStep />} stepName="beffaringStep" />
         </>
     )
 }

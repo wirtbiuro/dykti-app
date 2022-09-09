@@ -2,7 +2,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { PrismaClient } from '@prisma/client'
 import { withJwt, getWhereStrategyBySteps } from '../../utilities'
-import { Role } from '../../types'
+import { Role, StepNames, StepName } from '../../types'
 // import { IgetUserAxiosRes } from '../../types'
 
 async function getorders(req: NextApiRequest, res: NextApiResponse) {
@@ -11,6 +11,8 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
     const prisma = new PrismaClient()
 
     const { userId } = req.body
+
+    const stringRole = role as string
 
     try {
         const user = await prisma.user.findUnique({
@@ -21,62 +23,48 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
 
         const userRoles = user?.role
 
-        if (!userRoles?.includes(role)) {
-            return res
-                .status(500)
-                .json({ message: 'A role is not allowed by the User' })
+        if (!userRoles?.includes(stringRole)) {
+            return res.status(500).json({ message: 'A role is not allowed by the User' })
         }
 
         const _role = role as Role
 
-        const whereStrategy: Record<Role, any> = {
-            FormCreator: isCompleted
+        const whereStrategy: Record<Role, StepName> = {
+            FormCreator: 'formStep',
+            BefaringUser: 'beffaringStep',
+            OfferCreator: 'offerStep',
+            ContractPreparer: 'contractStep',
+            ContractChecker: 'contractCheckerStep',
+            ContractCreator: 'contractCreatorStep',
+            WorkRespUser: 'workStep',
+        }
+
+        const where =
+            _role === 'FormCreator'
                 ? {
-                      some: {
-                          formStepIsProceedToNext: true,
+                      steps: {
+                          some: {
+                              OR: [
+                                  {
+                                      passedTo: 'formStep',
+                                  },
+                                  {
+                                      passedTo: 'beffaringStep',
+                                  },
+                              ],
+                          },
                       },
                   }
                 : {
-                      none: {
-                          formStepIsProceedToNext: undefined,
+                      steps: {
+                          some: {
+                              passedTo: whereStrategy[_role],
+                          },
                       },
-                  },
-            BefaringUser: getWhereStrategyBySteps(
-                'formStep',
-                'beffaringStep',
-                isCompleted
-            ),
-            OfferCreator: getWhereStrategyBySteps(
-                'beffaringStep',
-                'offerStep',
-                isCompleted
-            ),
-            ContractPreparer: getWhereStrategyBySteps(
-                'offerStep',
-                'contractStep',
-                isCompleted
-            ),
-            ContractChecker: getWhereStrategyBySteps(
-                'contractStep',
-                'contractCheckerStep',
-                isCompleted
-            ),
-            ContractCreator: getWhereStrategyBySteps(
-                'contractCheckerStep',
-                'contractCreatorStep',
-                isCompleted
-            ),
-            WorkRespUser: getWhereStrategyBySteps(
-                'contractCreatorStep',
-                'workStep',
-                isCompleted
-            ),
-        }
+                  }
 
         const orders = await prisma.order.findMany({
-            where: {
-                steps: whereStrategy[_role],
-            },
+            where,
             include: {
                 steps: true,
             },

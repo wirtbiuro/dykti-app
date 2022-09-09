@@ -227,9 +227,18 @@ function CalendarWithTime({
         connection?.__setErrTitleElement(getErrTitleElement())
     }, [])
 
+    const dateTimeValue = connection?.value as DateTime
+    const viewTime = dateTimeValue
+        ? isTimeEnabled
+            ? dateTimeValue.toFormat('dd.LL.yyyy HH:mm')
+            : dateTimeValue.toFormat('dd.LL.yyyy')
+        : isTimeEnabled
+        ? 'DD.MM.YYYY mm:hh'
+        : 'DD.MM.YYYY'
+
     return (
         <>
-            {connection?.value?.toISO()}
+            {viewTime}
             <button onClick={clicked}>
                 {isVisible
                     ? 'Zamknij'
@@ -237,9 +246,9 @@ function CalendarWithTime({
                     ? 'Zmień datę'
                     : 'Ustalić datę'}
             </button>
-            Checked: {connection?.isChecked ? 'true' : 'false'}
+            {/* Checked: {connection?.isChecked ? 'true' : 'false'}
             isReset: {isReset ? 'true' : 'false'}
-            Value: {connection?.value?.toString()}
+            Value: {viewTime} */}
             <button onClick={reset}>Resetowanie</button>
             <div style={{ display: isVisible ? 'block' : 'none' }}>
                 <Calendar

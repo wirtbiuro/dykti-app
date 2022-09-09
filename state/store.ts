@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit/'
+import { configureStore } from '@reduxjs/toolkit'
 import { authReducer } from './authSlice'
 import { dyktiApi } from './apiSlice'
 
@@ -13,6 +13,8 @@ export const store = configureStore({
         getDefaultMiddleware().concat(dyktiApi.middleware),
 })
 
-export type RootState = ReturnType<typeof store.getState>
+const _store = store as any
+
+export type RootState = ReturnType<typeof _store.getState>
 
 export type AppDispatch = typeof store.dispatch

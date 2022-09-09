@@ -29,7 +29,8 @@ const Orders: FC<IOrderProps> = ({ orders, stepName, children }) => {
 
     return (
         <OrderStyled>
-            {orders.map((order) => {
+            {orders?.map((order) => {
+                console.log(viewingFormOrderId, order.id)
                 const step = order.steps[order.steps.length - 1] as any
                 const isViewConfirmed =
                     step[`${stepName}PrevStepConfirmationDate`]

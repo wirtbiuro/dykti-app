@@ -14,14 +14,9 @@ export interface NextApiRequestWithHeaders extends NextApiRequest {
     headers: any
 }
 
-export type EditableTypes<T> = Omit<
-    T,
-    'id' | 'createdAt' | 'recordId' | 'record'
->
+export type EditableTypes<T> = Omit<T, 'id' | 'createdAt' | 'recordId' | 'record'>
 
-type _WithValueNFocus<T> = T extends { [key: string]: infer U }
-    ? Record<keyof T, { value: U; focus: Function }>
-    : never
+type _WithValueNFocus<T> = T extends { [key: string]: infer U } ? Record<keyof T, { value: U; focus: Function }> : never
 
 export type WithValueNFocus<T> = {
     [P in keyof T]: {
@@ -33,14 +28,28 @@ export type WithValueNFocus<T> = {
 
 export type PropNames<T> = keyof T
 
-export type StepName =
-    | 'formStep'
-    | 'beffaringStep'
-    | 'offerStep'
-    | 'contractStep'
-    | 'contractCheckerStep'
-    | 'contractCreatorStep'
-    | 'workStep'
+// export type StepName =
+//     | 'formStep'
+//     | 'beffaringStep'
+//     | 'offerStep'
+//     | 'contractStep'
+//     | 'contractCheckerStep'
+//     | 'contractCreatorStep'
+//     | 'workStep'
+
+export const stepNames = [
+    'formStep',
+    'beffaringStep',
+    'offerStep',
+    'contractStep',
+    'contractCheckerStep',
+    'contractCreatorStep',
+    'workStep',
+] as const
+
+export type StepName = typeof stepNames[number]
+
+export type StepNames = typeof stepNames
 
 export interface IQuery<T> {
     isError: boolean
@@ -68,6 +77,12 @@ export type FormChangedType = ({}: { isFirstLoad: boolean }) => void
 export type StepType = {
     id?: number
     createdAt?: string
+    passedTo: StepName
+    createdByStep?: StepName
+    maxPromotion: StepName
+    shouldConfirmView?: boolean
+    createdBy?: number
+    creator?: IUser
 } & IFormStep &
     IBefaringStep &
     IOfferStep &
@@ -77,7 +92,6 @@ export type StepType = {
     IWorkStep
 
 export interface IFormStep {
-    formStepCreatedAt?: string
     formStepClientName?: string
     formStepPhone?: string
     formStepEmail?: string
@@ -85,98 +99,50 @@ export interface IFormStep {
     formStepAddress?: string
     formStepMeetingDate?: DateTime | string
     formStepWhereClientFound?: string
-    formStepCreatorId?: number
-    formStepCreator?: IUser
-    formStepIsCompleted?: boolean
-    formStepIsProceedToNext?: boolean
     formStepComment?: string
-    formStepShouldPerfomerConfirmView?: boolean
 }
 
 export interface IBefaringStep {
-    beffaringStepPrevStepConfirmationDate?: DateTime | string
-    beffaringStepCreatedAt?: DateTime | string
     beffaringStepWasThereMeeting?: boolean
     beffaringStepOfferDate?: DateTime | string
     beffaringStepInfoSendingDate?: DateTime | string
     beffaringStepCreatorId?: number
     beffaringStepCreator?: IUser
-    beffaringStepIsCompleted?: boolean
-    beffaringStepIsProceedToNext?: boolean
     beffaringStepComment?: string
-    beffaringStepShouldPerfomerConfirmView?: boolean
     beffaringStepDocsSendDate?: DateTime | string
 }
 
 export interface IOfferStep {
-    offerStepPrevStepConfirmationDate?: DateTime | string
-
     offerStepAreBefDocsGood?: boolean
     offerStepBefComments?: string
     offerStepOfferDate?: DateTime | string
     offerStepComment?: string
-
-    offerStepIsCompleted?: boolean
-    offerStepIsProceedToNext?: boolean
-    offerStepShouldPerfomerConfirmView?: boolean
-
-    offerStepCreatedAt?: DateTime | string
-    offerStepCreatorId?: number
-    offerStepCreator?: IUser
 }
 
 export interface IContractStep {
-    contractStepPrevStepConfirmationDate?: DateTime | string
     contractStepOfferSendingDate?: DateTime | string
     contractStepAreOfferChanges?: boolean
     contractStepOfferChangesComment?: string
     contractStepIsOfferAccepted?: boolean
     contractStepSentForVerificationDate?: DateTime | string
     contractStepOfferRejectionReason?: string
-    contractStepIsCompleted?: boolean
-    contractStepIsProceedToNext?: boolean
-    contractStepShouldPerfomerConfirmView?: boolean
-    contractStepCreatedAt?: DateTime | string
-    contractStepCreatorId?: number
-    contractStepCreator?: IUser
 }
 
 export interface IContractCheckerStep {
-    contractCheckerStepPrevStepConfirmationDate?: DateTime | string
     contractCheckerStepIsContractChecked?: boolean
     contractCheckerStepWorkStartDate?: DateTime | string
     contractCheckerStepComments?: string
-
-    contractCheckerStepIsCompleted?: boolean
-    contractCheckerStepIsProceedToNext?: boolean
-    contractCheckerStepShouldPerfomerConfirmView?: boolean
-    contractCheckerStepCreatedAt?: DateTime | string
-    contractCheckerStepCreatorId?: number
-    contractCheckerStepCreator?: IUser
 }
 
 export interface IContractCreatorStep {
-    contractCreatorStepPrevStepConfirmationDate?: DateTime | string
     contractCreatorStepContractSendingDate?: DateTime | string
     contractCreatorStepIsContractAccepted?: boolean
     contractCreatorStepContractRejectionReason?: string
-
-    contractCreatorStepIsCompleted?: boolean
-    contractCreatorStepIsProceedToNext?: boolean
-    contractCreatorStepShouldPerfomerConfirmView?: boolean
-    contractCreatorStepCreatedAt?: DateTime | string
-    contractCreatorStepCreatorId?: number
-    contractCreatorStepCreator?: IUser
 }
 
 export interface IWorkStep {
-    workStepPrevStepConfirmationDate?: DateTime | string
     workStepTeam?: string
     workStepWorkEndDay?: DateTime | string
-
-    workStepIsCompleted?: boolean
-    workStepIsProceedToNext?: boolean
-    workStepShouldPerfomerConfirmView?: boolean
 }
 
 export interface IRecord {
@@ -259,6 +225,9 @@ export interface IServerControllerError {
 export interface IWithOrder {
     order?: IOrder
     isVisible?: boolean
+    // passedTo: StepName
+    // maxPromotion: StepName
+    // nextToPass?: StepName
 }
 
 export interface ISendButtonsOutputRef {

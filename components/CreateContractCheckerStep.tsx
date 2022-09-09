@@ -12,7 +12,7 @@ import { useCreateOrderMutation } from '../state/apiSlice'
 import FormInput from './UI/FormInput'
 import CalendarWithTime from './CalendarWithTime'
 import SendButtons from './UI/SendButtons'
-import { submitForm } from '../utilities'
+import { submitForm, showErrorMessages } from '../utilities'
 import { flushSync } from 'react-dom'
 import { useFormInput } from '../hooks/useFormInput'
 import { useCalendarData } from '../hooks/useCalendarData'
@@ -44,11 +44,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
         //     : prevFormCheck({ showMessage: false })
         formCheck({ showMessage: false })
         prevFormCheck({ showMessage: false })
-    }, [
-        isContractCheckedData.isChecked,
-        workStartDateData.isChecked,
-        commentsData.isChecked,
-    ])
+    }, [isContractCheckedData.isChecked, workStartDateData.isChecked, commentsData.isChecked])
 
     const isMainCondition = isContractCheckedData.isChecked
 
@@ -93,48 +89,32 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
         const target = e.target as typeof e.target & FormType
         const _createOrder = createOrder as (data: FieldsToSend) => void
 
-        const uncompleteCondition =
-            target?.uncompleteCheckbox?.checked === false ||
-            target?.nextCheckbox?.checked ||
-            target?.prevCheckbox?.checked
+        const areErrors = showErrorMessages({
+            flushSync,
+            formCheck,
+            isFormChecked,
+            isMainCondition,
+            isPrevFormChecked,
+            prevFormCheck,
+            target,
+        })
 
-        if (isMainCondition) {
-            flushSync(() => {
-                formCheck({ showMessage: uncompleteCondition })
-            })
+        console.log('submit')
 
-            if (!isFormChecked && uncompleteCondition) {
-                return
-            }
-        }
-
-        if (!isMainCondition) {
-            flushSync(() => {
-                prevFormCheck({
-                    showMessage: uncompleteCondition,
-                })
-            })
-
-            if (!isPrevFormChecked && uncompleteCondition) {
-                return
-            }
-        }
+        if (areErrors) return
 
         submitForm({
+            maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,
-            curStepName: 'contractStep',
-            prevStepName: 'offerStep',
-            step: prevStep!,
+            curStepName: 'contractCheckerStep',
+            passedTo: prevStep!.passedTo,
             formCheck,
-            prevFormCheck,
-            isPrevFormChecked,
             isFormChecked,
             toPrevSendData: {
                 order,
                 role: 'ContractChecker',
-                contractCheckerStepIsContractChecked:
-                    isContractCheckedData.isChecked,
+                contractCheckerStepIsContractChecked: isContractCheckedData.isChecked,
                 contractCheckerStepWorkStartDate: null,
                 contractCheckerStepComments: commentsData.value,
                 ...sendButtonsOutputRef.current.getResults(),
@@ -142,8 +122,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
             toNextSendData: {
                 order,
                 role: 'ContractChecker',
-                contractCheckerStepIsContractChecked:
-                    isContractCheckedData.isChecked,
+                contractCheckerStepIsContractChecked: isContractCheckedData.isChecked,
                 contractCheckerStepWorkStartDate: workStartDateData.value,
                 contractCheckerStepComments: commentsData.value,
                 ...sendButtonsOutputRef.current.getResults(),
@@ -162,8 +141,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                 type="checkbox"
                                 connection={isContractCheckedData}
                                 defaultChecked={
-                                    typeof prevStep?.contractCheckerStepIsContractChecked ===
-                                    'boolean'
+                                    typeof prevStep?.contractCheckerStepIsContractChecked === 'boolean'
                                         ? prevStep?.contractCheckerStepIsContractChecked
                                         : false
                                 }
@@ -176,10 +154,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                 <>
                                     <p>Przybliżona data rozpoczęcia pracy.</p>
                                     <CalendarWithTime
-                                        defaultDate={
-                                            order &&
-                                            prevStep?.contractCheckerStepWorkStartDate
-                                        }
+                                        defaultDate={order && prevStep?.contractCheckerStepWorkStartDate}
                                         connection={workStartDateData}
                                         isTimeEnabled={false}
                                     />
@@ -189,14 +164,8 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
                             <>
                                 <p>Komentarz: </p>
                                 <FormInput
-                                    placeholder={
-                                        isMainCondition
-                                            ? 'Komentarz'
-                                            : 'Jakich zmian wymaga kontrakt?'
-                                    }
-                                    defaultValue={
-                                        prevStep?.contractCheckerStepComments
-                                    }
+                                    placeholder={isMainCondition ? 'Komentarz' : 'Jakich zmian wymaga kontrakt?'}
+                                    defaultValue={prevStep?.contractCheckerStepComments}
                                     connection={commentsData}
                                 />
                             </>
@@ -204,7 +173,8 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
 
                         <SendButtons
                             curStepName="contractCheckerStep"
-                            prevStepName="contractStep"
+                            maxPromotion={prevStep!.maxPromotion}
+                            passedTo={prevStep!.passedTo}
                             dataRef={sendButtonsOutputRef}
                             isFormChecked={isFormChecked}
                             step={prevStep}

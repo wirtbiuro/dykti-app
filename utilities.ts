@@ -11,6 +11,9 @@ import {
     ISendCheckboxes,
     FormCheckType,
     FieldsToSend,
+    stepNames,
+    StepNames,
+    IOrder,
 } from './types'
 import { ServerController } from './server-controller'
 import { SyntheticEvent } from 'react'
@@ -21,10 +24,7 @@ interface NextApiRequestWithHeaders extends NextApiRequest {
     headers: any
 }
 
-export const withJwt = (fn: Function) => (
-    req: NextApiRequestWithHeaders,
-    res: NextApiResponse
-) => {
+export const withJwt = (fn: Function) => (req: NextApiRequestWithHeaders, res: NextApiResponse) => {
     const cookies = cookie.parse(req.headers.cookie || '')
     // const cookies = cookie.parse(req.cookies || '')
     console.log({ cookies })
@@ -42,13 +42,7 @@ export const withJwt = (fn: Function) => (
     }
 }
 
-export const withTokensCheck = async ({
-    cb,
-    err,
-}: {
-    cb: Function
-    err: (error: IServerControllerError) => void
-}) => {
+export const withTokensCheck = async ({ cb, err }: { cb: Function; err: (error: IServerControllerError) => void }) => {
     try {
         console.log('withTokensCheck')
         await cb()
@@ -89,10 +83,74 @@ export const showErrorFormModal = ({
         },
     })
 
+// interface IgetOrderStatusTypeProps {
+//     curStepName?: StepName
+//     prevStepName?: StepName
+//     step?: StepType
+// }
+
+// type getOrderStatusType = ({}: IgetOrderStatusTypeProps) => {
+//     isCurrent: boolean
+//     isEdit: boolean
+//     isProceedToNext: boolean
+//     isProceedToEdit: boolean
+// }
+
+// export const getOrderStatus: getOrderStatusType = ({
+//     curStepName,
+//     prevStepName,
+//     step,
+// }) => {
+//     const curStepIsProceedToNextName = `${curStepName}IsProceedToNext` as PropNames<
+//         StepType
+//     >
+
+//     const prevStepIsProceedToNextName = `${prevStepName}IsProceedToNext` as PropNames<
+//         StepType
+//     >
+
+//     const curStepIsCompletedName = `${curStepName}IsCompleted` as PropNames<
+//         StepType
+//     >
+
+//     const prevStepIsCompletedName = `${prevStepName}IsCompleted` as PropNames<
+//         StepType
+//     >
+
+//     const curStepIsProceedToNext = step?.[curStepIsProceedToNextName] as boolean
+//     const prevStepIsProceedToNext = step?.[
+//         prevStepIsProceedToNextName
+//     ] as boolean
+//     const curStepIsCompleted = step?.[curStepIsCompletedName] as boolean
+//     const prevStepIsCompleted = step?.[prevStepIsCompletedName] as boolean
+
+//     const isCurrent =
+//         prevStepIsProceedToNext &&
+//         prevStepIsCompleted &&
+//         !curStepIsProceedToNext &&
+//         !curStepIsCompleted
+//     const isEdit =
+//         prevStepIsProceedToNext &&
+//         prevStepIsCompleted &&
+//         curStepIsProceedToNext &&
+//         !curStepIsCompleted
+//     const isProceedToNext =
+//         prevStepIsProceedToNext &&
+//         prevStepIsCompleted &&
+//         curStepIsProceedToNext &&
+//         curStepIsCompleted
+//     const isProceedToEdit =
+//         prevStepIsProceedToNext &&
+//         !prevStepIsCompleted &&
+//         !curStepIsProceedToNext &&
+//         !curStepIsCompleted
+//     return { isCurrent, isEdit, isProceedToNext, isProceedToEdit }
+// }
+
 interface IgetOrderStatusTypeProps {
-    curStepName?: StepName
-    prevStepName?: StepName
-    step?: StepType
+    curStepName: StepName
+    passedTo: StepName
+    maxPromotion: StepName
 }
 
 type getOrderStatusType = ({}: IgetOrderStatusTypeProps) => {
@@ -102,55 +160,92 @@ type getOrderStatusType = ({}: IgetOrderStatusTypeProps) => {
     isProceedToEdit: boolean
 }
 
-export const getOrderStatus: getOrderStatusType = ({
+export const getOrderStatus: getOrderStatusType = ({ curStepName, passedTo, maxPromotion }) => {
+    let isCurrent = false
+    let isEdit = false
+    let isProceedToNext = false
+    let isProceedToEdit = false
+
+    if (curStepName === passedTo && curStepName === maxPromotion) {
+        isCurrent = true
+    } else if (curStepName === passedTo && curStepName !== maxPromotion) {
+        isEdit = true
+    } else if (getArrIdx(curStepName, stepNames) < getArrIdx(passedTo, stepNames)) {
+        isProceedToNext = true
+    } else {
+        isProceedToEdit = true
+    }
+    return { isCurrent, isEdit, isProceedToEdit, isProceedToNext }
+}
+
+export function getArrIdx(value: StepName, arr: StepNames): number {
+    for (let index = 0; index < arr.length; index++) {
+        if (value === arr[index]) return index
+    }
+    return -1
+}
+
+export function getNextStepName(value: StepName): StepName {
+    const idx = getArrIdx(value, stepNames)
+    return stepNames[idx + 1] ?? stepNames[idx]
+}
+
+export function getPrevStepName(value: StepName): StepName {
+    const idx = getArrIdx(value, stepNames)
+    return stepNames[idx - 1] ?? stepNames[idx]
+}
+
+export function getMaxPromotion(value: StepName, maxPromotion: StepName): StepName {
+    const idx = getArrIdx(value, stepNames)
+    const maxIdx = getArrIdx(maxPromotion, stepNames)
+    return maxIdx > idx ? maxPromotion : value
+}
+
+type GetPassedToType = ({}: IGetPassedToTypeProps) => StepName
+
+interface IGetPassedToTypeProps {
+    isMainCondition: boolean
+    isCurrentOrEdit: boolean
+    target: EventTarget & WithValueNFocus<ISendCheckboxes>
+    nextToPass?: StepName
+    curStepName: StepName
+    passedTo: StepName
+    prevToPass?: StepName
+}
+
+export const getPassedTo: GetPassedToType = ({
+    isMainCondition,
+    isCurrentOrEdit,
+    target,
+    nextToPass,
     curStepName,
-    prevStepName,
-    step,
+    passedTo,
+    prevToPass,
 }) => {
-    const curStepIsProceedToNextName = `${curStepName}IsProceedToNext` as PropNames<
-        StepType
-    >
+    console.log({
+        isMainCondition,
+        isCurrentOrEdit,
+        target,
+        nextToPass,
+        curStepName,
+        passedTo,
+        prevToPass,
+        'target.prevCheckbox?.checked': target.prevCheckbox?.checked,
+    })
+    const _passedTo = isMainCondition
+        ? isCurrentOrEdit
+            ? target.nextCheckbox?.checked
+                ? nextToPass || getNextStepName(curStepName)
+                : curStepName
+            : passedTo
+        : isCurrentOrEdit
+        ? target.prevCheckbox?.checked
+            ? prevToPass || getPrevStepName(curStepName)
+            : curStepName
+        : passedTo
 
-    const prevStepIsProceedToNextName = `${prevStepName}IsProceedToNext` as PropNames<
-        StepType
-    >
-
-    const curStepIsCompletedName = `${curStepName}IsCompleted` as PropNames<
-        StepType
-    >
-
-    const prevStepIsCompletedName = `${prevStepName}IsCompleted` as PropNames<
-        StepType
-    >
-
-    const curStepIsProceedToNext = step?.[curStepIsProceedToNextName] as boolean
-    const prevStepIsProceedToNext = step?.[
-        prevStepIsProceedToNextName
-    ] as boolean
-    const curStepIsCompleted = step?.[curStepIsCompletedName] as boolean
-    const prevStepIsCompleted = step?.[prevStepIsCompletedName] as boolean
-
-    const isCurrent =
-        prevStepIsProceedToNext &&
-        prevStepIsCompleted &&
-        !curStepIsProceedToNext &&
-        !curStepIsCompleted
-    const isEdit =
-        prevStepIsProceedToNext &&
-        prevStepIsCompleted &&
-        curStepIsProceedToNext &&
-        !curStepIsCompleted
-    const isProceedToNext =
-        prevStepIsProceedToNext &&
-        prevStepIsCompleted &&
-        curStepIsProceedToNext &&
-        curStepIsCompleted
-    const isProceedToEdit =
-        prevStepIsProceedToNext &&
-        !prevStepIsCompleted &&
-        !curStepIsProceedToNext &&
-        !curStepIsCompleted
-    return { isCurrent, isEdit, isProceedToNext, isProceedToEdit }
+    console.log({ _passedTo })
+    return _passedTo
 }
 
 type GetFirstStepOrderStatusType = ({}: {
@@ -163,17 +258,10 @@ type GetFirstStepOrderStatusType = ({}: {
     isProceedToEdit: false
 }
 
-export const getFirstStepOrderStatus: GetFirstStepOrderStatusType = ({
-    curStepName,
-    step,
-}) => {
-    const curStepIsProceedToNextName = `${curStepName}IsProceedToNext` as PropNames<
-        StepType
-    >
+export const getFirstStepOrderStatus: GetFirstStepOrderStatusType = ({ curStepName, step }) => {
+    const curStepIsProceedToNextName = `${curStepName}IsProceedToNext` as PropNames<StepType>
 
-    const curStepIsCompletedName = `${curStepName}IsCompleted` as PropNames<
-        StepType
-    >
+    const curStepIsCompletedName = `${curStepName}IsCompleted` as PropNames<StepType>
 
     const curStepIsProceedToNext = step?.[curStepIsProceedToNextName] as boolean
     const curStepIsCompleted = step?.[curStepIsCompletedName] as boolean
@@ -189,8 +277,10 @@ interface ISubmitFormProps {
     target: EventTarget & WithValueNFocus<ISendCheckboxes>
     isMainCondition: boolean
     curStepName: StepName
-    prevStepName: StepName
-    step: StepType
+    maxPromotion: StepName
+    passedTo: StepName
+    nextToPass?: StepName
+    prevToPass?: StepName
     formCheck: FormCheckType
     prevFormCheck?: FormCheckType
     isFormChecked: boolean
@@ -208,119 +298,121 @@ export const submitForm: SubmitFormType = async ({
     curStepName,
     formCheck,
     isFormChecked,
-    prevStepName,
-    step,
+    maxPromotion,
+    passedTo,
+    nextToPass,
+    prevToPass,
     toNextSendData,
     toPrevSendData = {},
     createOrder,
     isPrevFormChecked,
     prevFormCheck = () => {},
 }) => {
-    const {
-        isCurrent,
-        isEdit,
-        isProceedToNext,
-        isProceedToEdit,
-    } = getOrderStatus({
+    const { isCurrent, isEdit, isProceedToNext, isProceedToEdit } = getOrderStatus({
         curStepName,
-        prevStepName,
-        step,
+        maxPromotion,
+        passedTo,
     })
+    const isCurrentOrEdit = isCurrent || isEdit
+
+    console.log('submitForm', isMainCondition)
+
+    const _passedTo = getPassedTo({
+        nextToPass,
+        target,
+        isMainCondition,
+        curStepName,
+        isCurrentOrEdit,
+        passedTo,
+        prevToPass,
+    })
+    const _maxPromotion = getMaxPromotion(_passedTo, maxPromotion)
+    const shouldConfirmView = _passedTo !== curStepName
+
+    const _options = {
+        passedTo: _passedTo,
+        maxPromotion: _maxPromotion,
+        shouldConfirmView,
+        createdByStep: curStepName,
+    }
+
+    console.log({ _options })
 
     isMainCondition ? submitToNext() : submitToPrev()
 
     async function submitToNext() {
-        console.log('submit')
-        console.log({ isCurrent, isEdit, isProceedToNext, isProceedToEdit })
-        if (
-            (isCurrent || isEdit) &&
-            target.nextCheckbox?.checked &&
-            !isFormChecked
-        ) {
-            console.log('1')
-            return formCheck({ showMessage: true })
-        }
+        // console.log('submitToNext')
+        // console.log({ isCurrent, isEdit, isProceedToNext, isProceedToEdit })
+        // if ((isCurrent || isEdit) && target.nextCheckbox?.checked && !isFormChecked) {
+        //     return formCheck({ showMessage: true })
+        // }
 
-        if (
-            (isProceedToNext || isProceedToEdit) &&
-            !target.uncompleteCheckbox?.checked &&
-            !isFormChecked
-        ) {
-            console.log('2')
-            return formCheck({ showMessage: true })
-        }
-        console.log({ toNextSendData })
-        createOrder(toNextSendData)
+        // if ((isProceedToNext || isProceedToEdit) && !target.uncompleteCheckbox?.checked && !isFormChecked) {
+        //     return formCheck({ showMessage: true })
+        // }
+        // console.log({ toNextSendData })
+        createOrder({ ...toNextSendData, ..._options })
     }
 
     async function submitToPrev() {
-        if (
-            (isCurrent || isEdit) &&
-            target.prevCheckbox.checked &&
-            !isPrevFormChecked
-        ) {
-            return prevFormCheck({ showMessage: true })
-        }
+        // console.log('submitToPrev')
+        // if ((isCurrent || isEdit) && target.prevCheckbox.checked && !isPrevFormChecked) {
+        //     console.log('err 1')
+        //     return prevFormCheck({ showMessage: true })
+        // }
 
-        if (
-            (isProceedToNext || isProceedToEdit) &&
-            !target.uncompleteCheckbox?.checked &&
-            !isPrevFormChecked
-        ) {
-            return prevFormCheck({ showMessage: true })
-        }
-        createOrder(toPrevSendData)
+        // if ((isProceedToNext || isProceedToEdit) && !target.uncompleteCheckbox?.checked && !isPrevFormChecked) {
+        //     console.log('err 2')
+        //     return prevFormCheck({ showMessage: true })
+        // }
+        createOrder({ ...toPrevSendData, ..._options })
     }
 }
 
 type SubmitFirstFormPropsType = Omit<
     ISubmitFormProps,
-    | 'isMainCondition'
-    | 'prevStepName'
-    | 'toPrevSendData'
-    | 'isPrevFormChecked'
-    | 'prevFormCheck'
+    'isMainCondition' | 'prevStepName' | 'toPrevSendData' | 'isPrevFormChecked' | 'prevFormCheck'
 >
 
 type SubmitFirstFormType = ({}: SubmitFirstFormPropsType) => Promise<void>
 
-export const submitFirstForm: SubmitFirstFormType = async ({
-    target,
-    curStepName,
-    formCheck,
-    isFormChecked,
-    step,
-    toNextSendData,
-    createOrder,
-}) => {
-    const { isCurrent, isProceedToNext, isEdit } = getFirstStepOrderStatus({
-        step,
-        curStepName,
-    })
+// export const submitFirstForm: SubmitFirstFormType = async ({
+//     target,
+//     curStepName,
+//     formCheck,
+//     isFormChecked,
+//     step,
+//     toNextSendData,
+//     createOrder,
+// }) => {
+//     const { isCurrent, isProceedToNext, isEdit } = getFirstStepOrderStatus({
+//         step,
+//         curStepName,
+//     })
 
-    submitToNext()
+//     submitToNext()
 
-    async function submitToNext() {
-        console.log('submit')
-        if (
-            (isCurrent || isEdit) &&
-            target.nextCheckbox?.checked &&
-            !isFormChecked
-        ) {
-            return formCheck({ showMessage: true })
-        }
+//     async function submitToNext() {
+//         console.log('submit')
+//         if (
+//             (isCurrent || isEdit) &&
+//             target.nextCheckbox?.checked &&
+//             !isFormChecked
+//         ) {
+//             return formCheck({ showMessage: true })
+//         }
 
-        if (
-            isProceedToNext &&
-            !target.uncompleteCheckbox?.checked &&
-            !isFormChecked
-        ) {
-            return formCheck({ showMessage: true })
-        }
-        console.log({ toNextSendData })
-        createOrder(toNextSendData)
-    }
-}
+//         if (
+//             isProceedToNext &&
+//             !target.uncompleteCheckbox?.checked &&
+//             !isFormChecked
+//         ) {
+//             return formCheck({ showMessage: true })
+//         }
+//         console.log({ toNextSendData })
+//         createOrder(toNextSendData)
+//     }
+// }
 
 export const initOutputRef = () => ({
     check: () => {},
@@ -330,17 +422,9 @@ export const initOutputRef = () => ({
     getErrTitleElement: () => {},
 })
 
-type getWhereStrategyByStepsType = (
-    prevStepName: StepName,
-    curStepName: StepName,
-    isCompleted: boolean
-) => {}
+type getWhereStrategyByStepsType = (prevStepName: StepName, curStepName: StepName, isCompleted: boolean) => {}
 
-export const getWhereStrategyBySteps: getWhereStrategyByStepsType = (
-    prevStepName,
-    curStepName,
-    isCompleted
-) => {
+export const getWhereStrategyBySteps: getWhereStrategyByStepsType = (prevStepName, curStepName, isCompleted) => {
     return isCompleted
         ? {
               some: {
@@ -356,4 +440,83 @@ export const getWhereStrategyBySteps: getWhereStrategyByStepsType = (
                   [`${curStepName}IsProceedToNext`]: true,
               },
           }
+}
+
+interface IshowErrorMessagesProps {
+    target: EventTarget & WithValueNFocus<ISendCheckboxes>
+    flushSync: Function
+    formCheck: ({ showMessage }: { showMessage: boolean }) => void
+    prevFormCheck?: ({ showMessage }: { showMessage: boolean }) => void
+    isMainCondition: boolean
+    isFormChecked: boolean
+    isPrevFormChecked?: boolean
+}
+
+type ShowErrorMessagesTypes = ({}: IshowErrorMessagesProps) => boolean
+
+export const showErrorMessages: ShowErrorMessagesTypes = ({
+    target,
+    flushSync,
+    formCheck,
+    prevFormCheck = () => {},
+    isMainCondition,
+    isPrevFormChecked = false,
+    isFormChecked,
+}) => {
+    const isUncompletedNOTChecked = target.uncompleteCheckbox !== undefined && !target.uncompleteCheckbox.checked
+
+    const isNextChecked = target.nextCheckbox !== undefined && target.nextCheckbox.checked
+
+    const isPrevChecked = target.prevCheckbox !== undefined && target.prevCheckbox.checked
+
+    flushSync(() => {
+        if (isNextChecked) formCheck({ showMessage: true })
+        if (isPrevChecked) prevFormCheck({ showMessage: true })
+        if (isUncompletedNOTChecked) {
+            isMainCondition ? formCheck({ showMessage: true }) : prevFormCheck({ showMessage: true })
+        }
+    })
+
+    if (
+        (!isFormChecked && isNextChecked) ||
+        (!isPrevFormChecked && isPrevChecked) ||
+        (isUncompletedNOTChecked && (!isPrevFormChecked || !isFormChecked))
+    ) {
+        console.log({ isFormChecked, isPrevFormChecked, isUncompletedNOTChecked, isNextChecked, isPrevChecked })
+        return true
+    }
+    console.log('submit')
+    return false
+}
+
+type GetDatasType = ({}: IgetDatasProps) => {
+    completedOrdersData: IOrder[]
+    passedForEditData: IOrder[]
+    currentData: IOrder[]
+    editedOrdersData: IOrder[]
+}
+
+interface IgetDatasProps {
+    data: IOrder[]
+    currentStep: StepName
+}
+
+export const getDatas: GetDatasType = ({ data, currentStep }) => {
+    const completedOrdersData = data?.filter((order) => {
+        const lastStep = order.steps[order.steps.length - 1]
+        return getArrIdx(lastStep.passedTo!, stepNames) - getArrIdx(currentStep, stepNames) > 0
+    })
+    const passedForEditData = data?.filter((order) => {
+        const lastStep = order.steps[order.steps.length - 1]
+        return getArrIdx(lastStep.passedTo!, stepNames) - getArrIdx(currentStep, stepNames) < 0
+    })
+    const currentData = data?.filter((order) => {
+        const lastStep = order.steps[order.steps.length - 1]
+        return lastStep.passedTo === currentStep && lastStep.maxPromotion === currentStep
+    })
+    const editedOrdersData = data?.filter((order) => {
+        const lastStep = order.steps[order.steps.length - 1]
+        return lastStep.passedTo === currentStep && lastStep.maxPromotion !== currentStep
+    })
+    return { completedOrdersData, passedForEditData, currentData, editedOrdersData }
 }

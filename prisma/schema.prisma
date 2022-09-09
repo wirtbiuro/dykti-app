@@ -18,12 +18,7 @@ model User{
   password String?
   role String[]
   refreshes Refresh[] @relation("UserRefreshes")
-  createdFormSteps Step[] @relation("UserCreatedFormSteps")
-  createdBefaringSteps Step[] @relation("UserCreatedBefaringSteps")
-  createdOfferSteps Step[] @relation("UserCreatedOfferSteps")
-  createdContractSteps Step[] @relation("UserCreatedContractSteps")
-  createdContractCheckerSteps Step[] @relation("UserCreatedContractCheckerSteps")
-  createdContractCreatorSteps Step[] @relation("UserCreatedContractCreatorSteps")
+  createdSteps Step[] @relation("UserCreatedSteps")
 }
 
 model Refresh{
@@ -38,8 +33,12 @@ model Refresh{
 model Step{
   id Int @id @default(autoincrement())
   createdAt DateTime @default(now())
-
-  formStepCreatedAt String?
+  passedTo String?
+  createdByStep String?
+  maxPromotion String?
+  shouldConfirmView Boolean?
+  orderId Int
+  order Order? @relation(fields: [orderId], references: [id])
   formStepClientName String?
   formStepPhone String?
   formStepEmail String?
@@ -47,87 +46,33 @@ model Step{
   formStepAddress String?
   formStepMeetingDate DateTime?
   formStepWhereClientFound String?
-  formStepCreatorId Int
-  formStepCreator User @relation("UserCreatedFormSteps", fields: [formStepCreatorId], references: [id])
-  formStepIsCompleted Boolean?
-  formStepIsProceedToNext Boolean?
   formStepComment String?
-  formStepShouldPerfomerConfirmView Boolean?
-
-  beffaringStepPrevStepConfirmationDate DateTime?
-  beffaringStepCreatedAt DateTime?
   beffaringStepWasThereMeeting Boolean?
   beffaringStepOfferDate DateTime?
   beffaringStepInfoSendingDate DateTime?
-  beffaringStepCreatorId Int?
-  beffaringStepCreator User? @relation("UserCreatedBefaringSteps", fields: [beffaringStepCreatorId], references: [id])
-  beffaringStepIsCompleted Boolean?
-  beffaringStepIsProceedToNext Boolean?
   beffaringStepComment String?
-  beffaringStepShouldPerfomerConfirmView Boolean?
   beffaringStepDocsSendDate DateTime?
-
-  offerStepPrevStepConfirmationDate DateTime?
   offerStepAreBefDocsGood Boolean?
   offerStepBefComments String?
   offerStepOfferDate DateTime?
   offerStepComment String?
-  offerStepIsCompleted Boolean?
-  offerStepIsProceedToNext Boolean?
-  offerStepShouldPerfomerConfirmView Boolean?
-  offerStepCreatedAt DateTime?
-  offerStepCreatorId Int?
-  offerStepCreator User? @relation("UserCreatedOfferSteps", fields: [offerStepCreatorId], references: [id])
-
-  contractStepPrevStepConfirmationDate DateTime?
   contractStepOfferSendingDate DateTime?
   contractStepAreOfferChanges Boolean?
   contractStepOfferChangesComment String?
   contractStepIsOfferAccepted Boolean?
   contractStepSentForVerificationDate DateTime?
   contractStepOfferRejectionReason String?
-
-  contractStepIsCompleted Boolean?
-  contractStepIsProceedToNext Boolean?
-  contractStepShouldPerfomerConfirmView Boolean?
-  contractStepCreatedAt DateTime?
-  contractStepCreatorId Int?
-  contractStepCreator User? @relation("UserCreatedContractSteps", fields: [contractStepCreatorId], references: [id])
-
-  contractCheckerStepPrevStepConfirmationDate DateTime?
   contractCheckerStepIsContractChecked Boolean?
   contractCheckerStepWorkStartDate DateTime?
   contractCheckerStepComments String?
-
-  contractCheckerStepIsCompleted Boolean?
-  contractCheckerStepIsProceedToNext Boolean?
-  contractCheckerStepShouldPerfomerConfirmView Boolean?
-  contractCheckerStepCreatedAt DateTime?
-  contractCheckerStepCreatorId Int?
-  contractCheckerStepCreator User? @relation("UserCreatedContractCheckerSteps", fields: [contractCheckerStepCreatorId], references: [id])
-
-  contractCreatorStepPrevStepConfirmationDate DateTime?
   contractCreatorStepContractSendingDate DateTime?
   contractCreatorStepIsContractAccepted Boolean?
   contractCreatorStepContractRejectionReason String?
-
-  contractCreatorStepIsCompleted Boolean?
-  contractCreatorStepIsProceedToNext Boolean?
-  contractCreatorStepShouldPerfomerConfirmView Boolean?
-  contractCreatorStepCreatedAt DateTime?
-  contractCreatorStepCreatorId Int?
-  contractCreatorStepCreator User? @relation("UserCreatedContractCreatorSteps", fields: [contractCreatorStepCreatorId], references: [id])
-
+  stepCreatorId Int?
+  stepCreator User? @relation("UserCreatedSteps", fields: [stepCreatorId], references: [id])
   workStepPrevStepConfirmationDate DateTime?
   workStepTeam String?
   workStepWorkEndDay DateTime?
-
-  workStepIsCompleted Boolean?
-  workStepIsProceedToNext Boolean?
-  workStepShouldPerfomerConfirmView Boolean?
-
-  orderId Int
-  order Order? @relation(fields: [orderId], references: [id])
 }
 
 model Order{

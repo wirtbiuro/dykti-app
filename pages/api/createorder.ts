@@ -20,21 +20,7 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
         let input = { ...req.body } as ReqBodyType
         delete input.order
         delete input.userId
-        delete input.role
-
-        //isCompleted field should be passed with every request. Due that field we can recognise current step.
-        if (input.formStepIsCompleted !== undefined) {
-            input.formStepCreatorId = userId
-        }
-        if (!order) {
-            input.formStepShouldPerfomerConfirmView = true
-        }
-        if (!order && input.formStepIsCompleted) {
-            input.formStepIsProceedToNext = true
-        }
-        if (input.beffaringStepIsCompleted !== undefined) {
-            input.beffaringStepCreatorId = userId
-        }
+        // delete input.role
 
         // let _data = {}
         // let key: keyof typeof input

@@ -1,22 +1,28 @@
 import React, { useState } from 'react'
 import CreateForm from './CreateForm'
-import { useGetUserQuery, useGetCompletedOrdersQuery } from '../state/apiSlice'
-import { IQuery, IOrder } from '../types'
+import { useGetUserQuery, useGetCompletedOrdersQuery, useGetOrdersQuery } from '../state/apiSlice'
+import { IQuery, IOrder, stepNames, StepName } from '../types'
 import Step from './Step'
+import Orders from './Orders'
+import { getArrIdx, getDatas } from '../utilities'
 
 const CreatorFormPanel = () => {
     const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
     const [showNewOrder, setShowNewOrder] = useState<boolean>(false)
 
     const userQueryData = useGetUserQuery('FormCreator')
-    const { data: ordersData }: IQuery<IOrder> = useGetCompletedOrdersQuery(
-        'FormCreator'
-    )
+    const { data }: IQuery<IOrder> = useGetOrdersQuery('FormCreator')
+
+    const currentStep: StepName = 'formStep'
+
+    const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({ data, currentStep })
 
     const orderClicked = (orderId: number | null) => {
         const newOrderId = orderId === currentOrderId ? null : orderId
         setCurrentOrderId(newOrderId)
     }
+
+    // if (!data) return <>Ładowanie danych...</>
 
     return (
         <div>
@@ -28,10 +34,18 @@ const CreatorFormPanel = () => {
                 >
                     {showNewOrder ? 'Anulować' : 'Nowa sprawa'}
                 </button>
-                {showNewOrder && <CreateForm />}
+                {showNewOrder && <CreateForm isVisible={showNewOrder} />}
             </div>
 
-            <div>
+            <h2>Sprawy bieżące:</h2>
+
+            <Orders orders={currentData} children={<CreateForm />} stepName="formStep" />
+
+            <h2>Przekazane dalej:</h2>
+
+            <Orders orders={completedOrdersData} children={<CreateForm />} stepName="formStep" />
+
+            {/* <div>
                 {ordersData?.map((order) => {
                     return (
                         <div key={order.id}>
@@ -59,7 +73,7 @@ const CreatorFormPanel = () => {
                         </div>
                     )
                 })}
-            </div>
+            </div> */}
         </div>
     )
 }

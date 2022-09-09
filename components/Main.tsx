@@ -7,6 +7,7 @@ import CreatorFormPanel from './CreatorFormPanel'
 import OfferCreatorPanel from './OfferCreatorPanel'
 import ContractCreatorPanel from './ContractCreatorPanel'
 import ContractCheckerPanel from './ContractCheckerPanel'
+import ContractPreparerPanel from './ContractPreparerPanel'
 
 type RoleStrategyType = Record<Role, JSX.Element>
 type RoleTitleType = Record<Role, string>
@@ -15,9 +16,9 @@ const roleStrategy: RoleStrategyType = {
     FormCreator: <CreatorFormPanel />,
     BefaringUser: <BefaringPanel />,
     OfferCreator: <OfferCreatorPanel />,
-    ContractPreparer: <ContractCreatorPanel />,
+    ContractPreparer: <ContractPreparerPanel />,
     ContractChecker: <ContractCheckerPanel />,
-    ContractCreator: <></>,
+    ContractCreator: <ContractCreatorPanel />,
     WorkRespUser: <></>,
 }
 

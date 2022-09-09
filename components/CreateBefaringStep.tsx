@@ -13,7 +13,7 @@ import { useCreateOrderMutation } from '../state/apiSlice'
 import FormInput from './UI/FormInput'
 import CalendarWithTime from './CalendarWithTime'
 import SendButtons from './UI/SendButtons'
-import { submitForm } from '../utilities'
+import { submitForm, getMaxPromotion, showErrorMessages } from '../utilities'
 import { DateTime } from 'luxon'
 import { flushSync } from 'react-dom'
 import { useFormInput } from '../hooks/useFormInput'
@@ -47,18 +47,12 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
 
     useEffect(() => {
         const meetingDate = meetingDateData.value as DateTime
-        offerDateData.setValue &&
-            offerDateData.setValue(meetingDate?.endOf('day').plus({ days: 7 }))
+        offerDateData.setValue && offerDateData.setValue(meetingDate?.endOf('day').plus({ days: 7 }))
     }, [meetingDateData.value])
 
     useEffect(() => {
         formCheck({ showMessage: false })
-    }, [
-        meetingDateData.isChecked,
-        wasThereMeeting.isChecked,
-        docsSendDateData.isChecked,
-        offerDateData.isChecked,
-    ])
+    }, [meetingDateData.isChecked, wasThereMeeting.isChecked, docsSendDateData.isChecked, offerDateData.isChecked])
 
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
@@ -94,36 +88,47 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
         const target = e.target as typeof e.target & FormType
         const _createOrder = createOrder as (data: FieldsToSend) => void
 
-        flushSync(() => {
-            formCheck({ showMessage: !target.uncompleteCheckbox?.checked })
-        })
+        console.log(target)
 
-        if (!isFormChecked && !target.uncompleteCheckbox?.checked) {
-            return
-        }
+        // const isUncompletedChecked =
+        //     (target.uncompleteCheckbox !== undefined && target.uncompleteCheckbox.checked) ||
+        //     (target.nextCheckbox !== undefined && !target.nextCheckbox.checked) ||
+        //     flushSync(() => {
+        //         formCheck({ showMessage: !isUncompletedChecked })
+        //     })
+
+        // if (!isFormChecked && !isUncompletedChecked) {
+        //     return
+        // }
+
+        const isMainCondition = true
+
+        const areErrors = showErrorMessages({
+            flushSync,
+            formCheck,
+            isFormChecked,
+            isMainCondition,
+            target,
+        })
 
         console.log('submit')
 
+        if (areErrors) return
+
         submitForm({
+            maxPromotion: prevStep!.maxPromotion,
             target,
-            isMainCondition: true,
+            isMainCondition,
             curStepName: 'beffaringStep',
-            prevStepName: 'formStep',
-            step: prevStep!,
+            passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
             toNextSendData: {
                 order,
-                formStepMeetingDate: meetingDateData.isChecked
-                    ? meetingDateData.value
-                    : null,
+                formStepMeetingDate: meetingDateData.isChecked ? meetingDateData.value : null,
                 beffaringStepWasThereMeeting: wasThereMeeting.value,
-                beffaringStepDocsSendDate: docsSendDateData.isChecked
-                    ? docsSendDateData.value
-                    : null,
-                beffaringStepOfferDate: offerDateData.isChecked
-                    ? offerDateData.value
-                    : null,
+                beffaringStepDocsSendDate: docsSendDateData.isChecked ? docsSendDateData.value : null,
+                beffaringStepOfferDate: offerDateData.isChecked ? offerDateData.value : null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
@@ -141,22 +146,20 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                             defaultDate={order && prevStep?.formStepMeetingDate}
                             connection={meetingDateData}
                         />
-                        {meetingDateData?.check !== undefined &&
-                            meetingDateData?.isChecked && (
-                                <FormInput
-                                    type="checkbox"
-                                    connection={wasThereMeeting}
-                                    defaultChecked={
-                                        typeof prevStep?.beffaringStepWasThereMeeting ===
-                                        'boolean'
-                                            ? prevStep?.beffaringStepWasThereMeeting
-                                            : false
-                                    }
-                                    checkFn={(value: boolean) => value}
-                                >
-                                    <>Czy było spotkanie?</>
-                                </FormInput>
-                            )}
+                        {meetingDateData?.check !== undefined && meetingDateData?.isChecked && (
+                            <FormInput
+                                type="checkbox"
+                                connection={wasThereMeeting}
+                                defaultChecked={
+                                    typeof prevStep?.beffaringStepWasThereMeeting === 'boolean'
+                                        ? prevStep?.beffaringStepWasThereMeeting
+                                        : false
+                                }
+                                checkFn={(value: boolean) => value}
+                            >
+                                <>Czy było spotkanie?</>
+                            </FormInput>
+                        )}
 
                         {wasThereMeeting.value && meetingDateData.isChecked && (
                             <>
@@ -165,10 +168,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                                 <p>Data wysłania dokumentów, zdjęć: </p>
 
                                 <CalendarWithTime
-                                    defaultDate={
-                                        order &&
-                                        prevStep?.beffaringStepDocsSendDate
-                                    }
+                                    defaultDate={order && prevStep?.beffaringStepDocsSendDate}
                                     connection={docsSendDateData}
                                     isTimeEnabled={false}
                                 />
@@ -179,11 +179,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
 
                                 <CalendarWithTime
                                     defaultDate={
-                                        (order &&
-                                            prevStep?.beffaringStepOfferDate) ||
-                                        meetingDateData.value
-                                            ?.endOf('day')
-                                            .plus({ days: 7 })
+                                        (order && prevStep?.beffaringStepOfferDate) ||
+                                        meetingDateData.value?.endOf('day').plus({ days: 7 })
                                     }
                                     connection={offerDateData}
                                     isTimeEnabled={false}
@@ -200,7 +197,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
 
                         <SendButtons
                             curStepName="beffaringStep"
-                            prevStepName="formStep"
+                            passedTo={prevStep!.passedTo}
+                            maxPromotion={prevStep!.maxPromotion}
                             dataRef={sendButtonsOutputRef}
                             isFormChecked={isFormChecked}
                             step={order?.steps[order.steps.length - 1]}
