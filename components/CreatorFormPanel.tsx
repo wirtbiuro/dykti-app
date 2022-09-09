@@ -41,6 +41,10 @@ const CreatorFormPanel = () => {
 
             <Orders orders={currentData} children={<CreateForm />} stepName="formStep" />
 
+            <h2>Do poprawienia:</h2>
+
+            <Orders orders={editedOrdersData} children={<CreateForm />} stepName="formStep" />
+
             <h2>Przekazane dalej:</h2>
 
             <Orders orders={completedOrdersData} children={<CreateForm />} stepName="formStep" />

@@ -113,7 +113,6 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
             isFormChecked,
             toPrevSendData: {
                 order,
-                role: 'ContractChecker',
                 contractCheckerStepIsContractChecked: isContractCheckedData.isChecked,
                 contractCheckerStepWorkStartDate: null,
                 contractCheckerStepComments: commentsData.value,
@@ -121,7 +120,6 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
             },
             toNextSendData: {
                 order,
-                role: 'ContractChecker',
                 contractCheckerStepIsContractChecked: isContractCheckedData.isChecked,
                 contractCheckerStepWorkStartDate: workStartDateData.value,
                 contractCheckerStepComments: commentsData.value,

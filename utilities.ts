@@ -316,6 +316,7 @@ export const submitForm: SubmitFormType = async ({
     const isCurrentOrEdit = isCurrent || isEdit
 
     console.log('submitForm', isMainCondition)
+    console.log({ prevToPass })
 
     const _passedTo = getPassedTo({
         nextToPass,
@@ -326,8 +327,11 @@ export const submitForm: SubmitFormType = async ({
         passedTo,
         prevToPass,
     })
+
+    console.log({ _passedTo })
     const _maxPromotion = getMaxPromotion(_passedTo, maxPromotion)
     const shouldConfirmView = _passedTo !== curStepName
+    console.log({ shouldConfirmView, _passedTo, curStepName })
 
     const _options = {
         passedTo: _passedTo,
