@@ -187,11 +187,13 @@ export function getArrIdx(value: StepName, arr: StepNames): number {
 
 export function getNextStepName(value: StepName): StepName {
     const idx = getArrIdx(value, stepNames)
+    console.log('getNextStepName idx', idx)
     return stepNames[idx + 1] ?? stepNames[idx]
 }
 
 export function getPrevStepName(value: StepName): StepName {
     const idx = getArrIdx(value, stepNames)
+    console.log('getPrevStepName idx', idx)
     return stepNames[idx - 1] ?? stepNames[idx]
 }
 

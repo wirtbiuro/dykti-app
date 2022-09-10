@@ -142,6 +142,8 @@ export interface IContractCreatorStep {
 
 export interface IWorkStep {
     workStepTeam?: string
+    workStepWorkStartDate?: DateTime | string
+    workStepContractEdits?: string
     workStepWorkEndDay?: DateTime | string
 }
 

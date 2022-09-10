@@ -70,9 +70,10 @@ model Step{
   contractCreatorStepContractRejectionReason String?
   stepCreatorId Int?
   stepCreator User? @relation("UserCreatedSteps", fields: [stepCreatorId], references: [id])
-  workStepPrevStepConfirmationDate DateTime?
   workStepTeam String?
-  workStepWorkEndDay DateTime?
+  workStepWorkStartDate DateTime?
+  workStepWorkEndDate DateTime?
+  workStepContractEdits String?
 }
 
 model Order{

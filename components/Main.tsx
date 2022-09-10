@@ -8,6 +8,7 @@ import OfferCreatorPanel from './OfferCreatorPanel'
 import ContractCreatorPanel from './ContractCreatorPanel'
 import ContractCheckerPanel from './ContractCheckerPanel'
 import ContractPreparerPanel from './ContractPreparerPanel'
+import WorkStepPanel from './WorkStepPanel'
 
 type RoleStrategyType = Record<Role, JSX.Element>
 type RoleTitleType = Record<Role, string>
@@ -19,7 +20,7 @@ const roleStrategy: RoleStrategyType = {
     ContractPreparer: <ContractPreparerPanel />,
     ContractChecker: <ContractCheckerPanel />,
     ContractCreator: <ContractCreatorPanel />,
-    WorkRespUser: <></>,
+    WorkRespUser: <WorkStepPanel />,
 }
 
 const roleTitles: RoleTitleType = {
@@ -33,12 +34,7 @@ const roleTitles: RoleTitleType = {
 }
 
 const Main = () => {
-    const {
-        isError,
-        isLoading,
-        isSuccess,
-        data,
-    }: IQuery<IUser> = useGetUserQuery()
+    const { isError, isLoading, isSuccess, data }: IQuery<IUser> = useGetUserQuery()
 
     const [visibleRole, setVisibleRole] = useState<Role>()
 
@@ -67,10 +63,7 @@ const Main = () => {
                                 <a
                                     onClick={() => roleClicked(role)}
                                     style={{
-                                        fontWeight:
-                                            visibleRole === role
-                                                ? 'bold'
-                                                : 'normal',
+                                        fontWeight: visibleRole === role ? 'bold' : 'normal',
                                     }}
                                 >
                                     {roleTitles[role]}

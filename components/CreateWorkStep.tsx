@@ -18,11 +18,12 @@ import { useFormInput } from '../hooks/useFormInput'
 import { useCalendarData } from '../hooks/useCalendarData'
 import FormSelect from '../components/UI/FormSelect'
 import { useFormSelect } from '../hooks/useFormSelect'
+import { DateTime } from 'luxon'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
-const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible }) => {
+const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
@@ -33,34 +34,56 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible }) => {
         getResults: () => {},
     })
 
-    const sendingDateData = useCalendarData()
-    const isContractAcceptedData = useFormInput()
-    const rejectionReasonData = useFormSelect()
+    const workStartDateData = useCalendarData()
+    const workEndDateData = useCalendarData()
+    const shouldChangeContractData = useFormInput()
+    const teamData = useFormInput()
+    const contractEditsData = useFormInput()
+    // const rejectionReasonData = useFormSelect()
 
     const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
     const [isPrevFormChecked, setIsPrevFormChecked] = useState<boolean>(false)
 
-    const defaultRejectionValue = prevStep?.contractCreatorStepContractRejectionReason ?? 'select'
+    const workStartDateDataValue = workStartDateData.value as DateTime
 
-    const isMainCondition = isContractAcceptedData.isChecked
+    const isMainCondition =
+        workStartDateDataValue?.toUTC().toISO() === prevStep?.contractCheckerStepWorkStartDate &&
+        shouldChangeContractData.isChecked
+
+    // console.log('workStartDateDataValue', workStartDateDataValue?.toUTC().toISO())
+    // console.log('prevStep?.contractCheckerStepWorkStartDate', prevStep?.contractCheckerStepWorkStartDate)
+
+    console.log({ isMainCondition })
 
     useEffect(() => {
         formCheck({ showMessage: false })
         prevFormCheck({ showMessage: false })
-    }, [sendingDateData.isChecked, isContractAcceptedData.isChecked, rejectionReasonData.isChecked])
+    }, [
+        workStartDateData.value,
+        workEndDateData.isChecked,
+        shouldChangeContractData.isChecked,
+        teamData.isChecked,
+        contractEditsData.isChecked,
+    ])
 
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
 
-        if (!sendingDateData.isChecked) {
-            console.log('sendingDateData error')
-            showMessage ? sendingDateData.showError() : null
+        if (!workStartDateData.isChecked) {
+            console.log('workStartDateData error')
+            showMessage ? workStartDateData.showError() : null
             return setIsFormChecked(false)
         }
 
-        if (!isContractAcceptedData.isChecked && !rejectionReasonData.isChecked) {
-            console.log('rejectionReasonData error')
-            showMessage ? rejectionReasonData.showError() : null
+        if (!teamData.isChecked) {
+            console.log('teamData error')
+            showMessage ? teamData.showError() : null
+            return setIsFormChecked(false)
+        }
+
+        if (!workEndDateData.isChecked) {
+            console.log('workEndDateData error')
+            showMessage ? workEndDateData.showError() : null
             return setIsFormChecked(false)
         }
 
@@ -72,9 +95,25 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible }) => {
     const prevFormCheck: FormCheckType = ({ showMessage }) => {
         console.log('prev form check')
 
-        if (!rejectionReasonData.isChecked) {
-            console.log('rejectionReasonData error')
-            showMessage ? rejectionReasonData.showError() : null
+        if (shouldChangeContractData.isChecked) {
+            console.log('shouldChangeContractData error')
+            showMessage ? shouldChangeContractData.showError() : null
+            return setIsPrevFormChecked(false)
+        }
+
+        if (!workStartDateData.isChecked) {
+            console.log('workStartDateData error')
+            showMessage ? workStartDateData.showError() : null
+            return setIsPrevFormChecked(false)
+        }
+
+        if (workStartDateDataValue?.toUTC().toISO() !== prevStep?.contractCheckerStepWorkStartDate) {
+            return setIsPrevFormChecked(true)
+        }
+
+        if (!contractEditsData.isChecked) {
+            console.log('contractEditsData error')
+            showMessage ? contractEditsData.showError() : null
             return setIsPrevFormChecked(false)
         }
 
@@ -106,29 +145,25 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible }) => {
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,
-            curStepName: 'contractCreatorStep',
+            curStepName: 'workStep',
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
             isPrevFormChecked,
-            prevToPass:
-                rejectionReasonData.value === 'time'
-                    ? 'formStep'
-                    : rejectionReasonData.value === 'offer'
-                    ? 'offerStep'
-                    : 'contractCheckerStep',
             toNextSendData: {
                 order,
-                contractCreatorStepContractSendingDate: sendingDateData.value,
-                contractCreatorStepIsContractAccepted: true,
-                contractCreatorStepContractRejectionReason: null,
+                workStepTeam: teamData.value,
+                workStepWorkStartDate: workStartDateData.value,
+                workStepContractEdits: null,
+                workStepWorkEndDate: workEndDateData.value,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             toPrevSendData: {
                 order,
-                contractCreatorStepContractSendingDate: sendingDateData.value,
-                contractCreatorStepIsContractAccepted: false,
-                contractCreatorStepContractRejectionReason: rejectionReasonData.value,
+                workStepTeam: teamData.value,
+                workStepWorkStartDate: workStartDateData.value,
+                workStepContractEdits: contractEditsData.value,
+                workStepWorkEndDate: null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
 
@@ -143,38 +178,60 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible }) => {
                     <form ref={formRef} onSubmit={submit}>
                         <>
                             <>
-                                <p>Data wysłania kontraktu:</p>
+                                <p>Data rozpoczęcia pracy:</p>
                                 <CalendarWithTime
-                                    defaultDate={order && prevStep?.contractCreatorStepContractSendingDate}
-                                    connection={sendingDateData}
+                                    defaultDate={
+                                        order &&
+                                        (prevStep?.workStepWorkStartDate || prevStep?.contractCheckerStepWorkStartDate)
+                                    }
+                                    connection={workStartDateData}
                                     isTimeEnabled={false}
                                 />
                             </>
 
-                            {sendingDateData.isChecked && (
+                            <>
                                 <FormInput
                                     type="checkbox"
-                                    connection={isContractAcceptedData}
-                                    defaultChecked={
-                                        typeof prevStep?.contractCreatorStepIsContractAccepted === 'boolean'
-                                            ? prevStep?.contractCreatorStepIsContractAccepted
-                                            : false
-                                    }
-                                    checkFn={(value: boolean) => value}
+                                    connection={shouldChangeContractData}
+                                    defaultChecked={prevStep?.workStepContractEdits ? true : false}
                                 >
-                                    <>Czy kontrakt jest podpisany przez klienta?</>
+                                    <>Czy kontrakt wymaga zmiany?</>
                                 </FormInput>
+                            </>
+
+                            {!shouldChangeContractData.isChecked && (
+                                <>
+                                    <p>Zmiany w kontrakcie: </p>
+                                    <FormInput
+                                        placeholder="Jakich zmian wymaga kontrakt?"
+                                        defaultValue={prevStep?.workStepContractEdits}
+                                        connection={contractEditsData}
+                                    />
+                                </>
                             )}
 
-                            {sendingDateData.isChecked && !isContractAcceptedData.isChecked && (
-                                <>
-                                    {/* <p>Powód, dla którego kontrakt nie został podpisany:</p> */}
-                                    {/* <FormInput
-                                        placeholder="Napisz tutaj..."
-                                        defaultValue={prevStep?.contractCreatorStepContractRejectionReason}
-                                        connection={rejectionReasonData}
-                                    /> */}
+                            <>
+                                <p>Ekipa: </p>
+                                <FormInput
+                                    placeholder="Ekipa"
+                                    defaultValue={prevStep?.workStepTeam}
+                                    connection={teamData}
+                                />
+                            </>
 
+                            {shouldChangeContractData.isChecked && (
+                                <>
+                                    <p>Data zakończenia pracy:</p>
+                                    <CalendarWithTime
+                                        defaultDate={order && prevStep?.workStepWorkEndDay}
+                                        connection={workEndDateData}
+                                        isTimeEnabled={false}
+                                    />
+                                </>
+                            )}
+
+                            {/* {sendingDateData.isChecked && !isContractAcceptedData.isChecked && (
+                                <>
                                     <FormSelect
                                         options={[
                                             ['select', 'Wybierz powód odrzucenia oferty'],
@@ -188,12 +245,12 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                         defaultValue={defaultRejectionValue}
                                     />
                                 </>
-                            )}
+                            )} */}
                         </>
 
                         <SendButtons
                             isMainCondition={isMainCondition}
-                            curStepName="contractCreatorStep"
+                            curStepName="workStep"
                             maxPromotion={prevStep!.maxPromotion}
                             passedTo={prevStep!.passedTo}
                             dataRef={sendButtonsOutputRef}
@@ -210,4 +267,4 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible }) => {
     )
 }
 
-export default CreateContractCreatorStep
+export default CreateWorkStep
