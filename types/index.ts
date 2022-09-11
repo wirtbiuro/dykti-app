@@ -48,6 +48,8 @@ export const stepNames = [
     'contractCreatorStep',
     'workStep',
     'completionstep',
+    'referenceStep',
+    'completed',
 ] as const
 
 export type StepName = typeof stepNames[number]
@@ -159,7 +161,7 @@ export interface IQuestionnaireStep {
 }
 
 export interface IReferenceStep {
-    referenceStepRequest?: boolean
+    referenceStepWasSentRequest?: boolean
 }
 
 export interface IRecord {

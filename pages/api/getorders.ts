@@ -38,7 +38,7 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
             ContractCreator: 'contractCreatorStep',
             WorkRespUser: 'workStep',
             QuestionnaireUser: 'completionstep',
-            ReferenceUser: 'completionstep',
+            ReferenceUser: 'referenceStep',
         }
 
         const where =

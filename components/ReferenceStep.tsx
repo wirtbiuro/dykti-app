@@ -22,19 +22,14 @@ import { useFormSelect } from '../hooks/useFormSelect'
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
-const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
+const ReferenceStep: FC<IWithOrder> = ({ order, isVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
 
     const prevStep = order?.steps[order.steps.length - 1]
 
-    const isClientSatisfiedData = useFormInput()
-    const opinionData = useFormSelect()
-    const otherOpinionData = useFormInput()
-
-    const defaultOpinionValue =
-        prevStep?.questionnaireStepDissatisfaction ?? prevStep?.questionnaireStepSatisfaction ?? 'select'
+    const wasSentReferenceRequestData = useFormInput()
 
     const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
         getResults: () => {},
@@ -44,20 +39,14 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
 
     useEffect(() => {
         formCheck({ showMessage: false })
-    }, [isClientSatisfiedData.isChecked, opinionData.isChecked, otherOpinionData.isChecked])
+    }, [wasSentReferenceRequestData.isChecked])
 
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
 
-        if (!opinionData.isChecked) {
-            console.log('opinionData error')
-            showMessage ? opinionData?.showError() : null
-            return setIsFormChecked(false)
-        }
-
-        if (opinionData.value === 'other' && otherOpinionData.value === '') {
-            console.log('otherOpinionData error')
-            showMessage ? otherOpinionData?.showError() : null
+        if (!wasSentReferenceRequestData.isChecked) {
+            console.log('wasSentReferenceRequestData error')
+            showMessage ? wasSentReferenceRequestData?.showError() : null
             return setIsFormChecked(false)
         }
 
@@ -91,16 +80,13 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,
-            curStepName: 'completionstep',
+            curStepName: 'referenceStep',
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
-            nextToPass: isClientSatisfiedData.value ? 'referenceStep' : 'completed',
             toNextSendData: {
                 order,
-                questionnaireStepSatisfaction: isClientSatisfiedData.value ? opinionData.value : null,
-                questionnaireStepDissatisfaction: !isClientSatisfiedData.value ? opinionData.value : null,
-                questionnaireStepOtherOpinion: opinionData.value === 'other' ? otherOpinionData.value : null,
+                referenceStepWasSentRequest: wasSentReferenceRequestData.value,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
@@ -115,49 +101,20 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
                         <>
                             <FormInput
                                 type="checkbox"
-                                connection={isClientSatisfiedData}
-                                defaultChecked={prevStep?.questionnaireStepDissatisfaction ? false : true}
+                                connection={wasSentReferenceRequestData}
+                                defaultChecked={
+                                    typeof prevStep?.referenceStepWasSentRequest === 'boolean'
+                                        ? prevStep?.referenceStepWasSentRequest
+                                        : false
+                                }
+                                checkFn={(value: boolean) => value === true}
                             >
-                                <>Czy klient jest zadowolony?</>
+                                <>Czy wysłana prośba o referencję do klienta?</>
                             </FormInput>
                         </>
 
-                        <FormSelect
-                            options={[
-                                [
-                                    'select',
-                                    `Wybierz powód ${
-                                        isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'
-                                    } klienta`,
-                                ],
-                                ['timeFrame', 'Ramy czasowe'],
-                                ['endDate', 'Data zakonczenia'],
-                                ['other', 'Inne'],
-                            ]}
-                            name="rejectionReasons"
-                            title={`Przyczyna ${
-                                isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'
-                            } klienta: `}
-                            connection={opinionData}
-                            defaultValue={defaultOpinionValue}
-                        />
-
-                        {opinionData.value === 'other' && (
-                            <>
-                                <p>
-                                    Inna przyczyna {isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'}{' '}
-                                    klienta:{' '}
-                                </p>
-                                <FormInput
-                                    placeholder="Inna przyczyna zadowolenia klienta"
-                                    defaultValue={prevStep?.questionnaireStepOtherOpinion}
-                                    connection={otherOpinionData}
-                                />
-                            </>
-                        )}
-
                         <SendButtons
-                            curStepName="completionstep"
+                            curStepName="referenceStep"
                             maxPromotion={prevStep!.maxPromotion}
                             passedTo={prevStep!.passedTo}
                             dataRef={sendButtonsOutputRef}
@@ -174,4 +131,4 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
     )
 }
 
-export default QuestionnaireStep
+export default ReferenceStep

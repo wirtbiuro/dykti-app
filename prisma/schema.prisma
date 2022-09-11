@@ -77,7 +77,7 @@ model Step{
   questionnaireStepSatisfaction String?
   questionnaireStepDissatisfaction String?
   questionnaireStepOtherOpinion String?
-  referenceStepRequest Boolean?
+  referenceStepWasSentRequest Boolean?
 }
 
 model Order{
