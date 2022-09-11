@@ -74,6 +74,10 @@ model Step{
   workStepWorkStartDate DateTime?
   workStepWorkEndDate DateTime?
   workStepContractEdits String?
+  questionnaireStepSatisfaction String?
+  questionnaireStepDissatisfaction String?
+  questionnaireStepOtherOpinion String?
+  referenceStepRequest Boolean?
 }
 
 model Order{

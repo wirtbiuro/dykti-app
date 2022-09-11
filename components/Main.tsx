@@ -9,6 +9,7 @@ import ContractCreatorPanel from './ContractCreatorPanel'
 import ContractCheckerPanel from './ContractCheckerPanel'
 import ContractPreparerPanel from './ContractPreparerPanel'
 import WorkStepPanel from './WorkStepPanel'
+import QuestionnairePanel from './QuestionnairePanel'
 
 type RoleStrategyType = Record<Role, JSX.Element>
 type RoleTitleType = Record<Role, string>
@@ -21,6 +22,9 @@ const roleStrategy: RoleStrategyType = {
     ContractChecker: <ContractCheckerPanel />,
     ContractCreator: <ContractCreatorPanel />,
     WorkRespUser: <WorkStepPanel />,
+    QuestionnaireUser: <QuestionnairePanel />,
+    // ReferenceUser: <ReferencePanel />,
+    ReferenceUser: <></>,
 }
 
 const roleTitles: RoleTitleType = {
@@ -31,6 +35,8 @@ const roleTitles: RoleTitleType = {
     ContractChecker: 'Sprawdzenie kontraktu',
     ContractCreator: 'Tworzenie kontraktu',
     WorkRespUser: 'Praca',
+    QuestionnaireUser: 'Zakończenie',
+    ReferenceUser: 'Prośba o referencje',
 }
 
 const Main = () => {

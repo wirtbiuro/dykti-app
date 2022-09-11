@@ -9,6 +9,8 @@ export type Role =
     | 'ContractChecker'
     | 'ContractCreator'
     | 'WorkRespUser'
+    | 'QuestionnaireUser'
+    | 'ReferenceUser'
 
 export interface NextApiRequestWithHeaders extends NextApiRequest {
     headers: any
@@ -45,6 +47,7 @@ export const stepNames = [
     'contractCheckerStep',
     'contractCreatorStep',
     'workStep',
+    'completionstep',
 ] as const
 
 export type StepName = typeof stepNames[number]
@@ -89,7 +92,9 @@ export type StepType = {
     IContractStep &
     IContractCheckerStep &
     IContractCreatorStep &
-    IWorkStep
+    IWorkStep &
+    IQuestionnaireStep &
+    IReferenceStep
 
 export interface IFormStep {
     formStepClientName?: string
@@ -145,6 +150,16 @@ export interface IWorkStep {
     workStepWorkStartDate?: DateTime | string
     workStepContractEdits?: string
     workStepWorkEndDay?: DateTime | string
+}
+
+export interface IQuestionnaireStep {
+    questionnaireStepSatisfaction?: string
+    questionnaireStepDissatisfaction?: string
+    questionnaireStepOtherOpinion?: string
+}
+
+export interface IReferenceStep {
+    referenceStepRequest?: boolean
 }
 
 export interface IRecord {
