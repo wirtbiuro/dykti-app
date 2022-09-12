@@ -1,5 +1,5 @@
 import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
-import { FormStyled, CreateFormStyled } from '../styles/styled-components'
+import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
 import {
     WithValueNFocus,
     IWithOrder,
@@ -7,17 +7,18 @@ import {
     FormCheckType,
     ISendCheckboxes,
     FieldsToSend,
-} from '../types'
-import { useCreateOrderMutation } from '../state/apiSlice'
-import FormInput from './UI/FormInput'
-import CalendarWithTime from './CalendarWithTime'
-import SendButtons from './UI/SendButtons'
-import { submitForm, showErrorMessages } from '../utilities'
-import { useFormInput } from '../hooks/useFormInput'
-import { useCalendarData } from '../hooks/useCalendarData'
+} from '../../types'
+import { useCreateOrderMutation } from '../../state/apiSlice'
+import FormInput from '../UI/FormInput'
+import CalendarWithTime from '../CalendarWithTime'
+import SendButtons from '../UI/SendButtons'
+import { submitForm, showErrorMessages } from '../../utilities'
+import { useFormInput } from '../../hooks/useFormInput'
+import { useCalendarData } from '../../hooks/useCalendarData'
 import { flushSync } from 'react-dom'
-import FormSelect from './UI/FormSelect'
-import { useFormSelect } from '../hooks/useFormSelect'
+import FormSelect from '../UI/FormSelect'
+import { useFormSelect } from '../../hooks/useFormSelect'
+import useErrFn from '../../hooks/useErrFn'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -28,6 +29,8 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible }) => {
     const formRef = useRef<FormElement>(null)
 
     const prevStep = order?.steps[order.steps.length - 1]
+
+    const errFn = useErrFn()
 
     const wasSentReferenceRequestData = useFormInput()
 
@@ -90,6 +93,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible }) => {
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
+            errFn,
         })
     }
 

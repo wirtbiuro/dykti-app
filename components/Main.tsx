@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import { useGetUserQuery } from '../state/apiSlice'
-import CreateForm from './CreateForm'
+import CreateForm from './steps/CreateForm'
 import { IQuery, IUser, Role } from '../types'
-import BefaringPanel from './BefaringPanel'
-import CreatorFormPanel from './CreatorFormPanel'
-import OfferCreatorPanel from './OfferCreatorPanel'
-import ContractCreatorPanel from './ContractCreatorPanel'
-import ContractCheckerPanel from './ContractCheckerPanel'
-import ContractPreparerPanel from './ContractPreparerPanel'
-import WorkStepPanel from './WorkStepPanel'
-import QuestionnairePanel from './QuestionnairePanel'
-import ReferencePanel from './ReferencePanel'
+import BefaringPanel from './panels/BefaringPanel'
+import CreatorFormPanel from './panels/CreatorFormPanel'
+import OfferCreatorPanel from './panels/OfferCreatorPanel'
+import ContractCreatorPanel from './panels/ContractCreatorPanel'
+import ContractCheckerPanel from './panels/ContractCheckerPanel'
+import ContractPreparerPanel from './panels/ContractPreparerPanel'
+import WorkStepPanel from './panels/WorkStepPanel'
+import QuestionnairePanel from './panels/QuestionnairePanel'
+import ReferencePanel from './panels/ReferencePanel'
 
 type RoleStrategyType = Record<Role, JSX.Element>
 type RoleTitleType = Record<Role, string>
@@ -40,21 +40,23 @@ const roleTitles: RoleTitleType = {
 }
 
 const Main = () => {
-    const { isError, isLoading, isSuccess, data }: IQuery<IUser> = useGetUserQuery()
+    const { isError, data }: IQuery<IUser> = useGetUserQuery()
 
     const [visibleRole, setVisibleRole] = useState<Role>()
 
+    console.log({ data })
+
     useEffect(() => {
-        if (data) {
+        if (data && !isError) {
             setVisibleRole(data.role[0])
         }
-    }, [data])
+    }, [data, isError])
 
     const roleClicked = (role: Role) => {
         setVisibleRole(role)
     }
 
-    if (data && data.role) {
+    if (data && data.role && !isError) {
         return (
             <>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

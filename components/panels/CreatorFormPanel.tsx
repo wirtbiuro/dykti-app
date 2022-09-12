@@ -1,17 +1,19 @@
-import React, { useState } from 'react'
-import CreateForm from './CreateForm'
-import { useGetUserQuery, useGetCompletedOrdersQuery, useGetOrdersQuery } from '../state/apiSlice'
-import { IQuery, IOrder, stepNames, StepName } from '../types'
-import Step from './Step'
-import Orders from './Orders'
-import { getArrIdx, getDatas } from '../utilities'
+import React, { useState, useEffect } from 'react'
+import CreateForm from '../steps/CreateForm'
+import { useGetUserQuery, dyktiApi, useGetOrdersQuery } from '../../state/apiSlice'
+import { IQuery, IOrder, stepNames, StepName } from '../../types'
+import Step from '../Step'
+import Orders from '../Orders'
+import { getArrIdx, getDatas } from '../../utilities'
+import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
+import useGetOrders from '../../hooks/useGetOrders'
 
 const CreatorFormPanel = () => {
     const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
     const [showNewOrder, setShowNewOrder] = useState<boolean>(false)
 
-    const userQueryData = useGetUserQuery('FormCreator')
-    const { data }: IQuery<IOrder> = useGetOrdersQuery('FormCreator')
+    // const userQueryData = useGetUserQuery('FormCreator')
+    const { data, isError }: IQuery<IOrder> = useGetOrders('FormCreator')
 
     const currentStep: StepName = 'formStep'
 

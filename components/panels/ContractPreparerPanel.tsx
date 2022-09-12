@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
-import { IQuery, IOrder, StepName, stepNames } from '../types'
-import { useGetOrdersQuery, useGetCompletedOrdersQuery } from '../state/apiSlice'
-import CreateOfferStep from './CreateOfferStep'
-import Orders from './Orders'
-import CreateContractStep from './CreateContractStep'
-import { getArrIdx, getDatas } from '../utilities'
+import { IQuery, IOrder, StepName, stepNames } from '../../types'
+import { useGetOrdersQuery, useGetCompletedOrdersQuery } from '../../state/apiSlice'
+import CreateOfferStep from '../steps/CreateOfferStep'
+import Orders from '../Orders'
+import CreateContractStep from '../steps/CreateContractStep'
+import { getArrIdx, getDatas } from '../../utilities'
+import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
+import useGetOrders from '../../hooks/useGetOrders'
 
 const ContractPreparerPanel = () => {
-    const { data }: IQuery<IOrder> = useGetOrdersQuery('ContractPreparer')
+    const { data, isError }: IQuery<IOrder> = useGetOrders('ContractPreparer')
 
     const currentStep: StepName = 'contractStep'
 

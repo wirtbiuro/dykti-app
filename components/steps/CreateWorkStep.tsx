@@ -1,5 +1,5 @@
 import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
-import { FormStyled, CreateFormStyled } from '../styles/styled-components'
+import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
 import {
     WithValueNFocus,
     IWithOrder,
@@ -7,18 +7,19 @@ import {
     FormCheckType,
     ISendCheckboxes,
     FieldsToSend,
-} from '../types'
-import { useCreateOrderMutation } from '../state/apiSlice'
-import FormInput from './UI/FormInput'
-import CalendarWithTime from './CalendarWithTime'
-import SendButtons from './UI/SendButtons'
-import { submitForm, showErrorMessages } from '../utilities'
+} from '../../types'
+import { useCreateOrderMutation } from '../../state/apiSlice'
+import FormInput from '../UI/FormInput'
+import CalendarWithTime from '../CalendarWithTime'
+import SendButtons from '../UI/SendButtons'
+import { submitForm, showErrorMessages } from '../../utilities'
 import { flushSync } from 'react-dom'
-import { useFormInput } from '../hooks/useFormInput'
-import { useCalendarData } from '../hooks/useCalendarData'
-import FormSelect from '../components/UI/FormSelect'
-import { useFormSelect } from '../hooks/useFormSelect'
+import { useFormInput } from '../../hooks/useFormInput'
+import { useCalendarData } from '../../hooks/useCalendarData'
+import FormSelect from '../UI/FormSelect'
+import { useFormSelect } from '../../hooks/useFormSelect'
 import { DateTime } from 'luxon'
+import useErrFn from '../../hooks/useErrFn'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -27,6 +28,8 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
+
+    const errFn = useErrFn()
 
     const prevStep = order?.steps[order.steps.length - 1]
 
@@ -166,8 +169,8 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
                 workStepWorkEndDate: null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
-
             createOrder: _createOrder,
+            errFn,
         })
     }
 

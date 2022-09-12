@@ -1,5 +1,5 @@
 import React, { SyntheticEvent, useRef, useEffect, useState, FC } from 'react'
-import { FormStyled, CreateFormStyled } from '../styles/styled-components'
+import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
 import {
     WithValueNFocus,
     IWithOrder,
@@ -7,15 +7,16 @@ import {
     FieldsToSend,
     ISendCheckboxes,
     ISendButtonsOutputRef,
-} from '../types'
-import { useCreateOrderMutation } from '../state/apiSlice'
-import FormInput from './UI/FormInput'
-import { submitForm } from '../utilities'
-import { useFormInput } from '../hooks/useFormInput'
-import { useCalendarData } from '../hooks/useCalendarData'
+} from '../../types'
+import { useCreateOrderMutation } from '../../state/apiSlice'
+import FormInput from '../UI/FormInput'
+import { submitForm } from '../../utilities'
+import { useFormInput } from '../../hooks/useFormInput'
+import { useCalendarData } from '../../hooks/useCalendarData'
 import { flushSync } from 'react-dom'
-import CalendarWithTime from './CalendarWithTime'
-import SendButtons from './UI/SendButtons'
+import CalendarWithTime from '../CalendarWithTime'
+import SendButtons from '../UI/SendButtons'
+import useErrFn from '../../hooks/useErrFn'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 
@@ -25,6 +26,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
+
+    const errFn = useErrFn()
 
     const prevStep = order?.steps[order.steps.length - 1]
 
@@ -131,6 +134,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
+            errFn,
         })
     }
 

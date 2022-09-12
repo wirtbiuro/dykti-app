@@ -17,6 +17,8 @@ import {
 } from './types'
 import { ServerController } from './server-controller'
 import { SyntheticEvent } from 'react'
+import { dyktiApi } from './state/apiSlice'
+import { Modal } from 'antd'
 var cookie = require('cookie')
 var jwt = require('jsonwebtoken')
 
@@ -51,6 +53,30 @@ export const withTokensCheck = async ({ cb, err }: { cb: Function; err: (error: 
             console.log('withTokensCheck first error handling')
             await ServerController.getTokens()
             await cb()
+        } catch (error) {
+            err(error)
+        }
+    }
+}
+
+export const withRtkQueryTokensCheck = async ({
+    cb,
+    err,
+}: {
+    cb: Function
+    err: (error: IServerControllerError) => void
+}) => {
+    console.log('withTokensCheck')
+    const res = await cb()
+    console.log({ res })
+    if (res.error) {
+        try {
+            console.log('withTokensCheck first error handling')
+            await ServerController.getTokens()
+            const _res = await cb()
+            if (_res.error) {
+                err(_res.error)
+            }
         } catch (error) {
             err(error)
         }
@@ -290,6 +316,7 @@ interface ISubmitFormProps {
     toPrevSendData?: FieldsToSend
     toNextSendData: FieldsToSend
     createOrder: (data: FieldsToSend) => void
+    errFn: (error: IServerControllerError) => void
 }
 
 type SubmitFormType = ({}: ISubmitFormProps) => Promise<void>
@@ -309,6 +336,7 @@ export const submitForm: SubmitFormType = async ({
     createOrder,
     isPrevFormChecked,
     prevFormCheck = () => {},
+    errFn,
 }) => {
     const { isCurrent, isEdit, isProceedToNext, isProceedToEdit } = getOrderStatus({
         curStepName,
@@ -344,34 +372,19 @@ export const submitForm: SubmitFormType = async ({
 
     console.log({ _options })
 
-    isMainCondition ? submitToNext() : submitToPrev()
+    const submit = isMainCondition ? submitToNext : submitToPrev
+
+    withRtkQueryTokensCheck({
+        cb: submit,
+        err: errFn,
+    })
 
     async function submitToNext() {
-        // console.log('submitToNext')
-        // console.log({ isCurrent, isEdit, isProceedToNext, isProceedToEdit })
-        // if ((isCurrent || isEdit) && target.nextCheckbox?.checked && !isFormChecked) {
-        //     return formCheck({ showMessage: true })
-        // }
-
-        // if ((isProceedToNext || isProceedToEdit) && !target.uncompleteCheckbox?.checked && !isFormChecked) {
-        //     return formCheck({ showMessage: true })
-        // }
-        // console.log({ toNextSendData })
-        createOrder({ ...toNextSendData, ..._options })
+        return await createOrder({ ...toNextSendData, ..._options })
     }
 
     async function submitToPrev() {
-        // console.log('submitToPrev')
-        // if ((isCurrent || isEdit) && target.prevCheckbox.checked && !isPrevFormChecked) {
-        //     console.log('err 1')
-        //     return prevFormCheck({ showMessage: true })
-        // }
-
-        // if ((isProceedToNext || isProceedToEdit) && !target.uncompleteCheckbox?.checked && !isPrevFormChecked) {
-        //     console.log('err 2')
-        //     return prevFormCheck({ showMessage: true })
-        // }
-        createOrder({ ...toPrevSendData, ..._options })
+        return await createOrder({ ...toPrevSendData, ..._options })
     }
 }
 

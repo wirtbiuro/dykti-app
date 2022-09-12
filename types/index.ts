@@ -57,10 +57,12 @@ export type StepName = typeof stepNames[number]
 export type StepNames = typeof stepNames
 
 export interface IQuery<T> {
+    error?: any
     isError: boolean
     isLoading: boolean
     isSuccess: boolean
     data: T extends IUser ? IUser : Array<IOrder>
+    refetch: Function
 }
 
 export interface IOrder {

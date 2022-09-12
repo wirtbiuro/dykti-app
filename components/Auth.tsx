@@ -3,15 +3,11 @@ import { useSelector, useDispatch } from 'react-redux'
 import { Spin } from 'antd'
 import axios from 'axios'
 import { AuthStyled } from '../styles/styled-components'
-import { IAuth } from '../types'
+import { IAuth, IUser } from '../types'
 import { useAppDispatch, useAppSelector } from '../state/hooks'
 import { authReducer, authActions } from '../state/authSlice'
 import { RootState } from '../state/store'
-import {
-    useCreateUserMutation,
-    useGetUserQuery,
-    useLoginMutation,
-} from '../state/apiSlice'
+import { useCreateUserMutation, useGetUserQuery, useLoginMutation, dyktiApi } from '../state/apiSlice'
 
 type FormType = {
     username: { value: String; focus: Function }
@@ -27,10 +23,8 @@ const Auth = () => {
 
     const [createUser, createUserResult] = useCreateUserMutation()
     const [login] = useLoginMutation()
-    const getUserQueryData = useGetUserQuery()
-
-    console.log({ getUserQueryData })
-    console.log({ createUserResult })
+    const getUserQueryData = dyktiApi.endpoints.getUser.useQueryState()
+    const { isLoading, isError, isSuccess } = getUserQueryData
 
     const status = useAppSelector((state: RootState) => state.auth.status)
     // const loading = useAppSelector((state: RootState) => state.user.loading)
@@ -44,18 +38,17 @@ const Auth = () => {
         dispatch(authActions.toggle({}))
     }
 
-    // useEffect(() => {
-    //     if (getUserQueryData.data) {
-    //         dispatch(authActions.hide())
-    //     }
-    // }, [getUserQueryData])
+    useEffect(() => {
+        if (isSuccess) {
+            dispatch(authActions.hide())
+        }
+    }, [isSuccess])
 
     useEffect(() => {
         if (
             status !== 'HIDDEN' &&
             formRef.current &&
-            (formRef.current.username.value !== '' ||
-                formRef.current.password.value !== '')
+            (formRef.current.username.value !== '' || formRef.current.password.value !== '')
         ) {
             formCheck(formRef.current)
         }
@@ -63,31 +56,23 @@ const Auth = () => {
 
     const close = (e: SyntheticEvent<HTMLDivElement>) => {
         const target = e.target as HTMLDivElement
-        if (target.classList.contains('close-auth'))
-            dispatch(authActions.hide({}))
+        if (target.classList.contains('close-auth')) dispatch(authActions.hide({}))
     }
 
-    function formCheck(
-        target: (EventTarget & FormType) | HTMLFormElement
-    ): boolean {
+    function formCheck(target: (EventTarget & FormType) | HTMLFormElement): boolean {
         usernameErrRef.current!.innerHTML = ''
         passwordErrRef.current!.innerHTML = ''
         if (target.username.value.trim() === '') {
             target.username.focus()
-            usernameErrRef.current!.innerHTML =
-                '<span>&nbsp;Required Field&nbsp;</span>'
+            usernameErrRef.current!.innerHTML = '<span>&nbsp;Required Field&nbsp;</span>'
             return false
         }
         if (target.password.value.length < 6) {
             target.password.focus()
-            passwordErrRef.current!.innerHTML =
-                '<span>&nbsp;Password should not be less 6 signs.&nbsp;</span>'
+            passwordErrRef.current!.innerHTML = '<span>&nbsp;Password should not be less 6 signs.&nbsp;</span>'
             return false
         }
-        if (
-            status === 'SIGN_UP' &&
-            target.password.value !== target.repeat.value
-        ) {
+        if (status === 'SIGN_UP' && target.password.value !== target.repeat.value) {
             target.repeat.focus()
             passwordErrRef.current!.innerHTML =
                 '<span>&nbsp;Password and Repeat password fields should be equal.&nbsp;</span>'
@@ -125,48 +110,24 @@ const Auth = () => {
             {/* <Spin spinning={loading}> */}
             <div className="close-auth" onClick={close}>
                 <div className="auth">
-                    <form
-                        onSubmit={submit}
-                        onChange={formChanged}
-                        ref={formRef}
-                    >
+                    <form onSubmit={submit} onChange={formChanged} ref={formRef}>
                         <div className="withErr">
-                            <div
-                                className="formError"
-                                ref={usernameErrRef}
-                            ></div>
-                            <input
-                                type="text"
-                                name="username"
-                                placeholder="username"
-                            />
+                            <div className="formError" ref={usernameErrRef}></div>
+                            <input type="text" name="username" placeholder="username" />
                         </div>
                         <div className="withErr">
-                            <div
-                                className="formError"
-                                ref={passwordErrRef}
-                            ></div>
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="password"
-                            />
+                            <div className="formError" ref={passwordErrRef}></div>
+                            <input type="password" name="password" placeholder="password" />
                         </div>
                         {status === 'SIGN_UP' && (
                             <>
                                 <div className="formError"></div>
-                                <input
-                                    type="password"
-                                    name="repeat"
-                                    placeholder="repeat password"
-                                />
+                                <input type="password" name="repeat" placeholder="repeat password" />
                             </>
                         )}
                         <input type="submit" value="send" />
                     </form>
-                    <a onClick={changeStatus}>
-                        {status === 'SIGN_IN' ? 'Sign Up' : 'Sign In'}
-                    </a>
+                    <a onClick={changeStatus}>{status === 'SIGN_IN' ? 'Sign Up' : 'Sign In'}</a>
                 </div>
             </div>
             {/* </Spin> */}

@@ -10,6 +10,8 @@ const orderProvidesTags: Array<{ type: 'Order'; id: Role }> = [
     { type: 'Order', id: 'FormCreator' },
     { type: 'Order', id: 'OfferCreator' },
     { type: 'Order', id: 'WorkRespUser' },
+    { type: 'Order', id: 'ReferenceUser' },
+    { type: 'Order', id: 'QuestionnaireUser' },
 ]
 
 export const dyktiApi = createApi({
@@ -39,10 +41,7 @@ export const dyktiApi = createApi({
 
             transformResponse: (response: any, meta: any, arg: any) => {
                 return response.sort((a: any, b: any) => {
-                    return (
-                        DateTime.fromISO(b.createdAt).toMillis() -
-                        DateTime.fromISO(a.createdAt).toMillis()
-                    )
+                    return DateTime.fromISO(b.createdAt).toMillis() - DateTime.fromISO(a.createdAt).toMillis()
                 })
             },
         }),
@@ -72,9 +71,7 @@ export const dyktiApi = createApi({
                     body: user,
                 }
             },
-            invalidatesTags: (res: any, err: any, arg: any) => [
-                { type: 'User' },
-            ],
+            invalidatesTags: (res: any, err: any, arg: any) => [{ type: 'User' }],
             transformResponse: (response: any, meta: any, arg: any) => {
                 return response.user
             },
@@ -88,6 +85,10 @@ export const dyktiApi = createApi({
                 }
             },
             invalidatesTags: (result: any, error: any, args: any) => {
+                if (error) {
+                    console.log({ error })
+                    return []
+                }
                 console.log({ args })
                 return [{ type: 'Order', id: args.role }]
             },
