@@ -163,7 +163,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                             }
                             checkFn={(value: boolean) => value === true}
                         >
-                            <>Czy dokumenty od Befaring Mana są w porządku?</>
+                            <>Dokumenty od Befaring Mana są w porządku</>
                         </FormInput>
                         {!areDocsGoodData.isChecked && (
                             <>

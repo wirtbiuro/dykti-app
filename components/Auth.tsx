@@ -23,7 +23,9 @@ const Auth = () => {
 
     const [createUser, createUserResult] = useCreateUserMutation()
     const [login] = useLoginMutation()
+
     const getUserQueryData = dyktiApi.endpoints.getUser.useQueryState()
+
     const { isLoading, isError, isSuccess } = getUserQueryData
 
     const status = useAppSelector((state: RootState) => state.auth.status)
@@ -87,6 +89,7 @@ const Auth = () => {
         if (!formCheck(target)) return
 
         const doFn = status === 'SIGN_UP' ? createUser : login
+
         doFn({
             username: target.username.value.trim(),
             password: target.password.value,

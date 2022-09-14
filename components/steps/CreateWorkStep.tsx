@@ -201,7 +201,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                     connection={shouldChangeContractData}
                                     defaultChecked={prevStep?.workStepContractEdits ? true : false}
                                 >
-                                    <>Czy kontrakt wymaga zmiany?</>
+                                    <>Kontrakt wymaga zmiany</>
                                 </FormInput>
                             </>
 

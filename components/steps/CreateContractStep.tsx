@@ -200,7 +200,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible }) => {
                             }
                             // checkFn={(value: boolean) => value}
                         >
-                            <>Czy oferta potrzebuje zmian?</>
+                            <>Oferta potrzebuje zmian</>
                         </FormInput>
                         {!areOfferChangesData.isChecked && (
                             <>
@@ -224,7 +224,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                     }
                                     checkFn={(value: boolean) => value}
                                 >
-                                    <>Czy klient przyjął ofertę?</>
+                                    <>Klient przyjął ofertę</>
                                 </FormInput>
 
                                 {isOfferAcceptedData.isChecked && (

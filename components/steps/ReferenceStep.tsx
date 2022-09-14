@@ -113,7 +113,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                 }
                                 checkFn={(value: boolean) => value === true}
                             >
-                                <>Czy wysłana prośba o referencję do klienta?</>
+                                <>Prośba o referencję do klienta jest wysłana</>
                             </FormInput>
                         </>
 

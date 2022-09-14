@@ -122,7 +122,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                 connection={isClientSatisfiedData}
                                 defaultChecked={prevStep?.questionnaireStepDissatisfaction ? false : true}
                             >
-                                <>Czy klient jest zadowolony?</>
+                                <>Klient jest zadowolony</>
                             </FormInput>
                         </>
 

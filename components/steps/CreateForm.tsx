@@ -72,11 +72,11 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
             return setIsFormChecked(false)
         }
 
-        if (!cityData.isChecked) {
-            console.log('cityData error')
-            showMessage ? cityData.showError() : null
-            return setIsFormChecked(false)
-        }
+        // if (!cityData.isChecked) {
+        //     console.log('cityData error')
+        //     showMessage ? cityData.showError() : null
+        //     return setIsFormChecked(false)
+        // }
 
         if (!addressData.isChecked) {
             console.log('addressData error')
@@ -157,7 +157,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                         />
                         <FormInput connection={emailData} placeholder="E-mail" defaultValue={prevStep?.formStepEmail} />
                         <p>Adres zamówienia: </p>
-                        <FormInput connection={cityData} placeholder="Miasto" defaultValue={prevStep?.formStepCity} />
+                        {/* <FormInput connection={cityData} placeholder="Miasto" defaultValue={prevStep?.formStepCity} /> */}
                         <FormInput
                             connection={addressData}
                             placeholder="Adres obiektu"

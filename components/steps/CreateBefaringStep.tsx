@@ -161,7 +161,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                                 }
                                 checkFn={(value: boolean) => value}
                             >
-                                <>Czy było spotkanie?</>
+                                <>Spotkanie sie odbyło</>
                             </FormInput>
                         )}
 

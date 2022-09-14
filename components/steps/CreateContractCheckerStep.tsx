@@ -149,7 +149,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                 }
                                 checkFn={(value: boolean) => value}
                             >
-                                <>Czy kontrakt jest weryfikowan?</>
+                                <>Kontrakt jest weryfikowan</>
                             </FormInput>
 
                             {isMainCondition && (
