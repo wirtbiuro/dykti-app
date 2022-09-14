@@ -96,3 +96,16 @@ export const AuthStyled = styled.div`
         }
     }
 `
+
+export const MultiFormStyled = styled.div`
+    .multi-selected {
+        background: #1890ff;
+        color: white;
+    }
+    .not-selected {
+        background-color: white !important;
+    }
+    option::selection {
+        background: white !important;
+    }
+`

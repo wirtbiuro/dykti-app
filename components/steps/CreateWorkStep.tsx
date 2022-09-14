@@ -16,10 +16,11 @@ import { submitForm, showErrorMessages } from '../../utilities'
 import { flushSync } from 'react-dom'
 import { useFormInput } from '../../hooks/useFormInput'
 import { useCalendarData } from '../../hooks/useCalendarData'
-import FormSelect from '../UI/FormSelect'
+import FormMultiSelect from '../UI/FormMultiSelect'
 import { useFormSelect } from '../../hooks/useFormSelect'
 import { DateTime } from 'luxon'
 import useErrFn from '../../hooks/useErrFn'
+import { useFormMultiSelect } from '../../hooks/useFormMultiSelect'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -40,7 +41,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
     const workStartDateData = useCalendarData()
     const workEndDateData = useCalendarData()
     const shouldChangeContractData = useFormInput()
-    const teamData = useFormInput()
+    const teamData = useFormMultiSelect()
     const contractEditsData = useFormInput()
     // const rejectionReasonData = useFormSelect()
 
@@ -127,6 +128,8 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
         e.preventDefault()
         const target = e.target as typeof e.target & FormType
         const _createOrder = createOrder as (data: FieldsToSend) => void
+
+        console.log({ teamData })
 
         const areErrors = showErrorMessages({
             flushSync,
@@ -215,10 +218,16 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
 
                             <>
                                 <p>Ekipa: </p>
-                                <FormInput
+                                <FormMultiSelect
                                     placeholder="Ekipa"
-                                    defaultValue={prevStep?.workStepTeam}
+                                    defaultValue={prevStep?.workStepTeam || ''}
                                     connection={teamData}
+                                    options={[
+                                        ['1', 'Piotr'],
+                                        ['22', 'Adam'],
+                                        ['3', 'Kamil'],
+                                        ['4', 'Olek'],
+                                    ]}
                                 />
                             </>
 
