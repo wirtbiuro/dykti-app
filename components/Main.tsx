@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useGetUserQuery } from '../state/apiSlice'
+import { useGetUserQuery, dyktiApi } from '../state/apiSlice'
 import CreateForm from './steps/CreateForm'
 import { IQuery, IUser, Role } from '../types'
 import BefaringPanel from './panels/BefaringPanel'
@@ -11,6 +11,8 @@ import ContractPreparerPanel from './panels/ContractPreparerPanel'
 import WorkStepPanel from './panels/WorkStepPanel'
 import QuestionnairePanel from './panels/QuestionnairePanel'
 import ReferencePanel from './panels/ReferencePanel'
+import { withRtkQueryTokensCheck } from '../utilities'
+import useErrFn from '../hooks/useErrFn'
 
 type RoleStrategyType = Record<Role, JSX.Element>
 type RoleTitleType = Record<Role, string>
@@ -40,11 +42,22 @@ const roleTitles: RoleTitleType = {
 }
 
 const Main = () => {
-    const { isError, data }: IQuery<IUser> = useGetUserQuery()
+    const [refetchUser, { data, isLoading, isError, isSuccess }] = dyktiApi.endpoints.getUser.useLazyQuery()
+
+    // const { isError, data }: IQuery<IUser> = useGetUserQuery()
 
     const [visibleRole, setVisibleRole] = useState<Role>()
 
     console.log({ data })
+
+    const errFn = useErrFn()
+
+    useEffect(() => {
+        withRtkQueryTokensCheck({
+            cb: refetchUser,
+            err: errFn,
+        })
+    }, [])
 
     useEffect(() => {
         if (data && !isError) {
@@ -60,7 +73,7 @@ const Main = () => {
         return (
             <>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    {data.role.map((role) => {
+                    {data.role.map((role: Role) => {
                         return (
                             <div
                                 key={role}
