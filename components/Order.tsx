@@ -2,7 +2,7 @@ import React, { FC, useState } from 'react'
 import { IOrder, StepName, StepType } from '../types'
 import { StepStyled } from '../styles/styled-components'
 import Step from './Step'
-import { withRtkQueryTokensCheck } from '../utilities'
+import { withRtkQueryTokensCheck, getDatas } from '../utilities'
 import { useCreateOrderMutation } from '../state/apiSlice'
 import useErrFn from '../hooks/useErrFn'
 import FormInput from './UI/FormInput'
@@ -19,6 +19,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
     const step = order.steps[order.steps.length - 1]
     console.log({ step, stepName })
     const shouldConfirmView = step.shouldConfirmView && step.passedTo === stepName
+    const isCurrent = step.passedTo === stepName
 
     const [createOrder] = useCreateOrderMutation()
     const errFn = useErrFn()
@@ -79,7 +80,9 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
             {!isViewing && <button onClick={() => setIsViewing(true)}>Kontynuować</button>}
             {isViewing && <button onClick={() => setIsViewing(false)}>Zamknij</button>}
             {shouldConfirmView && <button onClick={() => onConfirm(order)}>Potwierdź akceptację</button>}
-            {stepName !== 'lastDecisionStep' && <button onClick={() => onClose(order)}>Zamknąć sprawę</button>}
+            {stepName !== 'lastDecisionStep' && isCurrent && (
+                <button onClick={() => onClose(order)}>Zamknąć sprawę</button>
+            )}
             <div style={{ display: isModalOpen ? 'block' : 'none' }}>
                 Podaj powód, dla którego zamierzasz zamknąć sprawę:
                 <FormInput
