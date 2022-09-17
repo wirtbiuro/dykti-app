@@ -159,7 +159,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                                         ? prevStep?.beffaringStepWasThereMeeting
                                         : false
                                 }
-                                checkFn={(value: boolean) => value}
+                                checkFn={(value) => value as boolean}
                             >
                                 <>Spotkanie sie odbyło</>
                             </FormInput>

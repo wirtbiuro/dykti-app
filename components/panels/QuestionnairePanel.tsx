@@ -12,7 +12,7 @@ const QuestionnairePanel = () => {
     const { data, isError }: IQuery<IOrder> = useGetOrders('QuestionnaireUser')
     // const { data: processedData }: IQuery<IOrder> = useGetCompletedOrdersQuery('OfferCreator')
 
-    const currentStep: StepName = 'completionstep'
+    const currentStep: StepName = 'completionStep'
 
     const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({ data, currentStep })
 
@@ -22,19 +22,19 @@ const QuestionnairePanel = () => {
         <>
             <h2>Sprawy bieżące:</h2>
 
-            <Orders orders={currentData} children={<QuestionnaireStep />} stepName="completionstep" />
+            <Orders orders={currentData} children={<QuestionnaireStep />} stepName={currentStep} />
 
             <h2>Do poprawienia:</h2>
 
-            <Orders orders={editedOrdersData} children={<QuestionnaireStep />} stepName="completionstep" />
+            <Orders orders={editedOrdersData} children={<QuestionnaireStep />} stepName={currentStep} />
 
             <h2>Przekazane dalej:</h2>
 
-            <Orders orders={completedOrdersData} children={<QuestionnaireStep />} stepName="completionstep" />
+            <Orders orders={completedOrdersData} children={<QuestionnaireStep />} stepName={currentStep} />
 
             <h2>Przekazane do poprawienia:</h2>
 
-            <Orders orders={passedForEditData} children={<QuestionnaireStep />} stepName="completionstep" />
+            <Orders orders={passedForEditData} children={<QuestionnaireStep />} stepName={currentStep} />
         </>
     )
 }

@@ -37,6 +37,7 @@ model Step{
   createdByStep String?
   maxPromotion String?
   shouldConfirmView Boolean?
+  isCompleted Boolean?
   orderId Int
   order Order? @relation(fields: [orderId], references: [id])
   formStepClientName String?

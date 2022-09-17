@@ -147,6 +147,8 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
 
         if (areErrors) return
 
+        console.log('workEndDateData.value', workEndDateData.value)
+
         submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -231,16 +233,16 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                 />
                             </>
 
-                            {shouldChangeContractData.isChecked && (
-                                <>
-                                    <p>Data zakończenia pracy:</p>
-                                    <CalendarWithTime
-                                        defaultDate={order && prevStep?.workStepWorkEndDay}
-                                        connection={workEndDateData}
-                                        isTimeEnabled={false}
-                                    />
-                                </>
-                            )}
+                            {/* {shouldChangeContractData.isChecked && ( */}
+                            <>
+                                <p>Data zakończenia pracy:</p>
+                                <CalendarWithTime
+                                    defaultDate={order && prevStep?.workStepWorkEndDate}
+                                    connection={workEndDateData}
+                                    isTimeEnabled={false}
+                                />
+                            </>
+                            {/* )} */}
 
                             {/* {sendingDateData.isChecked && !isContractAcceptedData.isChecked && (
                                 <>

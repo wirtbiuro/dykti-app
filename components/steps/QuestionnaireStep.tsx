@@ -94,11 +94,11 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,
-            curStepName: 'completionstep',
+            curStepName: 'completionStep',
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
-            nextToPass: isClientSatisfiedData.value ? 'referenceStep' : 'completed',
+            nextToPass: isClientSatisfiedData.value ? 'referenceStep' : 'completionStep',
             toNextSendData: {
                 order,
                 questionnaireStepSatisfaction: isClientSatisfiedData.value ? opinionData.value : null,
@@ -161,7 +161,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
                         )}
 
                         <SendButtons
-                            curStepName="completionstep"
+                            curStepName="completionStep"
                             maxPromotion={prevStep!.maxPromotion}
                             passedTo={prevStep!.passedTo}
                             dataRef={sendButtonsOutputRef}

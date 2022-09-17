@@ -1,11 +1,4 @@
-import React, {
-    useMemo,
-    useState,
-    SyntheticEvent,
-    useRef,
-    useEffect,
-    RefObject,
-} from 'react'
+import React, { useMemo, useState, SyntheticEvent, useRef, useEffect, RefObject } from 'react'
 import Calendar from './Calendar'
 import { DateTime } from 'luxon'
 import { showErrorFormModal } from '../utilities'
@@ -28,8 +21,11 @@ function CalendarWithTime({
     formChanged = () => {},
 }: ICalendarWithTime) {
     const _defaultDate = useMemo(() => {
+        console.log({ defaultDate })
         return defaultDate ? DateTime.fromISO(defaultDate as string) : false
     }, [])
+
+    console.log({ _defaultDate })
 
     const [selectedDate, setSelectedDate] = useState<DateTime>(DateTime.now())
     const [isVisible, setIsVisible] = useState(false)
@@ -119,10 +115,7 @@ function CalendarWithTime({
             })
             setSelectedDate(_selectedDate)
         }
-        if (
-            hoursRef.current?.value !== 'hh' &&
-            minutesRef.current?.value !== 'mm'
-        ) {
+        if (hoursRef.current?.value !== 'hh' && minutesRef.current?.value !== 'mm') {
             errRef.current!.innerHTML = ''
         }
     }
@@ -149,18 +142,14 @@ function CalendarWithTime({
 
     const getValue = () => {
         const isDate =
-            (selectedDate &&
-                hoursRef.current?.value !== 'hh' &&
-                minutesRef.current?.value !== 'mm') ||
+            (selectedDate && hoursRef.current?.value !== 'hh' && minutesRef.current?.value !== 'mm') ||
             (_defaultDate && isFirstLoad && !isReset)
 
         const timeEnabledCurrentDate = isDate ? selectedDate : null
 
         const NoTimeEnabledCurrentDate = isReset ? null : selectedDate
 
-        const currentDate = isTimeEnabled
-            ? timeEnabledCurrentDate
-            : NoTimeEnabledCurrentDate
+        const currentDate = isTimeEnabled ? timeEnabledCurrentDate : NoTimeEnabledCurrentDate
 
         return currentDate
     }
@@ -173,9 +162,7 @@ function CalendarWithTime({
     const check = ({ isReset = !_defaultDate }: { isReset: boolean }) => {
         console.log('check')
         if (isTimeEnabled) {
-            const isChecked =
-                hoursRef.current?.value !== 'hh' &&
-                minutesRef.current?.value !== 'mm'
+            const isChecked = hoursRef.current?.value !== 'hh' && minutesRef.current?.value !== 'mm'
             connection?.__setIsChecked(isChecked)
             connection?.__setValue(getValue())
 
@@ -240,21 +227,14 @@ function CalendarWithTime({
         <>
             {viewTime}
             <button onClick={clicked}>
-                {isVisible
-                    ? 'Zamknij'
-                    : connection?.value && !isReset
-                    ? 'Zmień datę'
-                    : 'Ustalić datę'}
+                {isVisible ? 'Zamknij' : connection?.value && !isReset ? 'Zmień datę' : 'Ustalić datę'}
             </button>
             {/* Checked: {connection?.isChecked ? 'true' : 'false'}
             isReset: {isReset ? 'true' : 'false'}
             Value: {viewTime} */}
             <button onClick={reset}>Resetowanie</button>
             <div style={{ display: isVisible ? 'block' : 'none' }}>
-                <Calendar
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                />
+                <Calendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
                 <div ref={errRef}></div>
                 {isTimeEnabled && (
                     <>

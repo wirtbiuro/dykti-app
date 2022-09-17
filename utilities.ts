@@ -66,10 +66,10 @@ export const withRtkQueryTokensCheck = async ({
     cb: Function
     err: (error: IServerControllerError) => void
 }) => {
-    console.log('withTokensCheck')
+    console.log('withTokensCheck', cb)
     const res = await cb()
     console.log({ res })
-    if (res.error) {
+    if (res?.error) {
         try {
             console.log('withTokensCheck first error handling')
             await ServerController.getTokens()
@@ -260,6 +260,9 @@ export const getPassedTo: GetPassedToType = ({
         prevToPass,
         'target.prevCheckbox?.checked': target.prevCheckbox?.checked,
     })
+    if (curStepName === 'lastDecisionStep') {
+        return nextToPass || 'lastDecisionStep'
+    }
     const _passedTo = isMainCondition
         ? isCurrentOrEdit
             ? target.nextCheckbox?.checked
@@ -309,9 +312,9 @@ interface ISubmitFormProps {
     passedTo: StepName
     nextToPass?: StepName
     prevToPass?: StepName
-    formCheck: FormCheckType
+    formCheck?: FormCheckType
     prevFormCheck?: FormCheckType
-    isFormChecked: boolean
+    isFormChecked?: boolean
     isPrevFormChecked?: boolean
     toPrevSendData?: FieldsToSend
     toNextSendData: FieldsToSend

@@ -1,11 +1,5 @@
 import React, { FC, useRef, RefObject, useEffect, useState } from 'react'
-import {
-    StepType,
-    PropNames,
-    StepName,
-    ISendButtonsOutputRef,
-    FormCheckType,
-} from '../../types'
+import { StepType, PropNames, StepName, ISendButtonsOutputRef, FormCheckType } from '../../types'
 import {
     getOrderStatus,
     getFirstStepOrderStatus,
@@ -41,12 +35,11 @@ const SendButtons: FC<ISendButtons> = ({
     isPrevFormChecked = true,
     isMainCondition = true,
 }) => {
-    const {
-        isCurrent,
-        isProceedToEdit,
-        isEdit,
-        isProceedToNext,
-    } = getOrderStatus({ passedTo, curStepName, maxPromotion })
+    const { isCurrent, isProceedToEdit, isEdit, isProceedToNext } = getOrderStatus({
+        passedTo,
+        curStepName,
+        maxPromotion,
+    })
 
     const isCompletedRef = useRef<HTMLInputElement>(null)
     const uncompleteSaveRef = useRef<HTMLInputElement>(null)
@@ -80,40 +73,24 @@ const SendButtons: FC<ISendButtons> = ({
 
     return (
         <div>
-            {(isCurrent || isEdit) && isMainCondition && (
+            {(isCurrent || isEdit) && isMainCondition && curStepName !== 'lastDecisionStep' && (
                 <>
-                    <input
-                        type="checkbox"
-                        name="nextCheckbox"
-                        defaultChecked={true}
-                        ref={isCompletedRef}
-                    />
+                    <input type="checkbox" name="nextCheckbox" defaultChecked={true} ref={isCompletedRef} />
                     Skończ i przekaż dalej
                 </>
             )}
             {(isCurrent || isEdit) && !isMainCondition && (
                 <>
-                    <input
-                        type="checkbox"
-                        name="prevCheckbox"
-                        defaultChecked={true}
-                        ref={isAltCompletedRef}
-                    />
+                    <input type="checkbox" name="prevCheckbox" defaultChecked={true} ref={isAltCompletedRef} />
                     Zakończ i przekaż poprzedniemu użytkownikowi.
                 </>
             )}
-            {(isProceedToEdit || isProceedToNext) &&
-                (isMainCondition ? !isFormChecked : !isPrevFormChecked) && (
-                    <>
-                        <input
-                            name="uncompleteCheckbox"
-                            type="checkbox"
-                            defaultChecked={false}
-                            ref={uncompleteSaveRef}
-                        />
-                        Zapisz z niekompletnymi danymi.
-                    </>
-                )}
+            {(isProceedToEdit || isProceedToNext) && (isMainCondition ? !isFormChecked : !isPrevFormChecked) && (
+                <>
+                    <input name="uncompleteCheckbox" type="checkbox" defaultChecked={false} ref={uncompleteSaveRef} />
+                    Zapisz z niekompletnymi danymi.
+                </>
+            )}
             {/* {(isProceedToEdit || isProceedToNext) && (
                 <>
                     <input

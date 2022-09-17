@@ -1,10 +1,8 @@
 import React from 'react'
 import { IQuery, IOrder, StepName } from '../../types'
-import { useGetOrdersQuery } from '../../state/apiSlice'
 import Orders from '../Orders'
 import { getDatas } from '../../utilities'
 import CreateWorkStep from '../steps/CreateWorkStep'
-import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
 import useGetOrders from '../../hooks/useGetOrders'
 
 const WorkStepPanel = () => {

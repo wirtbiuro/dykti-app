@@ -2,7 +2,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { PrismaClient } from '@prisma/client'
 import { withJwt, getWhereStrategyBySteps } from '../../utilities'
-import { Role, StepNames, StepName } from '../../types'
+import { Role, StepNames, StepName, getStepnameByRole } from '../../types'
 // import { IgetUserAxiosRes } from '../../types'
 
 async function getorders(req: NextApiRequest, res: NextApiResponse) {
@@ -29,18 +29,6 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
 
         const _role = role as Role
 
-        const whereStrategy: Record<Role, StepName> = {
-            FormCreator: 'formStep',
-            BefaringUser: 'beffaringStep',
-            OfferCreator: 'offerStep',
-            ContractPreparer: 'contractStep',
-            ContractChecker: 'contractCheckerStep',
-            ContractCreator: 'contractCreatorStep',
-            WorkRespUser: 'workStep',
-            QuestionnaireUser: 'completionstep',
-            ReferenceUser: 'referenceStep',
-        }
-
         const where =
             _role === 'FormCreator'
                 ? {
@@ -55,12 +43,18 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
                                   },
                               ],
                           },
+                          none: {
+                              isCompleted: true,
+                          },
                       },
                   }
                 : {
                       steps: {
                           some: {
-                              passedTo: whereStrategy[_role],
+                              passedTo: getStepnameByRole(_role),
+                          },
+                          none: {
+                              isCompleted: true,
                           },
                       },
                   }

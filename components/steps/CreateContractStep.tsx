@@ -222,7 +222,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                             ? prevStep?.contractStepIsOfferAccepted
                                             : false
                                     }
-                                    checkFn={(value: boolean) => value}
+                                    checkFn={(value) => value as boolean}
                                 >
                                     <>Klient przyjął ofertę</>
                                 </FormInput>

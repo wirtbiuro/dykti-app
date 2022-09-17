@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useGetUserQuery, dyktiApi } from '../state/apiSlice'
 import CreateForm from './steps/CreateForm'
-import { IQuery, IUser, Role } from '../types'
+import { IQuery, IUser, Role, roleTitles } from '../types'
 import BefaringPanel from './panels/BefaringPanel'
 import CreatorFormPanel from './panels/CreatorFormPanel'
 import OfferCreatorPanel from './panels/OfferCreatorPanel'
@@ -13,9 +13,9 @@ import QuestionnairePanel from './panels/QuestionnairePanel'
 import ReferencePanel from './panels/ReferencePanel'
 import { withRtkQueryTokensCheck } from '../utilities'
 import useErrFn from '../hooks/useErrFn'
+import LastDecisionPanel from './panels/LastDecisionPanel'
 
 type RoleStrategyType = Record<Role, JSX.Element>
-type RoleTitleType = Record<Role, string>
 
 const roleStrategy: RoleStrategyType = {
     FormCreator: <CreatorFormPanel />,
@@ -27,18 +27,7 @@ const roleStrategy: RoleStrategyType = {
     WorkRespUser: <WorkStepPanel />,
     QuestionnaireUser: <QuestionnairePanel />,
     ReferenceUser: <ReferencePanel />,
-}
-
-const roleTitles: RoleTitleType = {
-    FormCreator: 'Tworzenie formularza',
-    BefaringUser: 'Befaring',
-    OfferCreator: 'Tworzenie oferty',
-    ContractPreparer: 'Przygotowanie kontraktu',
-    ContractChecker: 'Sprawdzenie kontraktu',
-    ContractCreator: 'Tworzenie kontraktu',
-    WorkRespUser: 'Praca',
-    QuestionnaireUser: 'Zakończenie',
-    ReferenceUser: 'Prośba o referencje',
+    LastDecisionUser: <LastDecisionPanel />,
 }
 
 const Main = () => {

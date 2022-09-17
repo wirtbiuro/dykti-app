@@ -9,7 +9,7 @@ interface IFormInputProps<T = string> {
     name?: T
     placeholder?: string
     children?: JSX.Element
-    checkFn?: Function
+    checkFn?: (value: string | boolean) => boolean
     onErrorOk?: Function
     defaultValue?: string
     defaultChecked?: boolean
@@ -31,6 +31,7 @@ function FormInput<T extends string>({
         if (typeof value === 'boolean') {
             return value !== true
         }
+        return false
     },
     onErrorOk,
 }: IFormInputProps<T>) {
@@ -39,9 +40,7 @@ function FormInput<T extends string>({
 
     const getValue = () => {
         console.log('form input get value')
-        return inputRef.current?.type === 'text'
-            ? inputRef.current?.value
-            : inputRef.current?.checked
+        return inputRef.current?.type === 'text' ? inputRef.current?.value : inputRef.current?.checked
     }
 
     const check = () => {
@@ -49,18 +48,20 @@ function FormInput<T extends string>({
         const isChecked =
             inputRef.current?.type === 'text'
                 ? checkFn(inputRef.current?.value)
-                : checkFn(inputRef.current?.checked)
+                : checkFn(inputRef.current?.checked || false)
         console.log({ isChecked })
         connection?.__setIsChecked(isChecked)
         return isChecked
     }
 
-    const showError = () => {
+    const showError = (errDescription: string) => {
+        console.log({ errDescription, errRef })
         showErrorFormModal({
             element: inputRef.current as HTMLInputElement,
             errElement: errRef.current as HTMLDivElement,
             modal: Modal,
             onOk: onErrorOk,
+            errDescription,
         })
     }
 
@@ -77,9 +78,7 @@ function FormInput<T extends string>({
     }
 
     const setValue = (value: string | boolean) => {
-        typeof value === 'string'
-            ? (inputRef.current!.value = value)
-            : (inputRef.current!.checked = value)
+        typeof value === 'string' ? (inputRef.current!.value = value) : (inputRef.current!.checked = value)
     }
 
     useEffect(() => {

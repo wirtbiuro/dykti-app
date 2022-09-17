@@ -1,18 +1,13 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { DateTime } from 'luxon'
-import { FieldsToSend, Role } from '../types'
+import { FieldsToSend, Role, roles } from '../types'
 
-const orderProvidesTags: Array<{ type: 'Order'; id: Role }> = [
-    { type: 'Order', id: 'BefaringUser' },
-    { type: 'Order', id: 'ContractChecker' },
-    { type: 'Order', id: 'ContractCreator' },
-    { type: 'Order', id: 'ContractPreparer' },
-    { type: 'Order', id: 'FormCreator' },
-    { type: 'Order', id: 'OfferCreator' },
-    { type: 'Order', id: 'WorkRespUser' },
-    { type: 'Order', id: 'ReferenceUser' },
-    { type: 'Order', id: 'QuestionnaireUser' },
-]
+const getOrderProvidesTags: () => Array<{ type: 'Order'; id: Role }> = () => {
+    return roles.reduce((res: Array<{ type: 'Order'; id: Role }>, item) => {
+        // return []
+        return [...res, { type: 'Order', id: item }]
+    }, [])
+}
 
 export const dyktiApi = createApi({
     reducerPath: 'userApi',
@@ -32,12 +27,12 @@ export const dyktiApi = createApi({
         getOrders: build.query({
             query: (role: Role) => `getorders?role=${role}`,
 
-            providesTags: [{ type: 'User' }, ...orderProvidesTags],
+            providesTags: [{ type: 'User' }, ...getOrderProvidesTags()],
         }),
         getCompletedOrders: build.query({
             query: (role: Role) => `getorders?completed=true&role=${role}`,
 
-            providesTags: [{ type: 'User' }, ...orderProvidesTags],
+            providesTags: [{ type: 'User' }, ...getOrderProvidesTags()],
 
             transformResponse: (response: any, meta: any, arg: any) => {
                 return response.sort((a: any, b: any) => {

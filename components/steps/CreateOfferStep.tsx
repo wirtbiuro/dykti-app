@@ -161,7 +161,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
                                     ? prevStep?.offerStepAreBefDocsGood
                                     : true
                             }
-                            checkFn={(value: boolean) => value === true}
+                            checkFn={(value) => value === true}
                         >
                             <>Dokumenty od Befaring Mana są w porządku</>
                         </FormInput>

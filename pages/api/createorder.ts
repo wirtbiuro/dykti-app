@@ -14,7 +14,7 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
     const prisma = new PrismaClient()
 
     try {
-        const { order, userId, role } = req.body as ReqBodyType
+        const { order } = req.body as ReqBodyType
         console.log('req.body', req.body)
 
         let input = { ...req.body } as ReqBodyType

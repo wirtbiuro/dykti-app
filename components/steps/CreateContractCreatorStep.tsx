@@ -163,7 +163,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible }) => {
                                             ? prevStep?.contractCreatorStepIsContractAccepted
                                             : false
                                     }
-                                    checkFn={(value: boolean) => value}
+                                    checkFn={(value) => value as boolean}
                                 >
                                     <>Kontrakt jest podpisany przez klienta?</>
                                 </FormInput>
