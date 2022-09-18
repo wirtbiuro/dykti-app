@@ -19,6 +19,7 @@ import { flushSync } from 'react-dom'
 import { useFormInput } from '../../hooks/useFormInput'
 import { useCalendarData } from '../../hooks/useCalendarData'
 import useErrFn from '../../hooks/useErrFn'
+import { Spin } from 'antd'
 
 type FieldsToSend = StepType & {
     order?: IOrder
@@ -28,6 +29,8 @@ type FormElement = HTMLFormElement & FormType
 
 const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
+
+    const [isSpinning, setIsSpinning] = useState(false)
 
     const formRef = useRef<FormElement>(null)
 
@@ -118,6 +121,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (areErrors) return
 
+        setIsSpinning(true)
+
         await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -138,84 +143,88 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             errFn,
         })
 
+        setIsSpinning(false)
         setIsVisible!(false)
     }
 
     return (
-        <div style={{ display: isVisible ? 'block' : 'none' }}>
-            <CreateFormStyled>
-                <FormStyled>
-                    <form ref={formRef} onSubmit={submit}>
-                        <p>Termin spotkania: </p>
+        <Spin spinning={isSpinning}>
+            {' '}
+            <div style={{ display: isVisible ? 'block' : 'none' }}>
+                <CreateFormStyled>
+                    <FormStyled>
+                        <form ref={formRef} onSubmit={submit}>
+                            <p>Termin spotkania: </p>
 
-                        <CalendarWithTime
-                            defaultDate={order && prevStep?.formStepMeetingDate}
-                            connection={meetingDateData}
-                        />
-                        {meetingDateData?.check !== undefined && meetingDateData?.isChecked && (
-                            <FormInput
-                                type="checkbox"
-                                connection={wasThereMeeting}
-                                defaultChecked={
-                                    typeof prevStep?.beffaringStepWasThereMeeting === 'boolean'
-                                        ? prevStep?.beffaringStepWasThereMeeting
-                                        : false
-                                }
-                                checkFn={(value) => value as boolean}
-                            >
-                                <>Spotkanie sie odbyło</>
-                            </FormInput>
-                        )}
-
-                        {wasThereMeeting.value && meetingDateData.isChecked && (
-                            <>
-                                <br />
-                                <br />
-                                <p>Data wysłania dokumentów, zdjęć: </p>
-
-                                <CalendarWithTime
-                                    defaultDate={order && prevStep?.beffaringStepDocsSendDate}
-                                    connection={docsSendDateData}
-                                    isTimeEnabled={false}
-                                />
-
-                                <br />
-                                <br />
-                                <p>Kiedy należy przygotować ofertę?</p>
-
-                                <CalendarWithTime
-                                    defaultDate={
-                                        (order && prevStep?.beffaringStepOfferDate) ||
-                                        meetingDateData.value?.endOf('day').plus({ days: 7 })
+                            <CalendarWithTime
+                                defaultDate={order && prevStep?.formStepMeetingDate}
+                                connection={meetingDateData}
+                            />
+                            {meetingDateData?.check !== undefined && meetingDateData?.isChecked && (
+                                <FormInput
+                                    type="checkbox"
+                                    connection={wasThereMeeting}
+                                    defaultChecked={
+                                        typeof prevStep?.beffaringStepWasThereMeeting === 'boolean'
+                                            ? prevStep?.beffaringStepWasThereMeeting
+                                            : false
                                     }
-                                    connection={offerDateData}
-                                    isTimeEnabled={false}
-                                />
-                            </>
-                        )}
+                                    checkFn={(value) => value as boolean}
+                                >
+                                    <>Spotkanie sie odbyło</>
+                                </FormInput>
+                            )}
 
-                        <p>Komentarz: </p>
-                        <FormInput
-                            placeholder="komentarz"
-                            defaultValue={prevStep?.beffaringStepComment}
-                            connection={commentData}
-                        />
+                            {wasThereMeeting.value && meetingDateData.isChecked && (
+                                <>
+                                    <br />
+                                    <br />
+                                    <p>Data wysłania dokumentów, zdjęć: </p>
 
-                        <SendButtons
-                            curStepName="beffaringStep"
-                            passedTo={prevStep!.passedTo}
-                            maxPromotion={prevStep!.maxPromotion}
-                            dataRef={sendButtonsOutputRef}
-                            isFormChecked={isFormChecked}
-                            step={order?.steps[order.steps.length - 1]}
-                            formCheck={formCheck}
-                        />
+                                    <CalendarWithTime
+                                        defaultDate={order && prevStep?.beffaringStepDocsSendDate}
+                                        connection={docsSendDateData}
+                                        isTimeEnabled={false}
+                                    />
 
-                        <input type="submit" value="Zapisz" />
-                    </form>
-                </FormStyled>
-            </CreateFormStyled>
-        </div>
+                                    <br />
+                                    <br />
+                                    <p>Kiedy należy przygotować ofertę?</p>
+
+                                    <CalendarWithTime
+                                        defaultDate={
+                                            (order && prevStep?.beffaringStepOfferDate) ||
+                                            meetingDateData.value?.endOf('day').plus({ days: 7 })
+                                        }
+                                        connection={offerDateData}
+                                        isTimeEnabled={false}
+                                    />
+                                </>
+                            )}
+
+                            <p>Komentarz: </p>
+                            <FormInput
+                                placeholder="komentarz"
+                                defaultValue={prevStep?.beffaringStepComment}
+                                connection={commentData}
+                            />
+
+                            <SendButtons
+                                curStepName="beffaringStep"
+                                passedTo={prevStep!.passedTo}
+                                maxPromotion={prevStep!.maxPromotion}
+                                dataRef={sendButtonsOutputRef}
+                                isFormChecked={isFormChecked}
+                                step={order?.steps[order.steps.length - 1]}
+                                formCheck={formCheck}
+                            />
+
+                            <input type="submit" value="Zapisz" />
+                        </form>
+                    </FormStyled>
+                </CreateFormStyled>
+            </div>
+        </Spin>
     )
 }
 

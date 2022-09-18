@@ -20,12 +20,14 @@ import { flushSync } from 'react-dom'
 import FormSelect from '../UI/FormSelect'
 import { useFormSelect } from '../../hooks/useFormSelect'
 import useErrFn from '../../hooks/useErrFn'
+import { Spin } from 'antd'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
 const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
+    const [isSpinning, setIsSpinning] = useState(false)
 
     const formRef = useRef<FormElement>(null)
 
@@ -53,6 +55,8 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
 
         const isMainCondition = true
 
+        setIsSpinning(true)
+
         await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -69,52 +73,55 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
             errFn,
         })
 
+        setIsSpinning(false)
         setIsVisible!(false)
     }
 
     return (
-        <div style={{ display: isVisible ? 'block' : 'none' }}>
-            <CreateFormStyled>
-                <FormStyled>
-                    <form ref={formRef} onSubmit={submit}>
-                        <>
-                            <FormInput
-                                type="checkbox"
-                                connection={closeConfirmationData}
-                                defaultChecked={false}
-                                checkFn={(value) => value === true}
-                            >
-                                <>Potwierdźić zamknięcie sprawy.</>
-                            </FormInput>
-                        </>
+        <Spin spinning={isSpinning}>
+            <div style={{ display: isVisible ? 'block' : 'none' }}>
+                <CreateFormStyled>
+                    <FormStyled>
+                        <form ref={formRef} onSubmit={submit}>
+                            <>
+                                <FormInput
+                                    type="checkbox"
+                                    connection={closeConfirmationData}
+                                    defaultChecked={false}
+                                    checkFn={(value) => value === true}
+                                >
+                                    <>Potwierdźić zamknięcie sprawy.</>
+                                </FormInput>
+                            </>
 
-                        {!closeConfirmationData.isChecked && (
-                            <FormSelect
-                                options={roles.map((role) => {
-                                    return [getStepnameByRole(role), roleTitles[role]]
-                                })}
-                                name="rejectionReasons"
-                                title={`Na jaki poziom należy przenieść sprawę?`}
-                                connection={nextToPassData}
-                                defaultValue={prevStep?.passedTo}
+                            {!closeConfirmationData.isChecked && (
+                                <FormSelect
+                                    options={roles.map((role) => {
+                                        return [getStepnameByRole(role), roleTitles[role]]
+                                    })}
+                                    name="rejectionReasons"
+                                    title={`Na jaki poziom należy przenieść sprawę?`}
+                                    connection={nextToPassData}
+                                    defaultValue={prevStep?.passedTo}
+                                />
+                            )}
+
+                            <SendButtons
+                                curStepName="lastDecisionStep"
+                                maxPromotion={prevStep!.maxPromotion}
+                                passedTo={prevStep!.passedTo}
+                                dataRef={sendButtonsOutputRef}
+                                isFormChecked={true}
+                                step={order?.steps[order.steps.length - 1]}
+                                formCheck={formCheck}
+                                isMainCondition={true}
                             />
-                        )}
-
-                        <SendButtons
-                            curStepName="lastDecisionStep"
-                            maxPromotion={prevStep!.maxPromotion}
-                            passedTo={prevStep!.passedTo}
-                            dataRef={sendButtonsOutputRef}
-                            isFormChecked={true}
-                            step={order?.steps[order.steps.length - 1]}
-                            formCheck={formCheck}
-                            isMainCondition={true}
-                        />
-                        <input type="submit" value="Zapisz" />
-                    </form>
-                </FormStyled>
-            </CreateFormStyled>
-        </div>
+                            <input type="submit" value="Zapisz" />
+                        </form>
+                    </FormStyled>
+                </CreateFormStyled>
+            </div>
+        </Spin>
     )
 }
 

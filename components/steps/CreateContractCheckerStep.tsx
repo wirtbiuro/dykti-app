@@ -17,11 +17,14 @@ import { flushSync } from 'react-dom'
 import { useFormInput } from '../../hooks/useFormInput'
 import { useCalendarData } from '../../hooks/useCalendarData'
 import useErrFn from '../../hooks/useErrFn'
+import { Spin } from 'antd'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
 const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
+    const [isSpinning, setIsSpinning] = useState(false)
+
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
@@ -106,6 +109,8 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         if (areErrors) return
 
+        setIsSpinning(true)
+
         await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -133,65 +138,68 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
         })
 
         setIsVisible!(false)
+        setIsSpinning(false)
     }
 
     return (
-        <div style={{ display: isVisible ? 'block' : 'none' }}>
-            <CreateFormStyled>
-                <FormStyled>
-                    <form ref={formRef} onSubmit={submit}>
-                        <>
-                            <FormInput
-                                type="checkbox"
-                                connection={isContractCheckedData}
-                                defaultChecked={
-                                    typeof prevStep?.contractCheckerStepIsContractChecked === 'boolean'
-                                        ? prevStep?.contractCheckerStepIsContractChecked
-                                        : false
-                                }
-                                checkFn={(value) => value as boolean}
-                            >
-                                <>Kontrakt jest weryfikowan</>
-                            </FormInput>
+        <Spin spinning={isSpinning}>
+            <div style={{ display: isVisible ? 'block' : 'none' }}>
+                <CreateFormStyled>
+                    <FormStyled>
+                        <form ref={formRef} onSubmit={submit}>
+                            <>
+                                <FormInput
+                                    type="checkbox"
+                                    connection={isContractCheckedData}
+                                    defaultChecked={
+                                        typeof prevStep?.contractCheckerStepIsContractChecked === 'boolean'
+                                            ? prevStep?.contractCheckerStepIsContractChecked
+                                            : false
+                                    }
+                                    checkFn={(value) => value as boolean}
+                                >
+                                    <>Kontrakt jest weryfikowan</>
+                                </FormInput>
 
-                            {isMainCondition && (
+                                {isMainCondition && (
+                                    <>
+                                        <p>Przybliżona data rozpoczęcia pracy.</p>
+                                        <CalendarWithTime
+                                            defaultDate={order && prevStep?.contractCheckerStepWorkStartDate}
+                                            connection={workStartDateData}
+                                            isTimeEnabled={false}
+                                        />
+                                    </>
+                                )}
+
                                 <>
-                                    <p>Przybliżona data rozpoczęcia pracy.</p>
-                                    <CalendarWithTime
-                                        defaultDate={order && prevStep?.contractCheckerStepWorkStartDate}
-                                        connection={workStartDateData}
-                                        isTimeEnabled={false}
+                                    <p>Komentarz: </p>
+                                    <FormInput
+                                        placeholder={isMainCondition ? 'Komentarz' : 'Jakich zmian wymaga kontrakt?'}
+                                        defaultValue={prevStep?.contractCheckerStepComments}
+                                        connection={commentsData}
                                     />
                                 </>
-                            )}
-
-                            <>
-                                <p>Komentarz: </p>
-                                <FormInput
-                                    placeholder={isMainCondition ? 'Komentarz' : 'Jakich zmian wymaga kontrakt?'}
-                                    defaultValue={prevStep?.contractCheckerStepComments}
-                                    connection={commentsData}
-                                />
                             </>
-                        </>
 
-                        <SendButtons
-                            curStepName="contractCheckerStep"
-                            maxPromotion={prevStep!.maxPromotion}
-                            passedTo={prevStep!.passedTo}
-                            dataRef={sendButtonsOutputRef}
-                            isFormChecked={isFormChecked}
-                            step={prevStep}
-                            formCheck={formCheck}
-                            isMainCondition={isMainCondition}
-                            isPrevFormChecked={isPrevFormChecked}
-                            prevFormCheck={prevFormCheck}
-                        />
-                        <input type="submit" value="Zapisz" />
-                    </form>
-                </FormStyled>
-            </CreateFormStyled>
-        </div>
+                            <SendButtons
+                                curStepName="contractCheckerStep"
+                                maxPromotion={prevStep!.maxPromotion}
+                                passedTo={prevStep!.passedTo}
+                                dataRef={sendButtonsOutputRef}
+                                isFormChecked={isFormChecked}
+                                step={prevStep}
+                                formCheck={formCheck}
+                                isMainCondition={isMainCondition}
+                                isPrevFormChecked={isPrevFormChecked}
+                                prevFormCheck={prevFormCheck}
+                            />
+                            <input type="submit" value="Zapisz" />
+                        </form>
+                    </FormStyled>
+                </CreateFormStyled>
+            </div>
+        </Spin>
     )
 }
 

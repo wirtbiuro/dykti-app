@@ -19,12 +19,15 @@ import { flushSync } from 'react-dom'
 import FormSelect from '../UI/FormSelect'
 import { useFormSelect } from '../../hooks/useFormSelect'
 import useErrFn from '../../hooks/useErrFn'
+import { Spin } from 'antd'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
 const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
+
+    const [isSpinning, setIsSpinning] = useState(false)
 
     const formRef = useRef<FormElement>(null)
 
@@ -90,6 +93,8 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
 
         if (areErrors) return
 
+        setIsSpinning(true)
+
         await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -110,73 +115,76 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
             errFn,
         })
 
+        setIsSpinning(false)
         setIsVisible!(false)
     }
 
     return (
-        <div style={{ display: isVisible ? 'block' : 'none' }}>
-            <CreateFormStyled>
-                <FormStyled>
-                    <form ref={formRef} onSubmit={submit}>
-                        <>
-                            <FormInput
-                                type="checkbox"
-                                connection={isClientSatisfiedData}
-                                defaultChecked={prevStep?.questionnaireStepDissatisfaction ? false : true}
-                            >
-                                <>Klient jest zadowolony</>
-                            </FormInput>
-                        </>
-
-                        <FormSelect
-                            options={[
-                                [
-                                    'select',
-                                    `Wybierz powód ${
-                                        isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'
-                                    } klienta`,
-                                ],
-                                ['timeFrame', 'Ramy czasowe'],
-                                ['endDate', 'Data zakonczenia'],
-                                ['other', 'Inne'],
-                            ]}
-                            name="rejectionReasons"
-                            title={`Przyczyna ${
-                                isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'
-                            } klienta: `}
-                            connection={opinionData}
-                            defaultValue={defaultOpinionValue}
-                        />
-
-                        {opinionData.value === 'other' && (
+        <Spin spinning={isSpinning}>
+            <div style={{ display: isVisible ? 'block' : 'none' }}>
+                <CreateFormStyled>
+                    <FormStyled>
+                        <form ref={formRef} onSubmit={submit}>
                             <>
-                                <p>
-                                    Inna przyczyna {isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'}{' '}
-                                    klienta:{' '}
-                                </p>
                                 <FormInput
-                                    placeholder="Inna przyczyna zadowolenia klienta"
-                                    defaultValue={prevStep?.questionnaireStepOtherOpinion}
-                                    connection={otherOpinionData}
-                                />
+                                    type="checkbox"
+                                    connection={isClientSatisfiedData}
+                                    defaultChecked={prevStep?.questionnaireStepDissatisfaction ? false : true}
+                                >
+                                    <>Klient jest zadowolony</>
+                                </FormInput>
                             </>
-                        )}
 
-                        <SendButtons
-                            curStepName="completionStep"
-                            maxPromotion={prevStep!.maxPromotion}
-                            passedTo={prevStep!.passedTo}
-                            dataRef={sendButtonsOutputRef}
-                            isFormChecked={isFormChecked}
-                            step={order?.steps[order.steps.length - 1]}
-                            formCheck={formCheck}
-                            isMainCondition={true}
-                        />
-                        <input type="submit" value="Zapisz" />
-                    </form>
-                </FormStyled>
-            </CreateFormStyled>
-        </div>
+                            <FormSelect
+                                options={[
+                                    [
+                                        'select',
+                                        `Wybierz powód ${
+                                            isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'
+                                        } klienta`,
+                                    ],
+                                    ['timeFrame', 'Ramy czasowe'],
+                                    ['endDate', 'Data zakonczenia'],
+                                    ['other', 'Inne'],
+                                ]}
+                                name="rejectionReasons"
+                                title={`Przyczyna ${
+                                    isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'
+                                } klienta: `}
+                                connection={opinionData}
+                                defaultValue={defaultOpinionValue}
+                            />
+
+                            {opinionData.value === 'other' && (
+                                <>
+                                    <p>
+                                        Inna przyczyna {isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'}{' '}
+                                        klienta:{' '}
+                                    </p>
+                                    <FormInput
+                                        placeholder="Inna przyczyna zadowolenia klienta"
+                                        defaultValue={prevStep?.questionnaireStepOtherOpinion}
+                                        connection={otherOpinionData}
+                                    />
+                                </>
+                            )}
+
+                            <SendButtons
+                                curStepName="completionStep"
+                                maxPromotion={prevStep!.maxPromotion}
+                                passedTo={prevStep!.passedTo}
+                                dataRef={sendButtonsOutputRef}
+                                isFormChecked={isFormChecked}
+                                step={order?.steps[order.steps.length - 1]}
+                                formCheck={formCheck}
+                                isMainCondition={true}
+                            />
+                            <input type="submit" value="Zapisz" />
+                        </form>
+                    </FormStyled>
+                </CreateFormStyled>
+            </div>
+        </Spin>
     )
 }
 

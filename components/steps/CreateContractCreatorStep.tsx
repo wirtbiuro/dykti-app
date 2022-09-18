@@ -19,12 +19,14 @@ import { useCalendarData } from '../../hooks/useCalendarData'
 import FormSelect from '../UI/FormSelect'
 import { useFormSelect } from '../../hooks/useFormSelect'
 import useErrFn from '../../hooks/useErrFn'
+import { Spin } from 'antd'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
 const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
+    const [isSpinning, setIsSpinning] = useState(false)
 
     const formRef = useRef<FormElement>(null)
 
@@ -105,6 +107,8 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         if (areErrors) return
 
+        setIsSpinning(true)
+
         await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -138,80 +142,83 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             errFn,
         })
 
+        setIsSpinning(false)
         setIsVisible!(false)
     }
 
     return (
-        <div style={{ display: isVisible ? 'block' : 'none' }}>
-            <CreateFormStyled>
-                <FormStyled>
-                    <form ref={formRef} onSubmit={submit}>
-                        <>
+        <Spin spinning={isSpinning}>
+            <div style={{ display: isVisible ? 'block' : 'none' }}>
+                <CreateFormStyled>
+                    <FormStyled>
+                        <form ref={formRef} onSubmit={submit}>
                             <>
-                                <p>Data wysłania kontraktu:</p>
-                                <CalendarWithTime
-                                    defaultDate={order && prevStep?.contractCreatorStepContractSendingDate}
-                                    connection={sendingDateData}
-                                    isTimeEnabled={false}
-                                />
-                            </>
-
-                            {sendingDateData.isChecked && (
-                                <FormInput
-                                    type="checkbox"
-                                    connection={isContractAcceptedData}
-                                    defaultChecked={
-                                        typeof prevStep?.contractCreatorStepIsContractAccepted === 'boolean'
-                                            ? prevStep?.contractCreatorStepIsContractAccepted
-                                            : false
-                                    }
-                                    checkFn={(value) => value as boolean}
-                                >
-                                    <>Kontrakt jest podpisany przez klienta?</>
-                                </FormInput>
-                            )}
-
-                            {sendingDateData.isChecked && !isContractAcceptedData.isChecked && (
                                 <>
-                                    {/* <p>Powód, dla którego kontrakt nie został podpisany:</p> */}
-                                    {/* <FormInput
+                                    <p>Data wysłania kontraktu:</p>
+                                    <CalendarWithTime
+                                        defaultDate={order && prevStep?.contractCreatorStepContractSendingDate}
+                                        connection={sendingDateData}
+                                        isTimeEnabled={false}
+                                    />
+                                </>
+
+                                {sendingDateData.isChecked && (
+                                    <FormInput
+                                        type="checkbox"
+                                        connection={isContractAcceptedData}
+                                        defaultChecked={
+                                            typeof prevStep?.contractCreatorStepIsContractAccepted === 'boolean'
+                                                ? prevStep?.contractCreatorStepIsContractAccepted
+                                                : false
+                                        }
+                                        checkFn={(value) => value as boolean}
+                                    >
+                                        <>Kontrakt jest podpisany przez klienta?</>
+                                    </FormInput>
+                                )}
+
+                                {sendingDateData.isChecked && !isContractAcceptedData.isChecked && (
+                                    <>
+                                        {/* <p>Powód, dla którego kontrakt nie został podpisany:</p> */}
+                                        {/* <FormInput
                                         placeholder="Napisz tutaj..."
                                         defaultValue={prevStep?.contractCreatorStepContractRejectionReason}
                                         connection={rejectionReasonData}
                                     /> */}
 
-                                    <FormSelect
-                                        options={[
-                                            ['select', 'Wybierz powód odrzucenia oferty'],
-                                            ['time', 'Klient potrzebuje więcej czasu'],
-                                            ['offer', 'Wymagane zmiany oferty'],
-                                            ['contract', 'Wymagane zmiany kontraktu'],
-                                        ]}
-                                        name="rejectionReasons"
-                                        title="Przyczyna odrzucenia oferty: "
-                                        connection={rejectionReasonData}
-                                        defaultValue={defaultRejectionValue}
-                                    />
-                                </>
-                            )}
-                        </>
+                                        <FormSelect
+                                            options={[
+                                                ['select', 'Wybierz powód odrzucenia oferty'],
+                                                ['time', 'Klient potrzebuje więcej czasu'],
+                                                ['offer', 'Wymagane zmiany oferty'],
+                                                ['contract', 'Wymagane zmiany kontraktu'],
+                                            ]}
+                                            name="rejectionReasons"
+                                            title="Przyczyna odrzucenia oferty: "
+                                            connection={rejectionReasonData}
+                                            defaultValue={defaultRejectionValue}
+                                        />
+                                    </>
+                                )}
+                            </>
 
-                        <SendButtons
-                            isMainCondition={isMainCondition}
-                            curStepName="contractCreatorStep"
-                            maxPromotion={prevStep!.maxPromotion}
-                            passedTo={prevStep!.passedTo}
-                            dataRef={sendButtonsOutputRef}
-                            isFormChecked={isFormChecked}
-                            isPrevFormChecked={isPrevFormChecked}
-                            step={prevStep}
-                            formCheck={formCheck}
-                        />
-                        <input type="submit" value="Zapisz" />
-                    </form>
-                </FormStyled>
-            </CreateFormStyled>
-        </div>
+                            <SendButtons
+                                isMainCondition={isMainCondition}
+                                curStepName="contractCreatorStep"
+                                maxPromotion={prevStep!.maxPromotion}
+                                passedTo={prevStep!.passedTo}
+                                dataRef={sendButtonsOutputRef}
+                                isFormChecked={isFormChecked}
+                                isPrevFormChecked={isPrevFormChecked}
+                                step={prevStep}
+                                formCheck={formCheck}
+                            />
+                            <input type="submit" value="Zapisz" />
+                        </form>
+                    </FormStyled>
+                </CreateFormStyled>
+            </div>
+        </Spin>
     )
 }
 

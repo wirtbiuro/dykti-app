@@ -17,12 +17,14 @@ import { useFormInput } from '../../hooks/useFormInput'
 import { useCalendarData } from '../../hooks/useCalendarData'
 import { flushSync } from 'react-dom'
 import useErrFn from '../../hooks/useErrFn'
+import { Spin } from 'antd'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
 const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
+    const [isSpinning, setIsSpinning] = useState(false)
 
     const formRef = useRef<FormElement>(null)
 
@@ -119,6 +121,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (areErrors) return
 
+        setIsSpinning(true)
+
         await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -147,71 +151,75 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             errFn,
         })
 
+        setIsSpinning(false)
         setIsVisible!(false)
     }
 
     return (
-        <div style={{ display: isVisible ? 'block' : 'none' }}>
-            <CreateFormStyled>
-                <FormStyled>
-                    <form ref={formRef} onSubmit={submit}>
-                        <FormInput
-                            type="checkbox"
-                            connection={areDocsGoodData}
-                            defaultChecked={
-                                typeof prevStep?.offerStepAreBefDocsGood === 'boolean'
-                                    ? prevStep?.offerStepAreBefDocsGood
-                                    : true
-                            }
-                            checkFn={(value) => value === true}
-                        >
-                            <>Dokumenty od Befaring Mana są w porządku</>
-                        </FormInput>
-                        {!areDocsGoodData.isChecked && (
-                            <>
-                                <p>Co jest nie tak z dokumentami?: </p>
-                                <FormInput
-                                    placeholder="Co jest nie tak z dokumentami."
-                                    defaultValue={prevStep?.offerStepBefComments}
-                                    connection={befCommentsData}
-                                />
-                            </>
-                        )}
-                        {areDocsGoodData.isChecked && (
-                            <>
-                                <p>Data utworzenia oferty: </p>
-                                <CalendarWithTime
-                                    defaultDate={order && prevStep?.offerStepOfferDate}
-                                    connection={offerDateData}
-                                    isTimeEnabled={false}
-                                />
-                                <br />
-                                <br />
-                                <p>Komentarz: </p>
-                                <FormInput
-                                    placeholder="komentarz"
-                                    defaultValue={prevStep?.offerStepComment}
-                                    connection={commentData}
-                                />
-                            </>
-                        )}
-                        <SendButtons
-                            curStepName="offerStep"
-                            maxPromotion={prevStep!.maxPromotion}
-                            passedTo={prevStep!.passedTo}
-                            dataRef={sendButtonsOutputRef}
-                            isFormChecked={isFormChecked}
-                            step={order?.steps[order.steps.length - 1]}
-                            formCheck={formCheck}
-                            isMainCondition={areDocsGoodData.isChecked}
-                            isPrevFormChecked={isPrevFormChecked}
-                            prevFormCheck={prevFormCheck}
-                        />
-                        <input type="submit" value="Zapisz" />
-                    </form>
-                </FormStyled>
-            </CreateFormStyled>
-        </div>
+        <Spin spinning={isSpinning}>
+            {' '}
+            <div style={{ display: isVisible ? 'block' : 'none' }}>
+                <CreateFormStyled>
+                    <FormStyled>
+                        <form ref={formRef} onSubmit={submit}>
+                            <FormInput
+                                type="checkbox"
+                                connection={areDocsGoodData}
+                                defaultChecked={
+                                    typeof prevStep?.offerStepAreBefDocsGood === 'boolean'
+                                        ? prevStep?.offerStepAreBefDocsGood
+                                        : true
+                                }
+                                checkFn={(value) => value === true}
+                            >
+                                <>Dokumenty od Befaring Mana są w porządku</>
+                            </FormInput>
+                            {!areDocsGoodData.isChecked && (
+                                <>
+                                    <p>Co jest nie tak z dokumentami?: </p>
+                                    <FormInput
+                                        placeholder="Co jest nie tak z dokumentami."
+                                        defaultValue={prevStep?.offerStepBefComments}
+                                        connection={befCommentsData}
+                                    />
+                                </>
+                            )}
+                            {areDocsGoodData.isChecked && (
+                                <>
+                                    <p>Data utworzenia oferty: </p>
+                                    <CalendarWithTime
+                                        defaultDate={order && prevStep?.offerStepOfferDate}
+                                        connection={offerDateData}
+                                        isTimeEnabled={false}
+                                    />
+                                    <br />
+                                    <br />
+                                    <p>Komentarz: </p>
+                                    <FormInput
+                                        placeholder="komentarz"
+                                        defaultValue={prevStep?.offerStepComment}
+                                        connection={commentData}
+                                    />
+                                </>
+                            )}
+                            <SendButtons
+                                curStepName="offerStep"
+                                maxPromotion={prevStep!.maxPromotion}
+                                passedTo={prevStep!.passedTo}
+                                dataRef={sendButtonsOutputRef}
+                                isFormChecked={isFormChecked}
+                                step={order?.steps[order.steps.length - 1]}
+                                formCheck={formCheck}
+                                isMainCondition={areDocsGoodData.isChecked}
+                                isPrevFormChecked={isPrevFormChecked}
+                                prevFormCheck={prevFormCheck}
+                            />
+                            <input type="submit" value="Zapisz" />
+                        </form>
+                    </FormStyled>
+                </CreateFormStyled>
+            </div>
+        </Spin>
     )
 }
 

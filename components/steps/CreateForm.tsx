@@ -17,12 +17,15 @@ import { flushSync } from 'react-dom'
 import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
 import useErrFn from '../../hooks/useErrFn'
+import { Spin } from 'antd'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 
 type FormElement = HTMLFormElement & FormType
 
 const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
+    const [isSpinning, setIsSpinning] = useState(false)
+
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
@@ -113,6 +116,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             return
         }
 
+        setIsSpinning(true)
+
         await submitForm({
             maxPromotion: prevStep?.maxPromotion || 'formStep',
             target,
@@ -137,68 +142,75 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             errFn,
         })
 
+        setIsSpinning(false)
         setIsVisible!(false)
     }
 
     return (
-        <div style={{ display: isVisible ? 'block' : 'none' }}>
-            <CreateFormStyled>
-                {!order ? <h2>Nowa Sprawa:</h2> : false}
-                <FormStyled>
-                    <form onSubmit={submit} ref={formRef}>
-                        <p>Informacja klientów: </p>
-                        <FormInput
-                            connection={nameData}
-                            placeholder="imię i nazwisko klienta"
-                            defaultValue={prevStep?.formStepClientName}
-                        />
-                        <FormInput
-                            connection={phoneData}
-                            placeholder="Numer kontaktowy"
-                            defaultValue={prevStep?.formStepPhone}
-                        />
-                        <FormInput connection={emailData} placeholder="E-mail" defaultValue={prevStep?.formStepEmail} />
-                        <p>Adres zamówienia: </p>
-                        {/* <FormInput connection={cityData} placeholder="Miasto" defaultValue={prevStep?.formStepCity} /> */}
-                        <FormInput
-                            connection={addressData}
-                            placeholder="Adres obiektu"
-                            defaultValue={prevStep?.formStepAddress}
-                        />
-                        <p>Gdzie znaleziono klienta: </p>
-                        <FormInput
-                            connection={whereClientFoundData}
-                            placeholder="Gdzie znaleziono klienta"
-                            defaultValue={prevStep?.formStepWhereClientFound}
-                        />
-                        <p>Czas spotkania:</p>
-                        <CalendarWithTime
-                            defaultDate={order && prevStep?.formStepMeetingDate}
-                            connection={meetingDateData}
-                            isTimeEnabled={true}
-                        />
+        <Spin spinning={isSpinning}>
+            <div style={{ display: isVisible ? 'block' : 'none' }}>
+                <CreateFormStyled>
+                    {!order ? <h2>Nowa Sprawa:</h2> : false}
+                    <FormStyled>
+                        <form onSubmit={submit} ref={formRef}>
+                            <p>Informacja klientów: </p>
+                            <FormInput
+                                connection={nameData}
+                                placeholder="imię i nazwisko klienta"
+                                defaultValue={prevStep?.formStepClientName}
+                            />
+                            <FormInput
+                                connection={phoneData}
+                                placeholder="Numer kontaktowy"
+                                defaultValue={prevStep?.formStepPhone}
+                            />
+                            <FormInput
+                                connection={emailData}
+                                placeholder="E-mail"
+                                defaultValue={prevStep?.formStepEmail}
+                            />
+                            <p>Adres zamówienia: </p>
+                            {/* <FormInput connection={cityData} placeholder="Miasto" defaultValue={prevStep?.formStepCity} /> */}
+                            <FormInput
+                                connection={addressData}
+                                placeholder="Adres obiektu"
+                                defaultValue={prevStep?.formStepAddress}
+                            />
+                            <p>Gdzie znaleziono klienta: </p>
+                            <FormInput
+                                connection={whereClientFoundData}
+                                placeholder="Gdzie znaleziono klienta"
+                                defaultValue={prevStep?.formStepWhereClientFound}
+                            />
+                            <p>Czas spotkania:</p>
+                            <CalendarWithTime
+                                defaultDate={order && prevStep?.formStepMeetingDate}
+                                connection={meetingDateData}
+                                isTimeEnabled={true}
+                            />
 
-                        <p>Komentarz: </p>
-                        <FormInput
-                            connection={commentData}
-                            placeholder="komentarz"
-                            defaultValue={prevStep?.formStepComment}
-                        />
-                        <SendButtons
-                            passedTo="formStep"
-                            maxPromotion="formStep"
-                            curStepName="formStep"
-                            dataRef={sendButtonsOutputRef}
-                            isFormChecked={isFormChecked}
-                            step={order?.steps[order.steps.length - 1]}
-                            formCheck={formCheck}
-                            isMainCondition={true}
-                        />
-                        <input type="submit" value="Zapisz" />
-                    </form>
-                </FormStyled>
-            </CreateFormStyled>
-        </div>
+                            <p>Komentarz: </p>
+                            <FormInput
+                                connection={commentData}
+                                placeholder="komentarz"
+                                defaultValue={prevStep?.formStepComment}
+                            />
+                            <SendButtons
+                                passedTo="formStep"
+                                maxPromotion="formStep"
+                                curStepName="formStep"
+                                dataRef={sendButtonsOutputRef}
+                                isFormChecked={isFormChecked}
+                                step={order?.steps[order.steps.length - 1]}
+                                formCheck={formCheck}
+                                isMainCondition={true}
+                            />
+                            <input type="submit" value="Zapisz" />
+                        </form>
+                    </FormStyled>
+                </CreateFormStyled>
+            </div>
+        </Spin>
     )
 }
 

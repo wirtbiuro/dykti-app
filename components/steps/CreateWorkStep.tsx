@@ -21,12 +21,14 @@ import { useFormSelect } from '../../hooks/useFormSelect'
 import { DateTime } from 'luxon'
 import useErrFn from '../../hooks/useErrFn'
 import { useFormMultiSelect } from '../../hooks/useFormMultiSelect'
+import { Spin } from 'antd'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
 const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
+    const [isSpinning, setIsSpinning] = useState(false)
 
     const formRef = useRef<FormElement>(null)
 
@@ -149,6 +151,8 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         console.log('workEndDateData.value', workEndDateData.value)
 
+        setIsSpinning(true)
+
         await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -178,75 +182,78 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             errFn,
         })
 
+        setIsSpinning(false)
         setIsVisible!(false)
     }
 
     return (
-        <div style={{ display: isVisible ? 'block' : 'none' }}>
-            <CreateFormStyled>
-                <FormStyled>
-                    <form ref={formRef} onSubmit={submit}>
-                        <>
+        <Spin spinning={isSpinning}>
+            <div style={{ display: isVisible ? 'block' : 'none' }}>
+                <CreateFormStyled>
+                    <FormStyled>
+                        <form ref={formRef} onSubmit={submit}>
                             <>
-                                <p>Data rozpoczęcia pracy:</p>
-                                <CalendarWithTime
-                                    defaultDate={
-                                        order &&
-                                        (prevStep?.workStepWorkStartDate || prevStep?.contractCheckerStepWorkStartDate)
-                                    }
-                                    connection={workStartDateData}
-                                    isTimeEnabled={false}
-                                />
-                            </>
-
-                            <>
-                                <FormInput
-                                    type="checkbox"
-                                    connection={shouldChangeContractData}
-                                    defaultChecked={prevStep?.workStepContractEdits ? true : false}
-                                >
-                                    <>Kontrakt wymaga zmiany</>
-                                </FormInput>
-                            </>
-
-                            {!shouldChangeContractData.isChecked && (
                                 <>
-                                    <p>Zmiany w kontrakcie: </p>
-                                    <FormInput
-                                        placeholder="Jakich zmian wymaga kontrakt?"
-                                        defaultValue={prevStep?.workStepContractEdits}
-                                        connection={contractEditsData}
+                                    <p>Data rozpoczęcia pracy:</p>
+                                    <CalendarWithTime
+                                        defaultDate={
+                                            order &&
+                                            (prevStep?.workStepWorkStartDate ||
+                                                prevStep?.contractCheckerStepWorkStartDate)
+                                        }
+                                        connection={workStartDateData}
+                                        isTimeEnabled={false}
                                     />
                                 </>
-                            )}
 
-                            <>
-                                <p>Ekipa: </p>
-                                <FormMultiSelect
-                                    placeholder="Ekipa"
-                                    defaultValue={prevStep?.workStepTeam || ''}
-                                    connection={teamData}
-                                    options={[
-                                        ['1', 'Piotr'],
-                                        ['22', 'Adam'],
-                                        ['3', 'Kamil'],
-                                        ['4', 'Olek'],
-                                    ]}
-                                />
-                            </>
+                                <>
+                                    <FormInput
+                                        type="checkbox"
+                                        connection={shouldChangeContractData}
+                                        defaultChecked={prevStep?.workStepContractEdits ? true : false}
+                                    >
+                                        <>Kontrakt wymaga zmiany</>
+                                    </FormInput>
+                                </>
 
-                            {/* {shouldChangeContractData.isChecked && ( */}
-                            <>
-                                <p>Data zakończenia pracy:</p>
-                                <CalendarWithTime
-                                    defaultDate={order && prevStep?.workStepWorkEndDate}
-                                    connection={workEndDateData}
-                                    isTimeEnabled={false}
-                                />
-                            </>
-                            {/* )} */}
+                                {!shouldChangeContractData.isChecked && (
+                                    <>
+                                        <p>Zmiany w kontrakcie: </p>
+                                        <FormInput
+                                            placeholder="Jakich zmian wymaga kontrakt?"
+                                            defaultValue={prevStep?.workStepContractEdits}
+                                            connection={contractEditsData}
+                                        />
+                                    </>
+                                )}
 
-                            {/* {sendingDateData.isChecked && !isContractAcceptedData.isChecked && (
+                                <>
+                                    <p>Ekipa: </p>
+                                    <FormMultiSelect
+                                        placeholder="Ekipa"
+                                        defaultValue={prevStep?.workStepTeam || ''}
+                                        connection={teamData}
+                                        options={[
+                                            ['1', 'Piotr'],
+                                            ['22', 'Adam'],
+                                            ['3', 'Kamil'],
+                                            ['4', 'Olek'],
+                                        ]}
+                                    />
+                                </>
+
+                                {/* {shouldChangeContractData.isChecked && ( */}
+                                <>
+                                    <p>Data zakończenia pracy:</p>
+                                    <CalendarWithTime
+                                        defaultDate={order && prevStep?.workStepWorkEndDate}
+                                        connection={workEndDateData}
+                                        isTimeEnabled={false}
+                                    />
+                                </>
+                                {/* )} */}
+
+                                {/* {sendingDateData.isChecked && !isContractAcceptedData.isChecked && (
                                 <>
                                     <FormSelect
                                         options={[
@@ -262,24 +269,25 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                     />
                                 </>
                             )} */}
-                        </>
+                            </>
 
-                        <SendButtons
-                            isMainCondition={isMainCondition}
-                            curStepName="workStep"
-                            maxPromotion={prevStep!.maxPromotion}
-                            passedTo={prevStep!.passedTo}
-                            dataRef={sendButtonsOutputRef}
-                            isFormChecked={isFormChecked}
-                            isPrevFormChecked={isPrevFormChecked}
-                            step={prevStep}
-                            formCheck={formCheck}
-                        />
-                        <input type="submit" value="Zapisz" />
-                    </form>
-                </FormStyled>
-            </CreateFormStyled>
-        </div>
+                            <SendButtons
+                                isMainCondition={isMainCondition}
+                                curStepName="workStep"
+                                maxPromotion={prevStep!.maxPromotion}
+                                passedTo={prevStep!.passedTo}
+                                dataRef={sendButtonsOutputRef}
+                                isFormChecked={isFormChecked}
+                                isPrevFormChecked={isPrevFormChecked}
+                                step={prevStep}
+                                formCheck={formCheck}
+                            />
+                            <input type="submit" value="Zapisz" />
+                        </form>
+                    </FormStyled>
+                </CreateFormStyled>
+            </div>
+        </Spin>
     )
 }
 
