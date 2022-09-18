@@ -23,7 +23,7 @@ import useErrFn from '../../hooks/useErrFn'
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
-const CreateContractStep: FC<IWithOrder> = ({ order, isVisible }) => {
+const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
@@ -126,7 +126,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible }) => {
 
         if (areErrors) return
 
-        submitForm({
+        await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,
@@ -162,6 +162,8 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible }) => {
             createOrder: _createOrder,
             errFn,
         })
+
+        setIsVisible!(false)
     }
 
     const standardRejValues = ['select', 'price', 'date']

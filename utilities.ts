@@ -377,7 +377,7 @@ export const submitForm: SubmitFormType = async ({
 
     const submit = isMainCondition ? submitToNext : submitToPrev
 
-    withRtkQueryTokensCheck({
+    await withRtkQueryTokensCheck({
         cb: submit,
         err: errFn,
     })

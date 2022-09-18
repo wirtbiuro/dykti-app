@@ -10,7 +10,6 @@ import useGetOrders from '../../hooks/useGetOrders'
 
 const CreatorFormPanel = () => {
     const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
-    const [showNewOrder, setShowNewOrder] = useState<boolean>(false)
 
     // const userQueryData = useGetUserQuery('FormCreator')
     const { data, isError }: IQuery<IOrder> = useGetOrders('FormCreator')
@@ -24,6 +23,8 @@ const CreatorFormPanel = () => {
         setCurrentOrderId(newOrderId)
     }
 
+    const [isVisible, setIsVisible] = useState<boolean>(false)
+
     // if (!data) return <>Ładowanie danych...</>
 
     return (
@@ -31,12 +32,12 @@ const CreatorFormPanel = () => {
             <div>
                 <button
                     onClick={() => {
-                        setShowNewOrder((showOrder) => !showOrder)
+                        setIsVisible((isVisible) => !isVisible)
                     }}
                 >
-                    {showNewOrder ? 'Anulować' : 'Nowa sprawa'}
+                    {isVisible ? 'Anulować' : 'Nowa sprawa'}
                 </button>
-                {showNewOrder && <CreateForm isVisible={showNewOrder} />}
+                {isVisible && <CreateForm isVisible={isVisible} setIsVisible={setIsVisible} />}
             </div>
 
             <h2>Sprawy bieżące:</h2>

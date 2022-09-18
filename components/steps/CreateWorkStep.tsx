@@ -25,7 +25,7 @@ import { useFormMultiSelect } from '../../hooks/useFormMultiSelect'
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
-const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
+const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
@@ -149,7 +149,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
 
         console.log('workEndDateData.value', workEndDateData.value)
 
-        submitForm({
+        await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,
@@ -177,6 +177,8 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible }) => {
             createOrder: _createOrder,
             errFn,
         })
+
+        setIsVisible!(false)
     }
 
     return (

@@ -22,7 +22,7 @@ type FormType = WithValueNFocus<ISendCheckboxes>
 
 type FormElement = HTMLFormElement & FormType
 
-const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
+const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
@@ -113,7 +113,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
             return
         }
 
-        submitForm({
+        await submitForm({
             maxPromotion: prevStep?.maxPromotion || 'formStep',
             target,
             isMainCondition: true,
@@ -136,6 +136,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible }) => {
             createOrder: _createOrder,
             errFn,
         })
+
+        setIsVisible!(false)
     }
 
     return (

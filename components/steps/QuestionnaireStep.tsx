@@ -23,7 +23,7 @@ import useErrFn from '../../hooks/useErrFn'
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
-const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
+const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
     const formRef = useRef<FormElement>(null)
@@ -90,7 +90,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
 
         if (areErrors) return
 
-        submitForm({
+        await submitForm({
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,
@@ -109,6 +109,8 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible }) => {
             createOrder: _createOrder,
             errFn,
         })
+
+        setIsVisible!(false)
     }
 
     return (

@@ -308,9 +308,7 @@ export interface IServerControllerError {
 export interface IWithOrder {
     order?: IOrder
     isVisible?: boolean
-    // passedTo: StepName
-    // maxPromotion: StepName
-    // nextToPass?: StepName
+    setIsVisible?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export interface ISendButtonsOutputRef {

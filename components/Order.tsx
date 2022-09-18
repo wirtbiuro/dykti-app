@@ -109,6 +109,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
 
             {React.cloneElement(children as JSX.Element, {
                 isVisible: isViewing,
+                setIsVisible: setIsViewing,
                 order,
             })}
 
