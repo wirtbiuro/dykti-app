@@ -20,7 +20,11 @@ const Orders: FC<IOrderProps> = ({ orders, stepName, children }) => {
                                 order.steps[order.steps.length - 1].passedTo !== 'lastDecisionStep' ||
                                 stepName === 'lastDecisionStep'
                         )
-                        .map((order) => <Order order={order} stepName={stepName} children={children} />)}
+                        .map((order) => (
+                            <Order order={order} key={order.id} stepName={stepName}>
+                                {children}
+                            </Order>
+                        ))}
             </OrderStyled>
         </>
     )

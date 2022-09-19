@@ -77,15 +77,12 @@ function FormSelect<T extends string>({
         <div className="withErr">
             <p>{title}</p>
             <div className="formError" ref={errRef}></div>
-            <select
-                name={name}
-                ref={selectRef}
-                defaultValue={defaultValue}
-                onChange={onChange}
-            >
+            <select name={name} ref={selectRef} defaultValue={defaultValue} onChange={onChange}>
                 <>
                     {options.map((option) => (
-                        <option value={option[0]}>{option[1]}</option>
+                        <option value={option[0]} key={option[0]}>
+                            {option[1]}
+                        </option>
                     ))}
                 </>
             </select>
