@@ -6,6 +6,7 @@ import Orders from '../Orders'
 import { getArrIdx, getDatas } from '../../utilities'
 import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
 import useGetOrders from '../../hooks/useGetOrders'
+import AllCategoryOrders from '../AllCategoryOrders'
 
 const OfferCreatorPanel = () => {
     const { data, isError }: IQuery<IOrder> = useGetOrders('OfferCreator')
@@ -18,23 +19,14 @@ const OfferCreatorPanel = () => {
     if (!data) return <>Ładowanie danych...</>
 
     return (
-        <>
-            <h2>Sprawy bieżące:</h2>
-
-            <Orders orders={currentData} children={<CreateOfferStep />} stepName="offerStep" />
-
-            <h2>Do poprawienia:</h2>
-
-            <Orders orders={editedOrdersData} children={<CreateOfferStep />} stepName="offerStep" />
-
-            <h2>Przekazane dalej:</h2>
-
-            <Orders orders={completedOrdersData} children={<CreateOfferStep />} stepName="offerStep" />
-
-            <h2>Przekazane do poprawienia:</h2>
-
-            <Orders orders={passedForEditData} children={<CreateOfferStep />} stepName="offerStep" />
-        </>
+        <AllCategoryOrders
+            currentData={currentData}
+            editedOrdersData={editedOrdersData}
+            completedOrdersData={completedOrdersData}
+            passedForEditData={passedForEditData}
+            renderedComponent={<CreateOfferStep />}
+            stepName="offerStep"
+        />
     )
 }
 

@@ -231,9 +231,9 @@ export interface IQuestionnaireStep {
 }
 
 export interface IReferenceStep {
-    referenceStepWasSentRequest?: Boolean
-    referenceStepIsClientReference?: Boolean
-    referenceStepReferenceLocation?: Boolean
+    referenceStepWasSentRequest?: boolean
+    referenceStepIsClientReference?: boolean
+    referenceStepReferenceLocation?: string
 }
 
 export interface IRecord {

@@ -56,13 +56,16 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             return setIsFormChecked(false)
         }
 
-        if (!isClientReferenceData.isChecked) {
-            console.log('isClientReferenceData error')
-            showMessage ? isClientReferenceData?.showError() : null
-            return setIsFormChecked(false)
-        }
+        // if (!isClientReferenceData.isChecked) {
+        //     console.log('isClientReferenceData error')
+        //     showMessage ? isClientReferenceData?.showError() : null
+        //     return setIsFormChecked(false)
+        // }
 
-        if (!referenceLocationData.isChecked) {
+        console.log('isClientReferenceData.isChecked', isClientReferenceData.isChecked)
+        console.log('referenceLocationData.value', referenceLocationData.value)
+
+        if (isClientReferenceData.isChecked && !referenceLocationData.isChecked) {
             console.log('referenceLocationData error')
             showMessage ? referenceLocationData?.showError() : null
             return setIsFormChecked(false)
@@ -108,7 +111,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                 order,
                 referenceStepWasSentRequest: wasReferenceRequestSentData.value,
                 referenceStepIsClientReference: isClientReferenceData.value,
-                referenceStepReferenceLocation: referenceLocationData.value,
+                referenceStepReferenceLocation: isClientReferenceData.value ? referenceLocationData.value : null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
@@ -155,16 +158,18 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                         <>Klient wystawil referencje</>
                                     </FormInput>
 
-                                    <FormMultiSelect
-                                        options={[
-                                            ['mittanbud', 'Mittanbud'],
-                                            ['google', 'Google'],
-                                            ['site', 'Strona internetowa'],
-                                        ]}
-                                        title={`Gdzie wysłano referencję: `}
-                                        connection={referenceLocationData}
-                                        defaultValue={prevStep?.questionnaireStepSatisfaction || ''}
-                                    />
+                                    {isClientReferenceData.isChecked && (
+                                        <FormMultiSelect
+                                            options={[
+                                                ['mittanbud', 'Mittanbud'],
+                                                ['google', 'Google'],
+                                                ['site', 'Strona internetowa'],
+                                            ]}
+                                            title={`Gdzie wysłano referencję: `}
+                                            connection={referenceLocationData}
+                                            defaultValue={prevStep?.referenceStepReferenceLocation || ''}
+                                        />
+                                    )}
                                 </>
                             )}
 

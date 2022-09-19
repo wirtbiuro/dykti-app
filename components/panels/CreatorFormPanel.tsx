@@ -47,15 +47,21 @@ const CreatorFormPanel = () => {
 
             <h2>Sprawy bieżące:</h2>
 
-            <Orders orders={currentData} children={<CreateForm />} stepName="formStep" />
+            <Orders orders={currentData} stepName="formStep">
+                <CreateForm />
+            </Orders>
 
             <h2>Do poprawienia:</h2>
 
-            <Orders orders={editedOrdersData} children={<CreateForm />} stepName="formStep" />
+            <Orders orders={editedOrdersData} stepName="formStep">
+                <CreateForm />
+            </Orders>
 
             <h2>Przekazane dalej:</h2>
 
-            <Orders orders={completedOrdersData} children={<CreateForm />} stepName="formStep" />
+            <Orders orders={completedOrdersData} stepName="formStep">
+                <CreateForm />
+            </Orders>
 
             {/* <div>
                 {ordersData?.map((order) => {

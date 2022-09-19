@@ -7,6 +7,7 @@ import { getArrIdx, getDatas } from '../../utilities'
 import QuestionnaireStep from '../steps/QuestionnaireStep'
 import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
 import useGetOrders from '../../hooks/useGetOrders'
+import AllCategoryOrders from '../AllCategoryOrders'
 
 const QuestionnairePanel = () => {
     const { data, isError }: IQuery<IOrder> = useGetOrders('QuestionnaireUser')
@@ -19,23 +20,14 @@ const QuestionnairePanel = () => {
     if (!data) return <>Ładowanie danych...</>
 
     return (
-        <>
-            <h2>Sprawy bieżące:</h2>
-
-            <Orders orders={currentData} children={<QuestionnaireStep />} stepName={currentStep} />
-
-            <h2>Do poprawienia:</h2>
-
-            <Orders orders={editedOrdersData} children={<QuestionnaireStep />} stepName={currentStep} />
-
-            <h2>Przekazane dalej:</h2>
-
-            <Orders orders={completedOrdersData} children={<QuestionnaireStep />} stepName={currentStep} />
-
-            <h2>Przekazane do poprawienia:</h2>
-
-            <Orders orders={passedForEditData} children={<QuestionnaireStep />} stepName={currentStep} />
-        </>
+        <AllCategoryOrders
+            currentData={currentData}
+            editedOrdersData={editedOrdersData}
+            completedOrdersData={completedOrdersData}
+            passedForEditData={passedForEditData}
+            renderedComponent={<QuestionnaireStep />}
+            stepName="completionStep"
+        />
     )
 }
 

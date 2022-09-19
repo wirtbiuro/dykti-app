@@ -7,6 +7,7 @@ import CreateWorkStep from '../steps/CreateWorkStep'
 import ReferenceStep from '../steps/ReferenceStep'
 import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
 import useGetOrders from '../../hooks/useGetOrders'
+import AllCategoryOrders from '../AllCategoryOrders'
 
 const ReferencePanel = () => {
     const currentStep: StepName = 'referenceStep'
@@ -18,23 +19,14 @@ const ReferencePanel = () => {
     if (!data) return <>Ładowanie danych...</>
 
     return (
-        <>
-            <h2>Sprawy bieżące:</h2>
-
-            <Orders orders={currentData} children={<ReferenceStep />} stepName="referenceStep" />
-
-            <h2>Do poprawienia:</h2>
-
-            <Orders orders={editedOrdersData} children={<ReferenceStep />} stepName="referenceStep" />
-
-            <h2>Przekazane dalej:</h2>
-
-            <Orders orders={completedOrdersData} children={<ReferenceStep />} stepName="referenceStep" />
-
-            <h2>Przekazane do poprawienia:</h2>
-
-            <Orders orders={passedForEditData} children={<ReferenceStep />} stepName="referenceStep" />
-        </>
+        <AllCategoryOrders
+            currentData={currentData}
+            editedOrdersData={editedOrdersData}
+            completedOrdersData={completedOrdersData}
+            passedForEditData={passedForEditData}
+            renderedComponent={<ReferenceStep />}
+            stepName="referenceStep"
+        />
     )
 }
 

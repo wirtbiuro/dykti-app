@@ -7,6 +7,7 @@ import CreateContractCheckerStep from '../steps/CreateContractCheckerStep'
 import { getDatas } from '../../utilities'
 import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
 import useGetOrders from '../../hooks/useGetOrders'
+import AllCategoryOrders from '../AllCategoryOrders'
 
 const ContractCheckerPanel = () => {
     const { data, isError }: IQuery<IOrder> = useGetOrders('ContractChecker')
@@ -18,31 +19,14 @@ const ContractCheckerPanel = () => {
     if (!data) return <>Ładowanie danych...</>
 
     return (
-        <>
-            <h2>Sprawy bieżące:</h2>
-
-            <Orders orders={currentData} children={<CreateContractCheckerStep />} stepName="contractCheckerStep" />
-
-            <h2>Do poprawienia:</h2>
-
-            <Orders orders={editedOrdersData} children={<CreateContractCheckerStep />} stepName="contractCheckerStep" />
-
-            <h2>Przekazane dalej:</h2>
-
-            <Orders
-                orders={completedOrdersData}
-                children={<CreateContractCheckerStep />}
-                stepName="contractCheckerStep"
-            />
-
-            <h2>Przekazane do poprawienia:</h2>
-
-            <Orders
-                orders={passedForEditData}
-                children={<CreateContractCheckerStep />}
-                stepName="contractCheckerStep"
-            />
-        </>
+        <AllCategoryOrders
+            currentData={currentData}
+            editedOrdersData={editedOrdersData}
+            completedOrdersData={completedOrdersData}
+            passedForEditData={passedForEditData}
+            renderedComponent={<CreateContractCheckerStep />}
+            stepName="contractCheckerStep"
+        />
     )
 }
 

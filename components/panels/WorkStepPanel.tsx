@@ -4,6 +4,7 @@ import Orders from '../Orders'
 import { getDatas } from '../../utilities'
 import CreateWorkStep from '../steps/CreateWorkStep'
 import useGetOrders from '../../hooks/useGetOrders'
+import AllCategoryOrders from '../AllCategoryOrders'
 
 const WorkStepPanel = () => {
     const currentStep: StepName = 'workStep'
@@ -15,23 +16,14 @@ const WorkStepPanel = () => {
     if (!data) return <>Ładowanie danych...</>
 
     return (
-        <>
-            <h2>Sprawy bieżące:</h2>
-
-            <Orders orders={currentData} children={<CreateWorkStep />} stepName="workStep" />
-
-            <h2>Do poprawienia:</h2>
-
-            <Orders orders={editedOrdersData} children={<CreateWorkStep />} stepName="workStep" />
-
-            <h2>Przekazane dalej:</h2>
-
-            <Orders orders={completedOrdersData} children={<CreateWorkStep />} stepName="workStep" />
-
-            <h2>Przekazane do poprawienia:</h2>
-
-            <Orders orders={passedForEditData} children={<CreateWorkStep />} stepName="workStep" />
-        </>
+        <AllCategoryOrders
+            currentData={currentData}
+            editedOrdersData={editedOrdersData}
+            completedOrdersData={completedOrdersData}
+            passedForEditData={passedForEditData}
+            renderedComponent={<CreateWorkStep />}
+            stepName="workStep"
+        />
     )
 }
 

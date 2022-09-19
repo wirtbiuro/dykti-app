@@ -7,6 +7,7 @@ import CreateContractStep from '../steps/CreateContractStep'
 import { getArrIdx, getDatas } from '../../utilities'
 import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
 import useGetOrders from '../../hooks/useGetOrders'
+import AllCategoryOrders from '../AllCategoryOrders'
 
 const ContractPreparerPanel = () => {
     const { data, isError }: IQuery<IOrder> = useGetOrders('ContractPreparer')
@@ -18,23 +19,14 @@ const ContractPreparerPanel = () => {
     if (!data) return <>Ładowanie danych...</>
 
     return (
-        <>
-            <h2>Sprawy bieżące:</h2>
-
-            <Orders orders={currentData} children={<CreateContractStep />} stepName="contractStep" />
-
-            <h2>Do poprawienia:</h2>
-
-            <Orders orders={editedOrdersData} children={<CreateContractStep />} stepName="contractStep" />
-
-            <h2>Przekazane dalej:</h2>
-
-            <Orders orders={completedOrdersData} children={<CreateContractStep />} stepName="contractStep" />
-
-            <h2>Przekazane do poprawienia:</h2>
-
-            <Orders orders={passedForEditData} children={<CreateContractStep />} stepName="contractStep" />
-        </>
+        <AllCategoryOrders
+            currentData={currentData}
+            editedOrdersData={editedOrdersData}
+            completedOrdersData={completedOrdersData}
+            passedForEditData={passedForEditData}
+            renderedComponent={<CreateContractStep />}
+            stepName="contractStep"
+        />
     )
 }
 

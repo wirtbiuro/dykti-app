@@ -27,10 +27,6 @@ const LastDecisionPanel = () => {
 
             <Orders orders={editedOrdersData} children={<LastDecisionStep />} stepName={currentStep} />
 
-            <h2>Przekazane dalej:</h2>
-
-            <Orders orders={completedOrdersData} children={<LastDecisionStep />} stepName={currentStep} />
-
             <h2>Przekazane do poprawienia:</h2>
 
             <Orders orders={passedForEditData} children={<LastDecisionStep />} stepName={currentStep} />
