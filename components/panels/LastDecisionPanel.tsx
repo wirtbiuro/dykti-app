@@ -21,15 +21,15 @@ const LastDecisionPanel = () => {
         <>
             <h2>Sprawy bieżące:</h2>
 
-            <Orders orders={currentData} children={<LastDecisionStep />} stepName={currentStep} />
-
-            <h2>Do poprawienia:</h2>
-
-            <Orders orders={editedOrdersData} children={<LastDecisionStep />} stepName={currentStep} />
+            <Orders orders={currentData} stepName={currentStep}>
+                <LastDecisionStep />
+            </Orders>
 
             <h2>Przekazane do poprawienia:</h2>
 
-            <Orders orders={passedForEditData} children={<LastDecisionStep />} stepName={currentStep} />
+            <Orders orders={passedForEditData} stepName={currentStep}>
+                {<LastDecisionStep />}
+            </Orders>
         </>
     )
 }
