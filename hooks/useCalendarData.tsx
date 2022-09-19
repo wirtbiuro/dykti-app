@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { DateTime } from 'luxon'
 
 export const useCalendarData = () => {
-    const [check, __setCheck] = useState()
+    const [check, __setCheck] = useState<Function>()
     const [isChecked, __setIsChecked] = useState<boolean>(false)
     const [value, __setValue] = useState<DateTime | null | string>()
     const [setValue, __setSetValue] = useState<Function>()
