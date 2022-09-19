@@ -6,7 +6,7 @@ export const useCalendarData = () => {
     const [isChecked, __setIsChecked] = useState<boolean>(false)
     const [value, __setValue] = useState<DateTime | null | string>()
     const [setValue, __setSetValue] = useState()
-    const [showError, __setShowError] = useState()
+    const [showError, __setShowError] = useState<void>()
     const [errTitleElement, __setErrTitleElement] = useState()
 
     return {
