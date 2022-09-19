@@ -18,6 +18,11 @@ const CreatorFormPanel = () => {
 
     const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({ data, currentStep })
 
+    const noMeetingDateData = data?.filter((order) => {
+        const lastStep = order.steps[order.steps.length - 1]
+        return lastStep.passedTo === 'beffaringStep' && !lastStep.formStepMeetingDate
+    })
+
     const orderClicked = (orderId: number | null) => {
         const newOrderId = orderId === currentOrderId ? null : orderId
         setCurrentOrderId(newOrderId)

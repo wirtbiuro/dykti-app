@@ -44,7 +44,7 @@ const Main = () => {
     useEffect(() => {
         withRtkQueryTokensCheck({
             cb: refetchUser,
-            err: errFn,
+            err: () => {},
         })
     }, [])
 

@@ -53,13 +53,19 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const workStartDateDataValue = workStartDateData.value as DateTime
 
     const isMainCondition =
-        workStartDateDataValue?.toUTC().toISO() === prevStep?.contractCheckerStepWorkStartDate &&
+        // workStartDateDataValue?.toUTC().toISO() === prevStep?.contractCheckerStepWorkStartDate &&
         shouldChangeContractData.isChecked
 
     // console.log('workStartDateDataValue', workStartDateDataValue?.toUTC().toISO())
     // console.log('prevStep?.contractCheckerStepWorkStartDate', prevStep?.contractCheckerStepWorkStartDate)
 
-    console.log({ isMainCondition })
+    // console.log(
+    //     'workStartDateDataValue?.toUTC().toISO()',
+    //     workStartDateDataValue?.toUTC().toISO(),
+    //     ' === prevStep?.contractCheckerStepWorkStartDate',
+    //     prevStep?.contractCheckerStepWorkStartDate
+    // )
+    // console.log({ isMainCondition })
 
     useEffect(() => {
         formCheck({ showMessage: false })

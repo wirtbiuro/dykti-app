@@ -39,6 +39,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
     const isContractCheckedData = useFormInput()
     const workStartDateData = useCalendarData()
+    const workEndDateData = useCalendarData()
     const commentsData = useFormInput()
 
     const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
@@ -50,7 +51,12 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
         //     : prevFormCheck({ showMessage: false })
         formCheck({ showMessage: false })
         prevFormCheck({ showMessage: false })
-    }, [isContractCheckedData.isChecked, workStartDateData.isChecked, commentsData.isChecked])
+    }, [
+        isContractCheckedData.isChecked,
+        workStartDateData.isChecked,
+        commentsData.isChecked,
+        workEndDateData.isChecked,
+    ])
 
     const isMainCondition = isContractCheckedData.isChecked
 
@@ -60,6 +66,11 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
         if (!workStartDateData.isChecked) {
             console.log('workStartDateData error')
             showMessage ? workStartDateData.showError() : null
+            return setIsFormChecked(false)
+        }
+        if (!workEndDateData.isChecked) {
+            console.log('workEndDateData error')
+            showMessage ? workEndDateData.showError() : null
             return setIsFormChecked(false)
         }
 
@@ -123,6 +134,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                 order,
                 contractCheckerStepIsContractChecked: isContractCheckedData.isChecked,
                 contractCheckerStepWorkStartDate: null,
+                contractCheckerStepWorkEndDate: null,
                 contractCheckerStepComments: commentsData.value,
                 ...sendButtonsOutputRef.current.getResults(),
             },
@@ -130,6 +142,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                 order,
                 contractCheckerStepIsContractChecked: isContractCheckedData.isChecked,
                 contractCheckerStepWorkStartDate: workStartDateData.value,
+                contractCheckerStepWorkEndDate: workEndDateData.value,
                 contractCheckerStepComments: commentsData.value,
                 ...sendButtonsOutputRef.current.getResults(),
             },
@@ -163,12 +176,22 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
                                 {isMainCondition && (
                                     <>
-                                        <p>Przybliżona data rozpoczęcia pracy.</p>
-                                        <CalendarWithTime
-                                            defaultDate={order && prevStep?.contractCheckerStepWorkStartDate}
-                                            connection={workStartDateData}
-                                            isTimeEnabled={false}
-                                        />
+                                        <>
+                                            <p>Przybliżona data rozpoczęcia pracy.</p>
+                                            <CalendarWithTime
+                                                defaultDate={order && prevStep?.contractCheckerStepWorkStartDate}
+                                                connection={workStartDateData}
+                                                isTimeEnabled={false}
+                                            />
+                                        </>
+                                        <>
+                                            <p>Przybliżona data zakończenia pracy.</p>
+                                            <CalendarWithTime
+                                                defaultDate={order && prevStep?.contractCheckerStepWorkEndDate}
+                                                connection={workEndDateData}
+                                                isTimeEnabled={false}
+                                            />
+                                        </>
                                     </>
                                 )}
 

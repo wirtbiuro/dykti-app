@@ -41,6 +41,11 @@ export const StepComponentStyled = styled.div`
     .value {
         font-size: bold;
     }
+    .no-meeting-date {
+        background-color: orange;
+        color: white;
+        width: 100%;
+    }
 `
 
 export const CreateFormStyled = styled.div`

@@ -65,6 +65,7 @@ model Step{
   contractStepOfferRejectionReason String?
   contractCheckerStepIsContractChecked Boolean?
   contractCheckerStepWorkStartDate DateTime?
+  contractCheckerStepWorkEndDate DateTime?
   contractCheckerStepComments String?
   contractCreatorStepContractSendingDate DateTime?
   contractCreatorStepIsContractAccepted Boolean?
@@ -75,10 +76,17 @@ model Step{
   workStepWorkStartDate DateTime?
   workStepWorkEndDate DateTime?
   workStepContractEdits String?
+  questionnaireStepIsAcceptanceReport Boolean?
+  questionnaireStepHaveClientReceviedDocs Boolean?
+  questionnaireStepArePaymentsReceived Boolean?
+  questionnaireStepIsClientSatisfied Boolean?
   questionnaireStepSatisfaction String?
+  questionnaireStepOtherSatisfaction String?
   questionnaireStepDissatisfaction String?
-  questionnaireStepOtherOpinion String?
+  questionnaireStepOtherDissatisfaction String?
   referenceStepWasSentRequest Boolean?
+  referenceStepIsClientReference Boolean?
+  referenceStepReferenceLocation String?
 }
 
 model Order{

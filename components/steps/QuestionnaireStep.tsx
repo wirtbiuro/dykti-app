@@ -10,13 +10,11 @@ import {
 } from '../../types'
 import { useCreateOrderMutation } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
-import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
 import { submitForm, showErrorMessages } from '../../utilities'
 import { useFormInput } from '../../hooks/useFormInput'
-import { useCalendarData } from '../../hooks/useCalendarData'
 import { flushSync } from 'react-dom'
-import FormSelect from '../UI/FormSelect'
+import FormMultiSelect from '../UI/FormMultiSelect'
 import { useFormSelect } from '../../hooks/useFormSelect'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
@@ -35,9 +33,14 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
 
     const errFn = useErrFn()
 
+    const isAcceptanceReportData = useFormInput()
+    const haveClientReceviedDocsData = useFormInput()
+    const arePaymentsReceivedData = useFormInput()
     const isClientSatisfiedData = useFormInput()
-    const opinionData = useFormSelect()
-    const otherOpinionData = useFormInput()
+    const clientSatisfactionData = useFormSelect()
+    const otherSatisfactionData = useFormInput()
+    const clientDissatisfactionData = useFormSelect()
+    const otherDissatisfactionData = useFormInput()
 
     const defaultOpinionValue =
         prevStep?.questionnaireStepDissatisfaction ?? prevStep?.questionnaireStepSatisfaction ?? 'select'
@@ -50,20 +53,64 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
 
     useEffect(() => {
         formCheck({ showMessage: false })
-    }, [isClientSatisfiedData.isChecked, opinionData.isChecked, otherOpinionData.isChecked])
+    }, [
+        isAcceptanceReportData.isChecked,
+        haveClientReceviedDocsData.isChecked,
+        arePaymentsReceivedData.isChecked,
+        isClientSatisfiedData.isChecked,
+        clientSatisfactionData.isChecked,
+        otherSatisfactionData.isChecked,
+        clientDissatisfactionData.isChecked,
+        otherDissatisfactionData.isChecked,
+    ])
 
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
+        console.log('isClientSatisfiedData.value', isClientSatisfiedData.value)
+        console.log('clientSatisfactionData.isChecked', clientSatisfactionData.isChecked)
+        console.log('clientSatisfactionData.value', clientSatisfactionData.value)
+        console.log('clientDissatisfactionData.isChecked', clientDissatisfactionData.isChecked)
+        console.log('clientDissatisfactionData.value', clientDissatisfactionData.value)
 
-        if (!opinionData.isChecked) {
-            console.log('opinionData error')
-            showMessage ? opinionData?.showError() : null
+        if (!isAcceptanceReportData.isChecked) {
+            console.log('isAcceptanceReportData error')
+            showMessage ? isAcceptanceReportData?.showError() : null
             return setIsFormChecked(false)
         }
 
-        if (opinionData.value === 'other' && otherOpinionData.value === '') {
-            console.log('otherOpinionData error')
-            showMessage ? otherOpinionData?.showError() : null
+        if (!haveClientReceviedDocsData.isChecked) {
+            console.log('haveClientReceviedDocsData error')
+            showMessage ? haveClientReceviedDocsData?.showError() : null
+            return setIsFormChecked(false)
+        }
+
+        if (!arePaymentsReceivedData.isChecked) {
+            console.log('arePaymentsReceivedData error')
+            showMessage ? arePaymentsReceivedData?.showError() : null
+            return setIsFormChecked(false)
+        }
+
+        if (isClientSatisfiedData.value && !clientSatisfactionData.isChecked) {
+            console.log('clientSatisfactionData error')
+            showMessage ? clientSatisfactionData?.showError() : null
+            return setIsFormChecked(false)
+        }
+
+        if (clientSatisfactionData.value?.includes('other') && otherSatisfactionData.value === '') {
+            console.log('otherSatisfactionData error')
+            showMessage ? otherSatisfactionData?.showError() : null
+            return setIsFormChecked(false)
+        }
+
+        if (!isClientSatisfiedData.value && !clientDissatisfactionData.isChecked) {
+            console.log('clientDissatisfactionData error')
+            showMessage ? clientDissatisfactionData?.showError() : null
+            return setIsFormChecked(false)
+        }
+
+        if (clientDissatisfactionData.value?.includes('other') && otherDissatisfactionData.value === '') {
+            console.log('otherDissatisfactionData error')
+            showMessage ? otherDissatisfactionData?.showError() : null
             return setIsFormChecked(false)
         }
 
@@ -106,9 +153,19 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
             nextToPass: isClientSatisfiedData.value ? 'referenceStep' : 'completionStep',
             toNextSendData: {
                 order,
-                questionnaireStepSatisfaction: isClientSatisfiedData.value ? opinionData.value : null,
-                questionnaireStepDissatisfaction: !isClientSatisfiedData.value ? opinionData.value : null,
-                questionnaireStepOtherOpinion: opinionData.value === 'other' ? otherOpinionData.value : null,
+                questionnaireStepIsAcceptanceReport: isAcceptanceReportData.value,
+                questionnaireStepHaveClientReceviedDocs: haveClientReceviedDocsData.value,
+                questionnaireStepArePaymentsReceived: arePaymentsReceivedData.value,
+                questionnaireStepIsClientSatisfied: isClientSatisfiedData.value,
+                questionnaireStepSatisfaction: isClientSatisfiedData.value ? clientSatisfactionData.value : null,
+                questionnaireStepOtherSatisfaction:
+                    isClientSatisfiedData.value && clientSatisfactionData.value.includes('other')
+                        ? otherSatisfactionData.value
+                        : null,
+                questionnaireStepDissatisfaction: clientDissatisfactionData.value,
+                questionnaireStepOtherDissatisfaction: clientDissatisfactionData.value.includes('other')
+                    ? otherDissatisfactionData.value
+                    : null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
@@ -125,46 +182,88 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                 <CreateFormStyled>
                     <FormStyled>
                         <form ref={formRef} onSubmit={submit}>
+                            <FormInput
+                                type="checkbox"
+                                connection={isAcceptanceReportData}
+                                defaultChecked={prevStep?.questionnaireStepIsAcceptanceReport}
+                                checkFn={(value) => value === true}
+                            >
+                                <>Protokół odbioru</>
+                            </FormInput>
+
+                            <FormInput
+                                type="checkbox"
+                                connection={haveClientReceviedDocsData}
+                                defaultChecked={prevStep?.questionnaireStepHaveClientReceviedDocs}
+                                checkFn={(value) => value === true}
+                            >
+                                <>Klient otrzymał dokumentację</>
+                            </FormInput>
+
+                            <FormInput
+                                type="checkbox"
+                                connection={arePaymentsReceivedData}
+                                defaultChecked={prevStep?.questionnaireStepArePaymentsReceived}
+                                checkFn={(value) => value === true}
+                            >
+                                <>Wpłyneły wszystkie płatności</>
+                            </FormInput>
+
                             <>
                                 <FormInput
                                     type="checkbox"
                                     connection={isClientSatisfiedData}
-                                    defaultChecked={prevStep?.questionnaireStepDissatisfaction ? false : true}
+                                    defaultChecked={prevStep?.questionnaireStepIsClientSatisfied}
+                                    checkFn={(value) => value === true}
                                 >
                                     <>Klient jest zadowolony</>
                                 </FormInput>
                             </>
 
-                            <FormSelect
+                            {isClientSatisfiedData.value && (
+                                <>
+                                    <FormMultiSelect
+                                        options={[
+                                            ['timeFrame', 'Ramy czasowe'],
+                                            ['endDate', 'Data zakonczenia'],
+                                            ['other', 'Inne'],
+                                        ]}
+                                        title={`Przyczyna zadowolenia klienta: `}
+                                        connection={clientSatisfactionData}
+                                        defaultValue={prevStep?.questionnaireStepSatisfaction || ''}
+                                    />
+
+                                    {clientSatisfactionData.value?.includes('other') && (
+                                        <>
+                                            <p>Inna przyczyna zadowolenia klienta:</p>
+                                            <FormInput
+                                                placeholder="Inna przyczyna zadowolenia klienta"
+                                                defaultValue={prevStep?.questionnaireStepOtherSatisfaction}
+                                                connection={otherSatisfactionData}
+                                            />
+                                        </>
+                                    )}
+                                </>
+                            )}
+
+                            <FormMultiSelect
                                 options={[
-                                    [
-                                        'select',
-                                        `Wybierz powód ${
-                                            isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'
-                                        } klienta`,
-                                    ],
                                     ['timeFrame', 'Ramy czasowe'],
                                     ['endDate', 'Data zakonczenia'],
                                     ['other', 'Inne'],
                                 ]}
-                                name="rejectionReasons"
-                                title={`Przyczyna ${
-                                    isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'
-                                } klienta: `}
-                                connection={opinionData}
-                                defaultValue={defaultOpinionValue}
+                                title={`Przyczyna niezadowolenia klienta: `}
+                                connection={clientDissatisfactionData}
+                                defaultValue={prevStep?.questionnaireStepDissatisfaction || ''}
                             />
 
-                            {opinionData.value === 'other' && (
+                            {clientDissatisfactionData.value?.includes('other') && (
                                 <>
-                                    <p>
-                                        Inna przyczyna {isClientSatisfiedData.value ? 'zadowolenia' : 'niezadowolenia'}{' '}
-                                        klienta:{' '}
-                                    </p>
+                                    <p>Inna przyczyna niezadowolenia klienta:</p>
                                     <FormInput
-                                        placeholder="Inna przyczyna zadowolenia klienta"
-                                        defaultValue={prevStep?.questionnaireStepOtherOpinion}
-                                        connection={otherOpinionData}
+                                        placeholder="Inna przyczyna niezadowolenia klienta"
+                                        defaultValue={prevStep?.questionnaireStepOtherDissatisfaction}
+                                        connection={otherDissatisfactionData}
                                     />
                                 </>
                             )}

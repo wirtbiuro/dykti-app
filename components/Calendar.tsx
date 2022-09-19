@@ -17,6 +17,9 @@ const Calendar: FC<CalendarType> = ({ selectedDate, setSelectedDate }) => {
 
     const firstDate = DateTime.now()
 
+    const _LeftOutlined = LeftOutlined as any
+    const _RightOutlined = RightOutlined as any
+
     useEffect(() => {
         console.log({ selectedDate })
         const dayArr = getDays(selectedDate)
@@ -96,9 +99,7 @@ const Calendar: FC<CalendarType> = ({ selectedDate, setSelectedDate }) => {
                                     dayClicked(day)
                                 }}
                             >
-                                <div className={styles[dayClassName]}>
-                                    {day.day}
-                                </div>
+                                <div className={styles[dayClassName]}>{day.day}</div>
                             </div>
                         )
                     })}
@@ -125,23 +126,17 @@ const Calendar: FC<CalendarType> = ({ selectedDate, setSelectedDate }) => {
             </div>
         ))
 
-    const getCurrentMonthName = () =>
-        language &&
-        `${monthNames[language][selectedDate.month - 1]} ${selectedDate.year}`
+    const getCurrentMonthName = () => language && `${monthNames[language][selectedDate.month - 1]} ${selectedDate.year}`
 
     return (
         <div className={styles.myCalendar}>
             <div className={styles.top}>
                 <div className={styles.arrow} onClick={prevMonth}>
-                    <LeftOutlined style={{ color: '#474747' }} />
+                    <_LeftOutlined style={{ color: '#474747' }} />
                 </div>
                 <div className={styles.monthName}>{getCurrentMonthName()}</div>
-                <div
-                    className={styles.arrow}
-                    onClick={nextMonth}
-                    data-testrightarrow
-                >
-                    <RightOutlined style={{ color: '#474747' }} />
+                <div className={styles.arrow} onClick={nextMonth} data-testrightarrow>
+                    <_RightOutlined style={{ color: '#474747' }} />
                 </div>
             </div>
             <div className={styles.week}>{getWeek()}</div>

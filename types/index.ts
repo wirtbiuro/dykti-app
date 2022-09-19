@@ -202,6 +202,7 @@ export interface IContractStep {
 export interface IContractCheckerStep {
     contractCheckerStepIsContractChecked?: boolean
     contractCheckerStepWorkStartDate?: DateTime | string
+    contractCheckerStepWorkEndDate?: DateTime | string
     contractCheckerStepComments?: string
 }
 
@@ -219,13 +220,20 @@ export interface IWorkStep {
 }
 
 export interface IQuestionnaireStep {
+    questionnaireStepIsAcceptanceReport?: boolean
+    questionnaireStepHaveClientReceviedDocs?: boolean
+    questionnaireStepArePaymentsReceived?: boolean
+    questionnaireStepIsClientSatisfied?: boolean
+    questionnaireStepOtherSatisfaction?: string
     questionnaireStepSatisfaction?: string
+    questionnaireStepOtherDissatisfaction?: string
     questionnaireStepDissatisfaction?: string
-    questionnaireStepOtherOpinion?: string
 }
 
 export interface IReferenceStep {
-    referenceStepWasSentRequest?: boolean
+    referenceStepWasSentRequest?: Boolean
+    referenceStepIsClientReference?: Boolean
+    referenceStepReferenceLocation?: Boolean
 }
 
 export interface IRecord {

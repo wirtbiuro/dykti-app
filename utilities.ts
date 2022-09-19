@@ -502,9 +502,16 @@ export const showErrorMessages: ShowErrorMessagesTypes = ({
     if (
         (!isFormChecked && isNextChecked) ||
         (!isPrevFormChecked && isPrevChecked) ||
-        (isUncompletedNOTChecked && (!isPrevFormChecked || !isFormChecked))
+        (isUncompletedNOTChecked && (isMainCondition ? !isFormChecked : !isPrevFormChecked))
     ) {
-        console.log({ isFormChecked, isPrevFormChecked, isUncompletedNOTChecked, isNextChecked, isPrevChecked })
+        console.log({
+            isFormChecked,
+            isPrevFormChecked,
+            isUncompletedNOTChecked,
+            isNextChecked,
+            isPrevChecked,
+            isMainCondition,
+        })
         return true
     }
     console.log('submit')

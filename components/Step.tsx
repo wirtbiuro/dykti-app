@@ -28,6 +28,9 @@ function Step({ step, prevStep }: StepProps) {
         <StepComponentStyled>{changes?.join(',  ')}</StepComponentStyled>
     ) : (
         <StepComponentStyled>
+            {step?.passedTo === 'beffaringStep' && !step?.formStepMeetingDate && (
+                <div className="no-meeting-date">Brakuje terminu spotkania z klientem</div>
+            )}
             <div className="prop">
                 <p className="description">id:</p>
                 <p className="value">{step.id} </p>
@@ -36,8 +39,7 @@ function Step({ step, prevStep }: StepProps) {
                 <div className="prop">
                     <p className="description">Dane klienta:</p>
                     <p className="value">
-                        {step.formStepClientName} {step.formStepEmail}{' '}
-                        {step.formStepPhone}
+                        {step.formStepClientName} {step.formStepEmail} {step.formStepPhone}
                     </p>
                 </div>
             )}
@@ -59,7 +61,7 @@ function Step({ step, prevStep }: StepProps) {
                     <p className="value">{step.formStep.record.createdAt}</p>
                 </div>
             )} */}
-            {step.formStepCreator && (
+            {/* {step.formStepCreator && (
                 <div className="prop">
                     <p className="description">Stworzone przez:</p>
                     <p className="value">{step.formStepCreator.username}</p>
@@ -72,29 +74,23 @@ function Step({ step, prevStep }: StepProps) {
                         {step.beffaringStepPrevStepConfirmationDate as string}
                     </p>
                 </div>
-            )}
+            )} */}
             {step.beffaringStepCreator && (
                 <div className="prop">
                     <p className="description">Kto przyjął:</p>
-                    <p className="value">
-                        {step.beffaringStepCreator.username}
-                    </p>
+                    <p className="value">{step.beffaringStepCreator.username}</p>
                 </div>
             )}
             {step.beffaringStepInfoSendingDate && (
                 <div className="prop">
                     <p className="description">Data wysłania dokumentów:</p>
-                    <p className="value">
-                        {step.beffaringStepInfoSendingDate as string}
-                    </p>
+                    <p className="value">{step.beffaringStepInfoSendingDate as string}</p>
                 </div>
             )}
             {step.formStepMeetingDate && (
                 <div className="prop">
                     <p className="description">Termin spotkania:</p>
-                    <p className="value">
-                        {step.formStepMeetingDate as string}
-                    </p>
+                    <p className="value">{step.formStepMeetingDate as string}</p>
                 </div>
             )}
         </StepComponentStyled>

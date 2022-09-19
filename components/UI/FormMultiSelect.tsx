@@ -126,6 +126,10 @@ function FormSelect({
         return idxs.includes(idx)
     }
 
+    const onTouschStart = (e: SyntheticEvent<HTMLOptionElement>) => {
+        e.preventDefault()
+    }
+
     return (
         <MultiFormStyled>
             <div className="withErr">
@@ -141,6 +145,7 @@ function FormSelect({
                                 onClick={clicked}
                                 className={getIsSelected(option[0]) ? 'multi-selected' : 'not-selected'}
                                 key={option[0]}
+                                onMouseDown={onTouschStart}
                             >
                                 {option[1]}
                             </option>

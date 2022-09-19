@@ -10,16 +10,14 @@ import {
 } from '../../types'
 import { useCreateOrderMutation } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
-import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
 import { submitForm, showErrorMessages } from '../../utilities'
 import { useFormInput } from '../../hooks/useFormInput'
-import { useCalendarData } from '../../hooks/useCalendarData'
 import { flushSync } from 'react-dom'
-import FormSelect from '../UI/FormSelect'
-import { useFormSelect } from '../../hooks/useFormSelect'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
+import FormMultiSelect from '../UI/FormMultiSelect'
+import { useFormMultiSelect } from '../../hooks/useFormMultiSelect'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -35,7 +33,9 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     const errFn = useErrFn()
 
-    const wasSentReferenceRequestData = useFormInput()
+    const wasReferenceRequestSentData = useFormInput()
+    const isClientReferenceData = useFormInput()
+    const referenceLocationData = useFormMultiSelect()
 
     const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
         getResults: () => {},
@@ -45,14 +45,26 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     useEffect(() => {
         formCheck({ showMessage: false })
-    }, [wasSentReferenceRequestData.isChecked])
+    }, [wasReferenceRequestSentData.isChecked, isClientReferenceData.isChecked, referenceLocationData.isChecked])
 
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
 
-        if (!wasSentReferenceRequestData.isChecked) {
-            console.log('wasSentReferenceRequestData error')
-            showMessage ? wasSentReferenceRequestData?.showError() : null
+        if (!wasReferenceRequestSentData.isChecked) {
+            console.log('wasReferenceRequestSentData error')
+            showMessage ? wasReferenceRequestSentData?.showError() : null
+            return setIsFormChecked(false)
+        }
+
+        if (!isClientReferenceData.isChecked) {
+            console.log('isClientReferenceData error')
+            showMessage ? isClientReferenceData?.showError() : null
+            return setIsFormChecked(false)
+        }
+
+        if (!referenceLocationData.isChecked) {
+            console.log('referenceLocationData error')
+            showMessage ? referenceLocationData?.showError() : null
             return setIsFormChecked(false)
         }
 
@@ -94,7 +106,9 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             isFormChecked,
             toNextSendData: {
                 order,
-                referenceStepWasSentRequest: wasSentReferenceRequestData.value,
+                referenceStepWasSentRequest: wasReferenceRequestSentData.value,
+                referenceStepIsClientReference: isClientReferenceData.value,
+                referenceStepReferenceLocation: referenceLocationData.value,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
@@ -114,7 +128,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                             <>
                                 <FormInput
                                     type="checkbox"
-                                    connection={wasSentReferenceRequestData}
+                                    connection={wasReferenceRequestSentData}
                                     defaultChecked={
                                         typeof prevStep?.referenceStepWasSentRequest === 'boolean'
                                             ? prevStep?.referenceStepWasSentRequest
@@ -125,6 +139,34 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                     <>Prośba o referencję do klienta jest wysłana</>
                                 </FormInput>
                             </>
+
+                            {wasReferenceRequestSentData.isChecked && (
+                                <>
+                                    <FormInput
+                                        type="checkbox"
+                                        connection={isClientReferenceData}
+                                        defaultChecked={
+                                            typeof prevStep?.referenceStepWasSentRequest === 'boolean'
+                                                ? prevStep?.referenceStepWasSentRequest
+                                                : false
+                                        }
+                                        checkFn={(value) => value === true}
+                                    >
+                                        <>Klient wystawil referencje</>
+                                    </FormInput>
+
+                                    <FormMultiSelect
+                                        options={[
+                                            ['mittanbud', 'Mittanbud'],
+                                            ['google', 'Google'],
+                                            ['site', 'Strona internetowa'],
+                                        ]}
+                                        title={`Gdzie wysłano referencję: `}
+                                        connection={referenceLocationData}
+                                        defaultValue={prevStep?.questionnaireStepSatisfaction || ''}
+                                    />
+                                </>
+                            )}
 
                             <SendButtons
                                 curStepName="referenceStep"

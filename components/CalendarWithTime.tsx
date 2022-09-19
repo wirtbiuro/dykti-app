@@ -170,6 +170,9 @@ function CalendarWithTime({
         } else {
             console.log({ isReset })
             const isChecked = !isReset
+            if (isChecked) {
+                errRef.current!.innerHTML = ''
+            }
             connection?.__setIsChecked(isChecked)
             connection?.__setValue(getValue())
 
