@@ -7,7 +7,7 @@ export const useCalendarData = () => {
     const [value, __setValue] = useState<DateTime | null | string>()
     const [setValue, __setSetValue] = useState<Function>()
     const [showError, __setShowError] = useState<Function>()
-    const [errTitleElement, __setErrTitleElement] = useState()
+    const [errTitleElement, __setErrTitleElement] = useState<HTMLDivElement | null>()
 
     return {
         check,
