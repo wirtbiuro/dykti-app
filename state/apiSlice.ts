@@ -12,7 +12,7 @@ const getOrderProvidesTags: () => Array<{ type: 'Order'; id: Role }> = () => {
 export const dyktiApi = createApi({
     reducerPath: 'userApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: `${process.env.URL}/api/`,
+        baseUrl: `/api/`,
     }),
     tagTypes: ['User', 'Order'],
     endpoints: (build: any) => ({
