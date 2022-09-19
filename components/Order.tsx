@@ -33,6 +33,8 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
 
     const minimumSigns = 10
 
+    const _Modal = Modal as any
+
     const getPrevStep: (order: IOrder, idx: number) => StepType | undefined = (order, idx) => {
         return idx > 0 ? order.steps[idx - 1] : undefined
     }
@@ -53,8 +55,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
         console.log('handle ok', modalInputData)
         if (!modalInputData.isChecked) {
             console.log('modalInputData.showError', modalInputData.showError)
-            return modalInputData.showError(`Minimum ${minimumSigns} znaków`)
-            return modalInputData.showError()
+            return modalInputData.showError!(`Minimum ${minimumSigns} znaków`)
         }
         setIsModalOpen(false)
         withRtkQueryTokensCheck({
@@ -121,7 +122,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
                     ))}
                 </div>
             )}
-            <Modal open={isModalOpen}>
+            <_Modal open={isModalOpen}>
                 <div>
                     Podaj powód, dla którego zamierzasz zamknąć sprawę:
                     <FormInput
@@ -135,7 +136,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
                     />
                     <button onClick={handleOk}>Wysłać</button>
                 </div>
-            </Modal>
+            </_Modal>
         </StepStyled>
     )
 }

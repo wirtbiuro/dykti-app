@@ -54,7 +54,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (!offerDateData.isChecked) {
             console.log('offer date error')
-            showMessage ? offerDateData?.showError() : null
+            showMessage ? offerDateData?.showError!() : null
             return setIsFormChecked(false)
         }
 
@@ -67,7 +67,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         console.log('prev form check')
 
         if (!befCommentsData.isChecked) {
-            showMessage ? befCommentsData.showError() : null
+            showMessage ? befCommentsData.showError!() : null
             return setIsPrevFormChecked(false)
         }
 

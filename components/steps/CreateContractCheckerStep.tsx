@@ -65,12 +65,12 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         if (!workStartDateData.isChecked) {
             console.log('workStartDateData error')
-            showMessage ? workStartDateData.showError() : null
+            showMessage ? workStartDateData.showError!() : null
             return setIsFormChecked(false)
         }
         if (!workEndDateData.isChecked) {
             console.log('workEndDateData error')
-            showMessage ? workEndDateData.showError() : null
+            showMessage ? workEndDateData.showError!() : null
             return setIsFormChecked(false)
         }
 
@@ -92,7 +92,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         if (!commentsData.isChecked) {
             console.log('commentsData error')
-            showMessage ? commentsData.showError() : null
+            showMessage ? commentsData.showError!() : null
             return setIsPrevFormChecked(false)
         }
 

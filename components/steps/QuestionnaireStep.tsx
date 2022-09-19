@@ -74,43 +74,43 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
 
         if (!isAcceptanceReportData.isChecked) {
             console.log('isAcceptanceReportData error')
-            showMessage ? isAcceptanceReportData?.showError() : null
+            showMessage ? isAcceptanceReportData?.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (!haveClientReceviedDocsData.isChecked) {
             console.log('haveClientReceviedDocsData error')
-            showMessage ? haveClientReceviedDocsData?.showError() : null
+            showMessage ? haveClientReceviedDocsData?.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (!arePaymentsReceivedData.isChecked) {
             console.log('arePaymentsReceivedData error')
-            showMessage ? arePaymentsReceivedData?.showError() : null
+            showMessage ? arePaymentsReceivedData?.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (isClientSatisfiedData.value && !clientSatisfactionData.isChecked) {
             console.log('clientSatisfactionData error')
-            showMessage ? clientSatisfactionData?.showError() : null
+            showMessage ? clientSatisfactionData?.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (clientSatisfactionData.value?.includes('other') && otherSatisfactionData.value === '') {
             console.log('otherSatisfactionData error')
-            showMessage ? otherSatisfactionData?.showError() : null
+            showMessage ? otherSatisfactionData?.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (!isClientSatisfiedData.value && !clientDissatisfactionData.isChecked) {
             console.log('clientDissatisfactionData error')
-            showMessage ? clientDissatisfactionData?.showError() : null
+            showMessage ? clientDissatisfactionData?.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (clientDissatisfactionData.value?.includes('other') && otherDissatisfactionData.value === '') {
             console.log('otherDissatisfactionData error')
-            showMessage ? otherDissatisfactionData?.showError() : null
+            showMessage ? otherDissatisfactionData?.showError!() : null
             return setIsFormChecked(false)
         }
 
@@ -159,11 +159,11 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                 questionnaireStepIsClientSatisfied: isClientSatisfiedData.value,
                 questionnaireStepSatisfaction: isClientSatisfiedData.value ? clientSatisfactionData.value : null,
                 questionnaireStepOtherSatisfaction:
-                    isClientSatisfiedData.value && clientSatisfactionData.value.includes('other')
+                    isClientSatisfiedData.value && clientSatisfactionData.value!.includes('other')
                         ? otherSatisfactionData.value
                         : null,
                 questionnaireStepDissatisfaction: clientDissatisfactionData.value,
-                questionnaireStepOtherDissatisfaction: clientDissatisfactionData.value.includes('other')
+                questionnaireStepOtherDissatisfaction: clientDissatisfactionData.value!.includes('other')
                     ? otherDissatisfactionData.value
                     : null,
                 ...sendButtonsOutputRef.current.getResults(),

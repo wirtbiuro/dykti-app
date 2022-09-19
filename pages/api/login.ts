@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextApiRequest, NextApiResponse } from 'next'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, User, Refresh } from '@prisma/client'
 const bcrypt = require('bcrypt')
 var jwt = require('jsonwebtoken')
 var cookie = require('cookie')
@@ -31,7 +31,7 @@ export default async function login(req: NextApiRequest, res: NextApiResponse) {
             return res.status(500).json('There is no user or password wrong')
         }
 
-        const _user = await prisma.user.update({
+        const _user = (await prisma.user.update({
             where: { username },
             data: {
                 refreshes: { create: {} },
@@ -40,15 +40,19 @@ export default async function login(req: NextApiRequest, res: NextApiResponse) {
                 refreshes: { where: {}, orderBy: { createdAt: 'desc' } },
                 // Todos: {orderBy: [{priority: 'desc'}, {createdAt: 'asc'}]}
             },
-        })
+        })) as Partial<
+            User & {
+                refreshes: Refresh[]
+            }
+        >
 
         console.log({ _user })
 
-        if (_user.refreshes.length > 5) {
+        if (_user.refreshes!.length > 5) {
             console.log('too many refreshes')
-            const length = _user.refreshes.length
+            const length = _user.refreshes?.length!
             await prisma.refresh.delete({
-                where: { id: _user.refreshes[length - 1].id },
+                where: { id: _user.refreshes![length - 1].id },
             })
         }
 
@@ -57,8 +61,8 @@ export default async function login(req: NextApiRequest, res: NextApiResponse) {
         })
         const refresh = jwt.sign(
             {
-                session: _user?.refreshes[0].session,
-                refreshId: _user?.refreshes[0].id,
+                session: _user?.refreshes![0].session,
+                refreshId: _user?.refreshes![0].id,
             },
             process.env.REFRESH_SECRET,
             { expiresIn: '30d' }

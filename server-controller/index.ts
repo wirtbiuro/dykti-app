@@ -16,7 +16,7 @@ export const ServerController = {
                 todos: res.data.user.todos,
             }
         } catch (error) {
-            const _error: IAxiosError = error
+            const _error = error as IAxiosError
             throw { message: _error.response.data.message }
         }
     },
@@ -29,7 +29,7 @@ export const ServerController = {
                 withCredentials: true,
             })
         } catch (error) {
-            const _error: IAxiosError = error
+            const _error = error as IAxiosError
             throw { message: _error.response.data.message }
         }
     },
@@ -42,7 +42,7 @@ export const ServerController = {
                 withCredentials: true,
             })
         } catch (error) {
-            const _error: IAxiosError = error
+            const _error = error as IAxiosError
             throw { message: _error.response.data.message }
         }
     },
@@ -54,7 +54,7 @@ export const ServerController = {
                 withCredentials: true,
             })
         } catch (error) {
-            const _error: IAxiosError = error
+            const _error = error as IAxiosError
             throw { message: _error.response.data.message }
         }
     },
@@ -66,7 +66,7 @@ export const ServerController = {
                 withCredentials: true,
             })
         } catch (error) {
-            const _error: IAxiosError = error
+            const _error = error as IAxiosError
             throw { message: _error.response.data.message }
         }
     },
@@ -81,7 +81,7 @@ export const ServerController = {
             })
             return res.data.todos
         } catch (error) {
-            const _error: IAxiosError = error
+            const _error = error as IAxiosError
             console.log({ _error })
             throw { message: _error.response.data.message }
         }
@@ -95,7 +95,7 @@ export const ServerController = {
                 withCredentials: true,
             })
         } catch (error) {
-            const _error: IAxiosError = error
+            const _error = error as IAxiosError
             console.log({ _error })
             throw { message: _error.response.data.message }
         }

@@ -83,19 +83,19 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (!workStartDateData.isChecked) {
             console.log('workStartDateData error')
-            showMessage ? workStartDateData.showError() : null
+            showMessage ? workStartDateData.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (!teamData.isChecked) {
             console.log('teamData error')
-            showMessage ? teamData.showError() : null
+            showMessage ? teamData.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (!workEndDateData.isChecked) {
             console.log('workEndDateData error')
-            showMessage ? workEndDateData.showError() : null
+            showMessage && workStartDateData ? workEndDateData.showError!() : null
             return setIsFormChecked(false)
         }
 
@@ -109,13 +109,13 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (shouldChangeContractData.isChecked) {
             console.log('shouldChangeContractData error')
-            showMessage ? shouldChangeContractData.showError() : null
+            showMessage ? shouldChangeContractData.showError!() : null
             return setIsPrevFormChecked(false)
         }
 
         if (!workStartDateData.isChecked) {
             console.log('workStartDateData error')
-            showMessage ? workStartDateData.showError() : null
+            showMessage && workStartDateData ? workStartDateData.showError!() : null
             return setIsPrevFormChecked(false)
         }
 
@@ -125,7 +125,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (!contractEditsData.isChecked) {
             console.log('contractEditsData error')
-            showMessage ? contractEditsData.showError() : null
+            showMessage ? contractEditsData.showError!() : null
             return setIsPrevFormChecked(false)
         }
 

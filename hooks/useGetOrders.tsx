@@ -5,7 +5,8 @@ import { withRtkQueryTokensCheck } from '../utilities'
 import { Role, IQuery, IOrder } from '../types'
 
 export default function (role: Role): IQuery<IOrder> {
-    const [getOrders, result] = dyktiApi.endpoints.getOrders.useLazyQuery()
+    const getOrdersEndpoint = dyktiApi.endpoints.getOrders as any
+    const [getOrders, result] = getOrdersEndpoint.useLazyQuery()
 
     const errFn = useErrFn()
 

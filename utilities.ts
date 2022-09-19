@@ -54,7 +54,7 @@ export const withTokensCheck = async ({ cb, err }: { cb: Function; err: (error: 
             await ServerController.getTokens()
             await cb()
         } catch (error) {
-            err(error)
+            err(error as IServerControllerError)
         }
     }
 }
@@ -78,7 +78,7 @@ export const withRtkQueryTokensCheck = async ({
                 err(_res.error)
             }
         } catch (error) {
-            err(error)
+            err(error as IServerControllerError)
         }
     }
 }

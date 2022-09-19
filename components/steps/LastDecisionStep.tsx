@@ -10,6 +10,7 @@ import {
     roleTitles,
     roles,
     getStepnameByRole,
+    StepName,
 } from '../../types'
 import { useCreateOrderMutation } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
@@ -63,7 +64,7 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
             isMainCondition,
             curStepName: 'lastDecisionStep',
             passedTo: prevStep!.passedTo,
-            nextToPass: closeConfirmationData.isChecked ? 'lastDecisionStep' : nextToPassData.value,
+            nextToPass: closeConfirmationData.isChecked ? 'lastDecisionStep' : (nextToPassData.value as StepName),
             toNextSendData: {
                 order,
                 isCompleted: closeConfirmationData.value,

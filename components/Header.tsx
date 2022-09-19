@@ -4,16 +4,17 @@ import { HeaderStyled } from '../styles/styled-components'
 import axios from 'axios'
 import { useAppDispatch } from '../state/hooks'
 import { authActions } from '../state/authSlice'
-import { IUser } from '../types'
 
 const Header = () => {
     const [logoutLoading, setLogoutLoading] = useState(false)
     const dispatch = useAppDispatch()
 
-    const getUserQueryData = dyktiApi.endpoints.getUser.useQueryState()
+    const getUser = dyktiApi.endpoints.getUser as any
+    const getUserQueryData = getUser.useQueryState()
+
     const { isLoading, isError, data } = getUserQueryData
 
-    const [refetchUser] = dyktiApi.endpoints.getUser.useLazyQuery()
+    const [refetchUser] = getUser.useLazyQuery()
 
     console.log({ data })
 
@@ -28,7 +29,7 @@ const Header = () => {
     }
 
     const onLogin = () => {
-        dispatch(authActions.login())
+        dispatch(authActions.login({}))
     }
 
     return (

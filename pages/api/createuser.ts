@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextApiRequest, NextApiResponse } from 'next'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Refresh, User } from '@prisma/client'
 const bcrypt = require('bcrypt')
 var jwt = require('jsonwebtoken')
 var cookie = require('cookie')
@@ -22,10 +22,7 @@ export type CreateUserData = {
 //     })
 // )
 
-export default async function createuser(
-    req: NextApiRequestWithHeaders,
-    res: NextApiResponse
-) {
+export default async function createuser(req: NextApiRequestWithHeaders, res: NextApiResponse) {
     // await cors(req, res)
 
     const prisma = new PrismaClient()
@@ -75,16 +72,14 @@ export default async function createuser(
         )
         console.log({ refresh })
 
-        console.log(
-            cookie.serialize('refresh', String(refresh), { httpOnly: true })
-        )
+        console.log(cookie.serialize('refresh', String(refresh), { httpOnly: true }))
 
         res.setHeader('Set-Cookie', [
             cookie.serialize('refresh', String(refresh), { httpOnly: true }),
             cookie.serialize('token', String(token), { httpOnly: true }),
         ])
 
-        const _user = { ...user }
+        const _user = { ...user } as any
         delete _user.password
         delete _user.refreshes
         res.status(200).json({ message: 'Creating user success', user: _user })

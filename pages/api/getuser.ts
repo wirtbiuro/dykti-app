@@ -1,6 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextApiRequest, NextApiResponse } from 'next'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, User } from '@prisma/client'
 import { withJwt } from '../../utilities'
 // import { IgetUserAxiosRes } from '../../types'
 
@@ -14,12 +14,14 @@ async function getuser(req: NextApiRequest, res: NextApiResponse) {
             where: { id: userId },
         })
 
-        delete user?.password
+        const _user = { ...user } as any
 
-        if (user) {
-            const _user = user
+        delete _user?.password
 
-            return res.status(200).json(_user)
+        if (_user) {
+            const __user = _user
+
+            return res.status(200).json(__user)
         }
     } catch (error) {
         console.log({ error })

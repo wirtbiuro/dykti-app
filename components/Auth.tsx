@@ -24,9 +24,10 @@ const Auth = () => {
     const [createUser, createUserResult] = useCreateUserMutation()
     const [login] = useLoginMutation()
 
-    // const getUserQueryData = dyktiApi.endpoints.getUser.useQueryState()
+    const getUser = dyktiApi.endpoints.getUser as any
+    const getUserQueryData = getUser.useQueryState()
 
-    // const { isLoading, isError, isSuccess } = getUserQueryData
+    const { isLoading, isError, isSuccess } = getUserQueryData
 
     const status = useAppSelector((state: RootState) => state.auth.status)
     // const loading = useAppSelector((state: RootState) => state.user.loading)
@@ -40,11 +41,11 @@ const Auth = () => {
         dispatch(authActions.toggle({}))
     }
 
-    // useEffect(() => {
-    //     if (isSuccess) {
-    //         dispatch(authActions.hide())
-    //     }
-    // }, [isSuccess])
+    useEffect(() => {
+        if (isSuccess) {
+            dispatch(authActions.hide({}))
+        }
+    }, [isSuccess])
 
     useEffect(() => {
         if (

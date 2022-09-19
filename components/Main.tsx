@@ -31,7 +31,8 @@ const roleStrategy: RoleStrategyType = {
 }
 
 const Main = () => {
-    const [refetchUser, { data, isLoading, isError, isSuccess }] = dyktiApi.endpoints.getUser.useLazyQuery()
+    const getUser = dyktiApi.endpoints.getUser as any
+    const [refetchUser, { data, isLoading, isError, isSuccess }] = getUser.useLazyQuery()
 
     // const { isError, data }: IQuery<IUser> = useGetUserQuery()
 

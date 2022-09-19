@@ -65,22 +65,22 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (!meetingDateData.isChecked) {
             console.log('meeting date error')
-            showMessage ? meetingDateData?.showError() : null
+            showMessage ? meetingDateData?.showError!() : null
             return setIsFormChecked(false)
         }
         if (!wasThereMeeting.isChecked) {
             console.log('was there meeting error')
-            showMessage ? wasThereMeeting?.showError() : null
+            showMessage ? wasThereMeeting?.showError!() : null
             return setIsFormChecked(false)
         }
         if (!docsSendDateData.isChecked) {
             console.log('docs send date error')
-            showMessage ? docsSendDateData?.showError() : null
+            showMessage ? docsSendDateData?.showError!() : null
             return setIsFormChecked(false)
         }
         if (!offerDateData.isChecked) {
             console.log('offer date error')
-            showMessage ? offerDateData?.showError() : null
+            showMessage ? offerDateData?.showError!() : null
             return setIsFormChecked(false)
         }
 

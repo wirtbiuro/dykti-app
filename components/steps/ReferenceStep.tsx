@@ -52,7 +52,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (!wasReferenceRequestSentData.isChecked) {
             console.log('wasReferenceRequestSentData error')
-            showMessage ? wasReferenceRequestSentData?.showError() : null
+            showMessage ? wasReferenceRequestSentData?.showError!() : null
             return setIsFormChecked(false)
         }
 
@@ -67,7 +67,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (isClientReferenceData.isChecked && !referenceLocationData.isChecked) {
             console.log('referenceLocationData error')
-            showMessage ? referenceLocationData?.showError() : null
+            showMessage ? referenceLocationData?.showError!() : null
             return setIsFormChecked(false)
         }
 

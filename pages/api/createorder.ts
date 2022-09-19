@@ -12,6 +12,7 @@ type ReqBodyType = {
 
 async function createorder(req: NextApiRequest, res: NextApiResponse) {
     const prisma = new PrismaClient()
+    const _prisma = prisma as any
 
     try {
         const { order } = req.body as ReqBodyType
@@ -38,7 +39,8 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
             delete step.orderId
             delete step.id
             delete step.createdAt
-            const _order = await prisma.order.update({
+
+            const _order = await _prisma.order.update({
                 where: { id: order.id },
                 data: {
                     steps: {
@@ -54,7 +56,7 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
         }
 
         if (!order) {
-            const order = await prisma.order.create({
+            const order = await _prisma.order.create({
                 data: {
                     steps: {
                         create: {

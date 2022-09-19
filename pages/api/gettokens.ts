@@ -23,10 +23,14 @@ export default async function gettokens(req: NextApiRequestWithHeaders, res: Nex
         try {
             decodedToken = jwt.verify(token, process.env.JWT_SECRET)
         } catch (error) {
-            console.log({ error })
-            console.log(error.message)
-            console.log(error.name)
-            if (error.name !== 'TokenExpiredError') {
+            const _error = error as {
+                name: string
+                message: string
+            }
+            console.log({ _error })
+            console.log(_error.message)
+            console.log(_error.name)
+            if (_error.name !== 'TokenExpiredError') {
                 console.log('Not a TokenExpiredError')
                 res.setHeader('Set-Cookie', [
                     cookie.serialize('refresh', '', { httpOnly: true }),
@@ -44,8 +48,13 @@ export default async function gettokens(req: NextApiRequestWithHeaders, res: Nex
             decodedRefresh = jwt.verify(refresh, process.env.REFRESH_SECRET)
             console.log({ decodedRefresh })
         } catch (error) {
-            console.log({ error })
-            if (error.name === 'TokenExpiredError') {
+            const _error = error as {
+                name: string
+                message: string
+            }
+
+            console.log({ _error })
+            if (_error.name === 'TokenExpiredError') {
                 try {
                     await prisma.refresh.delete({
                         where: { id: decodedRefresh.refreshId },

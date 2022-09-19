@@ -65,13 +65,13 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (!nameData.isChecked) {
             console.log('nameData error')
-            showMessage ? nameData.showError() : null
+            showMessage ? nameData.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (!emailData.isChecked && !phoneData.isChecked) {
             console.log('emailPhoneData error')
-            showMessage ? phoneData.showError() : null
+            showMessage ? phoneData.showError!() : null
             return setIsFormChecked(false)
         }
 
@@ -83,13 +83,13 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (!addressData.isChecked) {
             console.log('addressData error')
-            showMessage ? addressData.showError() : null
+            showMessage ? addressData.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (!meetingDateData.isChecked) {
             console.log('meetingDateData error')
-            showMessage ? meetingDateData.showError() : null
+            showMessage ? meetingDateData.showError!() : null
             return setIsFormChecked(false)
         }
 

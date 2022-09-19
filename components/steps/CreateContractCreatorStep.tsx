@@ -59,13 +59,13 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         if (!sendingDateData.isChecked) {
             console.log('sendingDateData error')
-            showMessage ? sendingDateData.showError() : null
+            showMessage ? sendingDateData.showError!() : null
             return setIsFormChecked(false)
         }
 
         if (!isContractAcceptedData.isChecked && !rejectionReasonData.isChecked) {
             console.log('rejectionReasonData error')
-            showMessage ? rejectionReasonData.showError() : null
+            showMessage ? rejectionReasonData.showError!() : null
             return setIsFormChecked(false)
         }
 
@@ -79,7 +79,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         if (!rejectionReasonData.isChecked) {
             console.log('rejectionReasonData error')
-            showMessage ? rejectionReasonData.showError() : null
+            showMessage ? rejectionReasonData.showError!() : null
             return setIsPrevFormChecked(false)
         }
 
