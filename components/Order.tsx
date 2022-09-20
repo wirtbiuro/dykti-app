@@ -77,7 +77,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
 
     return (
         <StepStyled key={order.id}>
-            <Step step={step} />
+            <Step step={step} stepName={stepName} />
             {!isViewing && <button onClick={() => setIsViewing(true)}>Kontynuować</button>}
             {isViewing && <button onClick={() => setIsViewing(false)}>Zamknij</button>}
             {shouldConfirmView && <button onClick={() => onConfirm(order)}>Potwierdź akceptację</button>}
