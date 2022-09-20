@@ -12,7 +12,7 @@ const Header = () => {
     const getUser = dyktiApi.endpoints.getUser as any
     const getUserQueryData = getUser.useQueryState()
 
-    const { isLoading, isError, data } = getUserQueryData
+    const { isLoading, isError, data, isUninitialized } = getUserQueryData
 
     const [refetchUser] = getUser.useLazyQuery()
 
@@ -40,7 +40,7 @@ const Header = () => {
                     Logout
                 </button>
             )}
-            {(!data || isError) && !isLoading && <button onClick={onLogin}>Login</button>}
+            {(!data || isError) && !isLoading && !isUninitialized && <button onClick={onLogin}>Login</button>}
         </HeaderStyled>
     )
 }
