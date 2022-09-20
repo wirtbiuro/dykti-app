@@ -196,8 +196,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                 defaultValue={prevStep?.formStepComment}
                             />
                             <SendButtons
-                                passedTo="formStep"
-                                maxPromotion="formStep"
+                                passedTo={prevStep?.passedTo || 'formStep'}
+                                maxPromotion={prevStep?.maxPromotion || 'formStep'}
                                 curStepName="formStep"
                                 dataRef={sendButtonsOutputRef}
                                 isFormChecked={isFormChecked}

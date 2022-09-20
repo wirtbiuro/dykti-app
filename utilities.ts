@@ -201,6 +201,7 @@ export const getOrderStatus: getOrderStatusType = ({ curStepName, passedTo, maxP
     } else {
         isProceedToEdit = true
     }
+    console.log({ isCurrent, isEdit, isProceedToEdit, isProceedToNext })
     return { isCurrent, isEdit, isProceedToEdit, isProceedToNext }
 }
 
