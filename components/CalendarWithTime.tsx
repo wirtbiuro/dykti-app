@@ -55,10 +55,15 @@ function CalendarWithTime({ defaultDate, connection, isTimeEnabled = true }: ICa
         console.log('useeffect isreset', isReset)
 
         if (isTimeEnabled && isReset) {
-            hoursRef.current!.value = 'hh'
-            minutesRef.current!.value = 'mm'
-            setIsHours(false)
-            setIsMinutes(false)
+            if (isVisible) {
+                hoursRef.current!.value = 'hh'
+                minutesRef.current!.value = 'mm'
+                setIsHours(false)
+                setIsMinutes(false)
+            } else {
+                setIsHours(false)
+                setIsMinutes(false)
+            }
         }
         check({ isReset })
     }, [isReset])
@@ -197,6 +202,8 @@ function CalendarWithTime({ defaultDate, connection, isTimeEnabled = true }: ICa
     const viewTime = dateTimeValue
         ? isVisible
             ? dateTimeValue.toFormat('dd.LL.yyyy')
+            : isReset
+            ? 'DD.MM.YYYY hh:mm'
             : dateTimeValue.toFormat('dd.LL.yyyy HH:mm')
         : isVisible
         ? 'DD.MM.YYYY'
