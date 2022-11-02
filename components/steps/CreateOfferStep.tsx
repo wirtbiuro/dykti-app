@@ -8,7 +8,7 @@ import {
     ISendCheckboxes,
     FieldsToSend,
 } from '../../types'
-import { useCreateOrderMutation } from '../../state/apiSlice'
+import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
@@ -25,6 +25,10 @@ type FormElement = HTMLFormElement & FormType
 const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
     const [isSpinning, setIsSpinning] = useState(false)
+
+    const getUser = dyktiApi.endpoints.getUser as any
+    const getUserQueryData = getUser.useQuery()
+    const { data: userData } = getUserQueryData
 
     const formRef = useRef<FormElement>(null)
 
@@ -131,6 +135,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
+            userId: userData.id,
             toPrevSendData: {
                 order,
                 offerStepAreBefDocsGood: false,
@@ -192,8 +197,6 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                         connection={offerDateData}
                                         isTimeEnabled={false}
                                     />
-                                    <br />
-                                    <br />
                                     <p>Komentarz: </p>
                                     <FormInput
                                         placeholder="komentarz"

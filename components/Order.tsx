@@ -75,11 +75,29 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
         setIsModalOpen(true)
     }
 
+    const onContinueBtn = () => {
+        setIsViewing(true)
+        setIsHistory(false)
+    }
+
+    const onCloseBtn = () => {
+        setIsViewing(false)
+    }
+
+    const onShowHistory = () => {
+        setIsHistory(true)
+        setIsViewing(false)
+    }
+
+    const onHideHistory = () => {
+        setIsHistory(false)
+    }
+
     return (
         <StepStyled key={order.id}>
             <Step step={step} stepName={stepName} />
-            {!isViewing && <button onClick={() => setIsViewing(true)}>Kontynuować</button>}
-            {isViewing && <button onClick={() => setIsViewing(false)}>Zamknij</button>}
+            {!isViewing && <button onClick={onContinueBtn}>Kontynuować</button>}
+            {isViewing && <button onClick={onCloseBtn}>Zamknij</button>}
             {shouldConfirmView && <button onClick={() => onConfirm(order)}>Potwierdź akceptację</button>}
             {stepName !== 'lastDecisionStep' && isCurrent && (
                 <button onClick={() => onClose(order)}>Zamknąć sprawę</button>
@@ -105,8 +123,8 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
                 </button>
             </div>
 
-            {!isHistory && <button onClick={() => setIsHistory(true)}>Pokaż historię zmian</button>}
-            {isHistory && <button onClick={() => setIsHistory(false)}>Zamknij histoię zmian</button>}
+            {!isHistory && <button onClick={onShowHistory}>Pokaż historię zmian</button>}
+            {isHistory && <button onClick={onHideHistory}>Zamknij histoię zmian</button>}
 
             {React.cloneElement(children as JSX.Element, {
                 isVisible: isViewing,
@@ -115,11 +133,13 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
             })}
 
             {isHistory && (
-                <div>
-                    Zmiany:
-                    {order.steps.map((step, idx) => (
-                        <Step key={step.id} step={step} prevStep={getPrevStep(order, idx)} />
-                    ))}
+                <div className="changes-wrapper">
+                    <strong>Zmiany:</strong>
+                    <div className="changes">
+                        {order.steps.map((step, idx) => (
+                            <Step key={step.id} step={step} prevStep={getPrevStep(order, idx)} isHistory={isHistory} />
+                        ))}
+                    </div>
                 </div>
             )}
             <_Modal open={isModalOpen}>

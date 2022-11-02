@@ -74,22 +74,22 @@ const SendButtons: FC<ISendButtons> = ({
     return (
         <div>
             {(isCurrent || isEdit) && isMainCondition && curStepName !== 'lastDecisionStep' && (
-                <>
+                <div className="checkbox-styled">
                     <input type="checkbox" name="nextCheckbox" defaultChecked={true} ref={isCompletedRef} />
                     Skończ i przekaż dalej
-                </>
+                </div>
             )}
             {(isCurrent || isEdit) && !isMainCondition && (
-                <>
+                <div className="checkbox-styled">
                     <input type="checkbox" name="prevCheckbox" defaultChecked={true} ref={isAltCompletedRef} />
                     Zakończ i przekaż poprzedniemu użytkownikowi.
-                </>
+                </div>
             )}
             {(isProceedToEdit || isProceedToNext) && (isMainCondition ? !isFormChecked : !isPrevFormChecked) && (
-                <>
+                <div className="checkbox-styled">
                     <input name="uncompleteCheckbox" type="checkbox" defaultChecked={false} ref={uncompleteSaveRef} />
                     Zapisz z niekompletnymi danymi.
-                </>
+                </div>
             )}
             {/* {(isProceedToEdit || isProceedToNext) && (
                 <>

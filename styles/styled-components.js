@@ -14,6 +14,32 @@ export const FormStyled = styled.div`
     }
     input {
         margin-bottom: 30px;
+        border-radius: 6px;
+        border-color: rgba(0, 0, 0, 0.5);
+        padding-left: 15px;
+        margin-right: 10px;
+    }
+    .checkbox-styled {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        input {
+            margin-bottom: 0px;
+        }
+    }
+    select[multiple] {
+        width: 300px;
+    }
+    .multiple-values {
+        display: flex;
+        max-width: 400px;
+        margin-bottom: 10px;
+        div {
+            border-radius: 20px;
+            background: #d9d9d9;
+            padding: 2px 14px;
+            margin-right: 10px;
+        }
     }
 `
 
@@ -25,8 +51,22 @@ export const OrderStyled = styled.div`
 
 export const StepStyled = styled.div`
     padding: 15px;
-    background: #eeeeee;
+    background: rgb(247, 247, 247);
     margin-bottom: 5px;
+    button {
+        margin-right: 10px;
+        background: #635959;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .changes {
+        height: 80vh;
+        overflow: auto;
+    }
+    .changes-wrapper {
+        margin-top: 20px;
+    }
 `
 
 export const StepComponentStyled = styled.div`
@@ -34,6 +74,7 @@ export const StepComponentStyled = styled.div`
     flex-wrap: wrap;
     .prop {
         padding: 15px;
+        padding-left: 0;
     }
     .description {
         font-size: 10px;
@@ -45,17 +86,23 @@ export const StepComponentStyled = styled.div`
         background-color: orange;
         color: white;
         width: 100%;
+        padding-left: 10px;
     }
 `
 
 export const CreateFormStyled = styled.div`
-    background: #eeeeee;
-    padding: 20px;
+    background: rgb(247, 247, 247);
+    padding: 20px 10px;
 `
 
 export const HeaderStyled = styled.div`
     display: flex;
     justify-content: flex-end;
+    button {
+        color: white;
+        margin-bottom: 20px;
+        margin-left: 10px;
+    }
 `
 
 export const AuthStyled = styled.div`
@@ -112,5 +159,76 @@ export const MultiFormStyled = styled.div`
     }
     option::selection {
         background: white !important;
+    }
+`
+
+export const CalendarStyled = styled.div`
+    .calendar-main-panel {
+        display: flex;
+    }
+    .calendar-view-time {
+        margin-right: 5px;
+    }
+    select[name='minutes'] {
+        margin-right: 10px;
+    }
+    .error {
+        color: red;
+    }
+    margin-bottom: 30px;
+`
+
+export const ChangesStyled = styled.div`
+    display: flex;
+    gap: 56px;
+    .date {
+        min-width: 110px;
+    }
+    .change {
+        display: flex;
+        strong {
+            margin-right: 6px;
+        }
+        p {
+            margin-bottom: 9px;
+        }
+    }
+    .col > p {
+        margin-top: 9px;
+    }
+`
+
+export const MainStyled = styled.div`
+    .roles {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        .role {
+            list-style-type: none;
+            cursor: pointer;
+            border-radius: 6px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+
+            padding: 0 10px;
+            border: 1px solid black;
+            background: rgba(0, 0, 0, 0.1);
+            min-height: 30px;
+        }
+    }
+`
+
+export const CreatorFormPanelStyled = styled.div`
+    .new-deal {
+        color: white;
+        margin-bottom: 20px;
+        background: orange;
+    }
+    button {
+        margin-right: 10px;
+        color: white;
     }
 `

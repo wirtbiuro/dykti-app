@@ -16,6 +16,7 @@ model User{
   email String? @unique
   username String @unique
   password String?
+  name String?
   role String[]
   refreshes Refresh[] @relation("UserRefreshes")
   createdSteps Step[] @relation("UserCreatedSteps")

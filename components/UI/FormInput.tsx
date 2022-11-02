@@ -94,16 +94,18 @@ function FormInput<T extends string>({
     return (
         <div className="withErr">
             <div className="formError" ref={errRef}></div>
-            <input
-                ref={inputRef}
-                type={type}
-                name={name}
-                placeholder={placeholder}
-                defaultValue={defaultValue}
-                defaultChecked={defaultChecked}
-                onChange={onChange}
-            />
-            {children}
+            <div className="checkbox-styled">
+                <input
+                    ref={inputRef}
+                    type={type}
+                    name={name}
+                    placeholder={placeholder}
+                    defaultValue={defaultValue}
+                    defaultChecked={defaultChecked}
+                    onChange={onChange}
+                />
+                {children}
+            </div>
         </div>
     )
 }

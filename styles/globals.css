@@ -8,10 +8,17 @@ body {
 }
 
 a {
-    color: inherit;
     text-decoration: none;
 }
 
 * {
     box-sizing: border-box;
+}
+
+button {
+    margin-right: 10px;
+    background: #635959;
+    color: white;
+    border: none;
+    cursor: pointer;
 }

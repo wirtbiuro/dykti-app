@@ -14,6 +14,8 @@ import ReferencePanel from './panels/ReferencePanel'
 import { withRtkQueryTokensCheck } from '../utilities'
 import useErrFn from '../hooks/useErrFn'
 import LastDecisionPanel from './panels/LastDecisionPanel'
+import { observer } from 'mobx-react-lite'
+import { MainStyled } from '../styles/styled-components'
 
 type RoleStrategyType = Record<Role, JSX.Element>
 
@@ -30,7 +32,7 @@ const roleStrategy: RoleStrategyType = {
     LastDecisionUser: <LastDecisionPanel />,
 }
 
-const Main = () => {
+const Main = observer(() => {
     const getUser = dyktiApi.endpoints.getUser as any
     const [refetchUser, { data, isLoading, isError, isSuccess }] = getUser.useLazyQuery()
 
@@ -61,35 +63,30 @@ const Main = () => {
 
     if (data && data.role && !isError) {
         return (
-            <>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <MainStyled>
+                <ul className="roles">
                     {data.role.map((role: Role) => {
                         return (
-                            <div
+                            <li
                                 key={role}
+                                onClick={() => roleClicked(role)}
                                 style={{
-                                    paddingRight: '20px',
+                                    fontWeight: visibleRole === role ? 'bold' : 'normal',
                                 }}
+                                className="role"
                             >
-                                <a
-                                    onClick={() => roleClicked(role)}
-                                    style={{
-                                        fontWeight: visibleRole === role ? 'bold' : 'normal',
-                                    }}
-                                >
-                                    {roleTitles[role]}
-                                </a>
-                            </div>
+                                {roleTitles[role]}
+                            </li>
                         )
                     })}
-                </div>
+                </ul>
 
                 <>{visibleRole && roleStrategy[visibleRole]}</>
-            </>
+            </MainStyled>
         )
     }
 
     return <div>Dykti app</div>
-}
+})
 
 export default Main

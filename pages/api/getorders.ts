@@ -62,7 +62,7 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
         const orders = await prisma.order.findMany({
             where,
             include: {
-                steps: true,
+                steps: { include: { stepCreator: true } },
             },
         })
 

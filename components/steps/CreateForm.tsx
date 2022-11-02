@@ -8,7 +8,7 @@ import {
     ISendCheckboxes,
     ISendButtonsOutputRef,
 } from '../../types'
-import { useCreateOrderMutation } from '../../state/apiSlice'
+import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import { submitForm } from '../../utilities'
 import { useFormInput } from '../../hooks/useFormInput'
@@ -27,6 +27,10 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [isSpinning, setIsSpinning] = useState(false)
 
     const [createOrder] = useCreateOrderMutation()
+
+    const getUser = dyktiApi.endpoints.getUser as any
+    const getUserQueryData = getUser.useQuery()
+    const { data: userData } = getUserQueryData
 
     const formRef = useRef<FormElement>(null)
 
@@ -119,6 +123,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         setIsSpinning(true)
 
         await submitForm({
+            userId: userData.id,
             maxPromotion: prevStep?.maxPromotion || 'formStep',
             target,
             isMainCondition: true,

@@ -13,7 +13,7 @@ interface IFormSelectProps<T = string> {
     onErrorOk?: Function
     defaultValue?: string
     connection?: useFormSelectType
-    options: Array<[string, string]>
+    options: string[][]
     title?: string
 }
 function FormSelect({
@@ -132,27 +132,24 @@ function FormSelect({
 
     return (
         <MultiFormStyled>
-            <div className="withErr">
-                <p>{title}</p>
-                <div className="formError" ref={errRef}></div>
-                {/* <div>{selectedIdxsString}</div> */}
-                <div>{getValues()}</div>
-                <select name={name} ref={selectRef} multiple={true}>
-                    <>
-                        {options.map((option) => (
-                            <option
-                                value={option[0]}
-                                onClick={clicked}
-                                className={getIsSelected(option[0]) ? 'multi-selected' : 'not-selected'}
-                                key={option[0]}
-                                onMouseDown={onTouschStart}
-                            >
-                                {option[1]}
-                            </option>
-                        ))}
-                    </>
-                </select>
-            </div>
+            <p>{title}</p>
+            <div className="formError" ref={errRef}></div>
+            <div className="multiple-values">{getValues()}</div>
+            <select name={name} ref={selectRef} multiple={true}>
+                <>
+                    {options.map((option) => (
+                        <option
+                            value={option[0]}
+                            onClick={clicked}
+                            className={getIsSelected(option[0]) ? 'multi-selected' : 'not-selected'}
+                            key={option[0]}
+                            onMouseDown={onTouschStart}
+                        >
+                            {option[1]}
+                        </option>
+                    ))}
+                </>
+            </select>
         </MultiFormStyled>
     )
 }

@@ -8,7 +8,7 @@ import {
     ISendCheckboxes,
     FieldsToSend,
 } from '../../types'
-import { useCreateOrderMutation } from '../../state/apiSlice'
+import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
@@ -27,6 +27,10 @@ type FormElement = HTMLFormElement & FormType
 const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [isSpinning, setIsSpinning] = useState(false)
     const [createOrder] = useCreateOrderMutation()
+
+    const getUser = dyktiApi.endpoints.getUser as any
+    const getUserQueryData = getUser.useQuery()
+    const { data: userData } = getUserQueryData
 
     const formRef = useRef<FormElement>(null)
 
@@ -131,6 +135,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         setIsSpinning(true)
 
         await submitForm({
+            userId: userData.id,
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,

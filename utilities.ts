@@ -311,6 +311,7 @@ interface ISubmitFormProps {
     curStepName: StepName
     maxPromotion: StepName
     passedTo: StepName
+    userId: number
     nextToPass?: StepName
     prevToPass?: StepName
     formCheck?: FormCheckType
@@ -329,10 +330,9 @@ export const submitForm: SubmitFormType = async ({
     target,
     isMainCondition,
     curStepName,
-    formCheck,
-    isFormChecked,
     maxPromotion,
     passedTo,
+    userId,
     nextToPass,
     prevToPass,
     toNextSendData,
@@ -372,6 +372,7 @@ export const submitForm: SubmitFormType = async ({
         maxPromotion: _maxPromotion,
         shouldConfirmView,
         createdByStep: curStepName,
+        stepCreatorId: userId,
     }
 
     console.log({ _options })

@@ -151,7 +151,8 @@ export type StepType = {
     shouldConfirmView?: boolean
     isCompleted?: boolean
     createdBy?: number
-    creator?: IUser
+    stepCreator?: IUser
+    stepCreatorId?: number
 } & IFormStep &
     IBefaringStep &
     IOfferStep &
@@ -176,9 +177,6 @@ export interface IFormStep {
 export interface IBefaringStep {
     beffaringStepWasThereMeeting?: boolean
     beffaringStepOfferDate?: DateTime | string
-    beffaringStepInfoSendingDate?: DateTime | string
-    beffaringStepCreatorId?: number
-    beffaringStepCreator?: IUser
     beffaringStepComment?: string
     beffaringStepDocsSendDate?: DateTime | string
 }
@@ -236,6 +234,15 @@ export interface IReferenceStep {
     referenceStepReferenceLocation?: string
 }
 
+export type StepFields = [keyof StepType, string][]
+
+export const stepFields: StepFields = [
+    ['beffaringStepWasThereMeeting', 'Spotkanie z klientem sie odbyło'],
+    ['beffaringStepDocsSendDate', 'Data wysłania dokumentów, przez Befaringowca'],
+    ['beffaringStepOfferDate', 'Kiedy należy przygotować ofertę'],
+    ['beffaringStepComment', 'Komentarz Befaringowca'],
+]
+
 export interface IRecord {
     id: number
     createdAt: string
@@ -276,6 +283,7 @@ export interface IUser {
     username: string
     id: string
     role: Array<Role>
+    name: string
 }
 
 export interface IAuth {

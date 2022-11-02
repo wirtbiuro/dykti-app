@@ -1,33 +1,23 @@
 import React, { FC, useEffect, useState } from 'react'
-import { StepType, StepName } from '../types'
+import { StepType, StepName, roleTitles, Role, stepNamesRelations, IUser } from '../types'
 import { StepComponentStyled } from '../styles/styled-components'
 import { DateTime } from 'luxon'
+import { fieldNames, selectData } from '../accessories/constants'
+import Changes from './Changes'
 
 type StepProps = {
     step: StepType
     prevStep?: StepType
     stepName?: StepName
+    isHistory?: boolean
 }
 
-function Step({ step, prevStep, stepName }: StepProps) {
-    const [changes, setChanges] = useState<Array<string>>()
-
-    useEffect(() => {
-        const changes = []
-        let key: keyof typeof step
-        for (key in step) {
-            if (step.hasOwnProperty(key)) {
-                if (prevStep && step[key] !== prevStep[key]) {
-                    changes.push(`${prevStep[key]} --> ${step[key]}`)
-                }
-            }
-        }
-        setChanges(changes)
-    }, [])
-
+function Step({ step, prevStep, stepName, isHistory }: StepProps) {
     return prevStep ? (
-        <StepComponentStyled>{changes?.join(',  ')}</StepComponentStyled>
-    ) : (
+        <StepComponentStyled>
+            <Changes step={step} prevStep={prevStep} />
+        </StepComponentStyled>
+    ) : isHistory ? null : (
         <StepComponentStyled>
             {step?.passedTo === 'beffaringStep' &&
                 !step?.formStepMeetingDate &&
@@ -46,7 +36,7 @@ function Step({ step, prevStep, stepName }: StepProps) {
                     </p>
                 </div>
             )}
-            {step.formStepWhereClientFound && (
+            {step.formStepWhereClientFound && step.passedTo === 'formStep' && (
                 <div className="prop">
                     <p className="description">Skąd znaleziono klienta: </p>
                     <p className="value">{step.formStepWhereClientFound}</p>
@@ -56,38 +46,6 @@ function Step({ step, prevStep, stepName }: StepProps) {
                 <div className="prop">
                     <p className="description">Komentarz:</p>
                     <p className="value">{step.formStepComment}</p>
-                </div>
-            )}
-            {/* {step.formStep.record.createdAt && (
-                <div className="prop">
-                    <p className="description">Stworzony w:</p>
-                    <p className="value">{step.formStep.record.createdAt}</p>
-                </div>
-            )} */}
-            {/* {step.formStepCreator && (
-                <div className="prop">
-                    <p className="description">Stworzone przez:</p>
-                    <p className="value">{step.formStepCreator.username}</p>
-                </div>
-            )}
-            {step.beffaringStepPrevStepConfirmationDate && (
-                <div className="prop">
-                    <p className="description">Przyjęty do realizacji:</p>
-                    <p className="value">
-                        {step.beffaringStepPrevStepConfirmationDate as string}
-                    </p>
-                </div>
-            )} */}
-            {step.beffaringStepCreator && (
-                <div className="prop">
-                    <p className="description">Kto przyjął:</p>
-                    <p className="value">{step.beffaringStepCreator.username}</p>
-                </div>
-            )}
-            {step.beffaringStepInfoSendingDate && (
-                <div className="prop">
-                    <p className="description">Data wysłania dokumentów:</p>
-                    <p className="value">{step.beffaringStepInfoSendingDate as string}</p>
                 </div>
             )}
             {step.formStepMeetingDate && (

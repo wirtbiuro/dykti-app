@@ -8,7 +8,7 @@ import {
     ISendCheckboxes,
     FieldsToSend,
 } from '../../types'
-import { useCreateOrderMutation } from '../../state/apiSlice'
+import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
@@ -26,6 +26,10 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
     const [isSpinning, setIsSpinning] = useState(false)
 
     const [createOrder] = useCreateOrderMutation()
+
+    const getUser = dyktiApi.endpoints.getUser as any
+    const getUserQueryData = getUser.useQuery()
+    const { data: userData } = getUserQueryData
 
     const formRef = useRef<FormElement>(null)
 
@@ -123,6 +127,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
         setIsSpinning(true)
 
         await submitForm({
+            userId: userData.id,
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,

@@ -7,6 +7,7 @@ import Orders from '../Orders'
 import { getArrIdx, getDatas } from '../../utilities'
 import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
 import useGetOrders from '../../hooks/useGetOrders'
+import { CreatorFormPanelStyled } from '../../styles/styled-components'
 
 const CreatorFormPanel = () => {
     const [currentOrderId, setCurrentOrderId] = useState<number | null>(null)
@@ -33,12 +34,13 @@ const CreatorFormPanel = () => {
     // if (!data) return <>Ładowanie danych...</>
 
     return (
-        <div>
+        <CreatorFormPanelStyled>
             <div>
                 <button
                     onClick={() => {
                         setIsVisible((isVisible) => !isVisible)
                     }}
+                    className="new-deal"
                 >
                     {isVisible ? 'Anulować' : 'Nowa sprawa'}
                 </button>
@@ -92,7 +94,7 @@ const CreatorFormPanel = () => {
                     )
                 })}
             </div> */}
-        </div>
+        </CreatorFormPanelStyled>
     )
 }
 

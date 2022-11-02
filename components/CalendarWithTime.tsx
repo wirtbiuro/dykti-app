@@ -6,20 +6,15 @@ import { Modal } from 'antd'
 import { flushSync } from 'react-dom'
 import { IOutputRef } from '../types'
 import { useCalendarDataType } from '../hooks/useCalendarData'
+import { CalendarStyled } from '../styles/styled-components'
 
 interface ICalendarWithTime {
     defaultDate?: string | DateTime | undefined
     connection?: useCalendarDataType
     isTimeEnabled?: boolean
-    formChanged?: Function
 }
 
-function CalendarWithTime({
-    defaultDate,
-    connection,
-    isTimeEnabled = true,
-    formChanged = () => {},
-}: ICalendarWithTime) {
+function CalendarWithTime({ defaultDate, connection, isTimeEnabled = true }: ICalendarWithTime) {
     const _defaultDate = useMemo(() => {
         console.log({ defaultDate })
         return defaultDate ? DateTime.fromISO(defaultDate as string) : false
@@ -119,25 +114,6 @@ function CalendarWithTime({
             errRef.current!.innerHTML = ''
         }
     }
-
-    // const isDate =
-    //     (selectedDate &&
-    //         hoursRef.current?.value !== 'hh' &&
-    //         minutesRef.current?.value !== 'mm') ||
-    //     (_defaultDate && isFirstLoad && !isReset)
-
-    // const timeEnabledCurrentDate = isDate
-    //     ? selectedDate.toISO()
-    //     : `DD:MM:YYYY hh:mm`
-
-    // const NoTimeEnabledCurrentDate = isReset
-    //     ? `DD:MM:YYYY`
-    //     : selectedDate.toISO()
-
-    // const currentDate = isTimeEnabled
-    //     ? timeEnabledCurrentDate
-    //     : NoTimeEnabledCurrentDate
-
     const errRef = useRef<HTMLDivElement>(null)
 
     const getValue = () => {
@@ -219,27 +195,19 @@ function CalendarWithTime({
 
     const dateTimeValue = connection?.value as DateTime
     const viewTime = dateTimeValue
-        ? isTimeEnabled
-            ? dateTimeValue.toFormat('dd.LL.yyyy HH:mm')
-            : dateTimeValue.toFormat('dd.LL.yyyy')
-        : isTimeEnabled
-        ? 'DD.MM.YYYY mm:hh'
-        : 'DD.MM.YYYY'
+        ? isVisible
+            ? dateTimeValue.toFormat('dd.LL.yyyy')
+            : dateTimeValue.toFormat('dd.LL.yyyy HH:mm')
+        : isVisible
+        ? 'DD.MM.YYYY'
+        : 'DD.MM.YYYY hh:mm'
 
     return (
-        <>
-            {viewTime}
-            <button onClick={clicked}>
-                {isVisible ? 'Zamknij' : connection?.value && !isReset ? 'Zmień datę' : 'Ustalić datę'}
-            </button>
-            {/* Checked: {connection?.isChecked ? 'true' : 'false'}
-            isReset: {isReset ? 'true' : 'false'}
-            Value: {viewTime} */}
-            <button onClick={reset}>Resetowanie</button>
-            <div style={{ display: isVisible ? 'block' : 'none' }}>
-                <Calendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
-                <div ref={errRef}></div>
-                {isTimeEnabled && (
+        <CalendarStyled>
+            <div className="error" ref={errRef}></div>
+            <div className="calendar-main-panel">
+                <div className="calendar-view-time">{viewTime}</div>
+                {isTimeEnabled && isVisible && (
                     <>
                         <select
                             name="hours"
@@ -280,8 +248,15 @@ function CalendarWithTime({
                         </select>
                     </>
                 )}
+                <button onClick={clicked}>
+                    {isVisible ? 'Zamknij' : connection?.value && !isReset ? 'Zmień datę' : 'Ustalić datę'}
+                </button>
+                <button onClick={reset}>Resetowanie</button>
             </div>
-        </>
+            <div style={{ display: isVisible ? 'block' : 'none' }}>
+                <Calendar selectedDate={selectedDate} setSelectedDate={setSelectedDate} />
+            </div>
+        </CalendarStyled>
     )
 }
 
