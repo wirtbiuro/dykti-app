@@ -33,13 +33,6 @@ model Refresh{
 
 model Step{
   id Int @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  passedTo String?
-  createdByStep String?
-  maxPromotion String?
-  returnStep String?
-  shouldConfirmView Boolean?
-  isCompleted Boolean?
   orderId Int
   order Order? @relation(fields: [orderId], references: [id])
   formStepClientName String?
@@ -89,6 +82,13 @@ model Step{
   referenceStepWasSentRequest Boolean?
   referenceStepIsClientReference Boolean?
   referenceStepReferenceLocation String?
+  createdAt DateTime @default(now())
+  passedTo String?
+  createdByStep String?
+  maxPromotion String?
+  returnStep String?
+  shouldConfirmView Boolean?
+  isCompleted Boolean?
 }
 
 model Order{

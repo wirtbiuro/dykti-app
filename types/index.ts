@@ -142,7 +142,7 @@ export interface IOutputRef {
 
 export type FormChangedType = ({}: { isFirstLoad: boolean }) => void
 
-export type StepType = {
+export type StepType = IFormStep & {
     id?: number
     orderId?: number
     createdAt?: string
@@ -156,8 +156,7 @@ export type StepType = {
     createdBy?: number
     stepCreator?: IUser
     stepCreatorId?: number
-} & IFormStep &
-    IBefaringStep &
+} & IBefaringStep &
     IOfferStep &
     IContractStep &
     IContractCheckerStep &
