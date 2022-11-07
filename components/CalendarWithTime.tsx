@@ -65,7 +65,8 @@ function CalendarWithTime({ defaultDate, connection, isTimeEnabled = true }: ICa
                 setIsMinutes(false)
             }
         }
-        check({ isReset })
+        const isChecked = check({ isReset })
+        console.log({ isChecked })
     }, [isReset])
 
     const hoursRef = useRef<HTMLSelectElement>(null)
@@ -141,9 +142,16 @@ function CalendarWithTime({ defaultDate, connection, isTimeEnabled = true }: ICa
     }
 
     const check = ({ isReset = !_defaultDate }: { isReset: boolean }) => {
-        console.log('check')
+        console.log('check', { isReset }, { isVisible })
+        if (isReset && !isVisible) {
+            console.log('check false')
+            connection?.__setIsChecked(false)
+            connection?.__setValue(getValue())
+            return false
+        }
         if (isTimeEnabled) {
             const isChecked = hoursRef.current?.value !== 'hh' && minutesRef.current?.value !== 'mm'
+            console.log({ isChecked })
             connection?.__setIsChecked(isChecked)
             connection?.__setValue(getValue())
 
@@ -199,6 +207,7 @@ function CalendarWithTime({ defaultDate, connection, isTimeEnabled = true }: ICa
     }, [])
 
     const dateTimeValue = connection?.value as DateTime
+
     const viewTime = dateTimeValue
         ? isVisible
             ? dateTimeValue.toFormat('dd.LL.yyyy')
@@ -209,11 +218,27 @@ function CalendarWithTime({ defaultDate, connection, isTimeEnabled = true }: ICa
         ? 'DD.MM.YYYY'
         : 'DD.MM.YYYY hh:mm'
 
+    const getViewTime = () => {
+        let value = selectedDate
+        const dateTimeFormat = isTimeEnabled ? 'dd.LL.yyyy HH:mm' : 'dd.LL.yyyy'
+        const undefinedFormat = isTimeEnabled ? 'DD.MM.YYYY hh:mm' : 'DD.MM.YYYY'
+        if (isReset) {
+            return isVisible ? 'DD.MM.YYYY' : undefinedFormat
+        }
+        if (isVisible) {
+            return value.toFormat('dd.LL.yyyy')
+        }
+        if (!isVisible && isTimeEnabled && (!isMinutes || !isHours)) {
+            return undefinedFormat
+        }
+        return value.toFormat(dateTimeFormat)
+    }
+
     return (
         <CalendarStyled>
             <div className="error" ref={errRef}></div>
             <div className="calendar-main-panel">
-                <div className="calendar-view-time">{viewTime}</div>
+                <div className="calendar-view-time">{getViewTime()}</div>
                 {isTimeEnabled && isVisible && (
                     <>
                         <select

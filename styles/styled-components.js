@@ -41,6 +41,9 @@ export const FormStyled = styled.div`
             margin-right: 10px;
         }
     }
+    select {
+        margin-bottom: 20px;
+    }
 `
 
 export const OrderStyled = styled.div`
@@ -73,8 +76,11 @@ export const StepComponentStyled = styled.div`
     display: flex;
     flex-wrap: wrap;
     .prop {
-        padding: 15px;
+        padding: 5px 15px;
         padding-left: 0;
+        &.unactive {
+            color: rgba(0, 0, 0, 0.2);
+        }
     }
     .description {
         font-size: 10px;
@@ -186,15 +192,22 @@ export const ChangesStyled = styled.div`
     }
     .change {
         display: flex;
+        margin-top: 9px;
         strong {
             margin-right: 6px;
         }
-        p {
-            margin-bottom: 9px;
-        }
     }
-    .col > p {
-        margin-top: 9px;
+    .col {
+        margin-bottom: 9px;
+    }
+    p {
+        margin-bottom: 0;
+    }
+    .col.creator,
+    .col.date {
+        p {
+            margin-top: 9px;
+        }
     }
 `
 
@@ -230,5 +243,13 @@ export const CreatorFormPanelStyled = styled.div`
     button {
         margin-right: 10px;
         color: white;
+    }
+`
+
+export const CloseOrderStyled = styled.div`
+    display: ${(props) => (props.isModalOpen ? 'block' : 'none')};
+    margin-top: 20px;
+    input {
+        margin: 10px 0 20px 0;
     }
 `

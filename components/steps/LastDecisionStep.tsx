@@ -59,11 +59,12 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
         console.log('closeConfirmationData.isChecked', closeConfirmationData.isChecked)
         console.log('nextToPassData.value', nextToPassData.value)
 
-        const isMainCondition = true
+        const isMainCondition = false
 
         setIsSpinning(true)
 
         await submitForm({
+            prevStep: prevStep!,
             userId: userData.id,
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -71,7 +72,8 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
             curStepName: 'lastDecisionStep',
             passedTo: prevStep!.passedTo,
             nextToPass: closeConfirmationData.isChecked ? 'lastDecisionStep' : (nextToPassData.value as StepName),
-            toNextSendData: {
+            toNextSendData: { ...sendButtonsOutputRef.current.getResults() },
+            toPrevSendData: {
                 order,
                 isCompleted: closeConfirmationData.value,
                 ...sendButtonsOutputRef.current.getResults(),

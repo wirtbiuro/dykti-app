@@ -39,6 +39,7 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
             delete step.orderId
             delete step.id
             delete step.createdAt
+            delete step.stepCreator
 
             const _order = await _prisma.order.update({
                 where: { id: order.id },

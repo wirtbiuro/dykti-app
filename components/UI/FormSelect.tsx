@@ -11,7 +11,7 @@ interface IFormSelectProps<T = string> {
     onErrorOk?: Function
     defaultValue?: string
     connection?: useFormSelectType
-    options: Array<[string, string]>
+    options: string[][]
     title?: string
 }
 function FormSelect<T extends string>({

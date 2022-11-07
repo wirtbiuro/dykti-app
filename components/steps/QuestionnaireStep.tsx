@@ -18,6 +18,7 @@ import FormMultiSelect from '../UI/FormMultiSelect'
 import { useFormSelect } from '../../hooks/useFormSelect'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
+import { selectData } from '../../accessories/constants'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -147,15 +148,16 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
         setIsSpinning(true)
 
         await submitForm({
+            prevStep: prevStep!,
             userId: userData.id,
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,
-            curStepName: 'completionStep',
+            curStepName: 'questionnaireStep',
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
-            nextToPass: isClientSatisfiedData.value ? 'referenceStep' : 'completionStep',
+            nextToPass: isClientSatisfiedData.value ? 'referenceStep' : 'questionnaireStep',
             toNextSendData: {
                 order,
                 questionnaireStepIsAcceptanceReport: isAcceptanceReportData.value,
@@ -228,11 +230,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                             {isClientSatisfiedData.value && (
                                 <>
                                     <FormMultiSelect
-                                        options={[
-                                            ['timeFrame', 'Ramy czasowe'],
-                                            ['endDate', 'Data zakonczenia'],
-                                            ['other', 'Inne'],
-                                        ]}
+                                        options={selectData.questionnaireStepSatisfaction}
                                         title={`Przyczyna zadowolenia klienta: `}
                                         connection={clientSatisfactionData}
                                         defaultValue={prevStep?.questionnaireStepSatisfaction || ''}
@@ -252,11 +250,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                             )}
 
                             <FormMultiSelect
-                                options={[
-                                    ['timeFrame', 'Ramy czasowe'],
-                                    ['endDate', 'Data zakonczenia'],
-                                    ['other', 'Inne'],
-                                ]}
+                                options={selectData.questionnaireStepDissatisfaction}
                                 title={`Przyczyna niezadowolenia klienta: `}
                                 connection={clientDissatisfactionData}
                                 defaultValue={prevStep?.questionnaireStepDissatisfaction || ''}
@@ -274,7 +268,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                             )}
 
                             <SendButtons
-                                curStepName="completionStep"
+                                curStepName="questionnaireStep"
                                 maxPromotion={prevStep!.maxPromotion}
                                 passedTo={prevStep!.passedTo}
                                 dataRef={sendButtonsOutputRef}

@@ -47,7 +47,7 @@ export const stepNamesRelations = [
     ['ContractChecker', 'contractCheckerStep'] as const,
     ['ContractCreator', 'contractCreatorStep'] as const,
     ['WorkRespUser', 'workStep'] as const,
-    ['QuestionnaireUser', 'completionStep'] as const,
+    ['QuestionnaireUser', 'questionnaireStep'] as const,
     ['ReferenceUser', 'referenceStep'] as const,
     ['LastDecisionUser', 'lastDecisionStep'] as const,
 ]
@@ -60,7 +60,7 @@ export type Role = StepNamesRelationsType[0]
 
 export type StepName = StepNamesRelationsType[1]
 
-const getStepNames: (stepNamesRelations: StepNamesRelationsArrType) => StepName[] = (stepNamesRelations) => {
+export const getStepNames: (stepNamesRelations: StepNamesRelationsArrType) => StepName[] = (stepNamesRelations) => {
     const stepNames: StepName[] = []
     for (const iterator of stepNamesRelations) {
         stepNames.push(iterator[1])
@@ -144,10 +144,13 @@ export type FormChangedType = ({}: { isFirstLoad: boolean }) => void
 
 export type StepType = {
     id?: number
+    orderId?: number
     createdAt?: string
     passedTo: StepName
     createdByStep?: StepName
     maxPromotion: StepName
+    returnStep: StepName | null
+    // lastUpdateStep?: StepName
     shouldConfirmView?: boolean
     isCompleted?: boolean
     createdBy?: number

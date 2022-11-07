@@ -20,6 +20,7 @@ import { useFormSelect } from '../../hooks/useFormSelect'
 import FormSelect from '../UI/FormSelect'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
+import { selectData } from '../../accessories/constants'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -135,6 +136,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         setIsSpinning(true)
 
         await submitForm({
+            prevStep: prevStep!,
             userId: userData.id,
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -151,7 +153,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                 contractStepOfferSendingDate: offerSendingDateData.value,
                 contractStepOfferRejectionReason: null,
                 contractStepSentForVerificationDate: null,
-                offerStepOfferDate: null,
+                // offerStepOfferDate: null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             toNextSendData: {
@@ -254,12 +256,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                     {!isOfferAcceptedData.isChecked && (
                                         <>
                                             <FormSelect
-                                                options={[
-                                                    ['select', 'Wybierz powód odrzucenia oferty'],
-                                                    ['price', 'Wysoka cena'],
-                                                    ['data', 'Termin'],
-                                                    ['other', 'Inny'],
-                                                ]}
+                                                options={selectData.contractStepOfferRejectionReason}
                                                 name="rejectionReasons"
                                                 title="Przyczyna odrzucenia oferty: "
                                                 connection={rejectionReasonsData}

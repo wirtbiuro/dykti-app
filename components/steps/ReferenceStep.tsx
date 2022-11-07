@@ -18,6 +18,7 @@ import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
 import FormMultiSelect from '../UI/FormMultiSelect'
 import { useFormMultiSelect } from '../../hooks/useFormMultiSelect'
+import { selectData } from '../../accessories/constants'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -104,6 +105,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         setIsSpinning(true)
 
         await submitForm({
+            prevStep: prevStep!,
             userId: userData.id,
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -165,11 +167,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
                                     {isClientReferenceData.isChecked && (
                                         <FormMultiSelect
-                                            options={[
-                                                ['mittanbud', 'Mittanbud'],
-                                                ['google', 'Google'],
-                                                ['site', 'Strona internetowa'],
-                                            ]}
+                                            options={selectData.referenceStepReferenceLocation}
                                             title={`Gdzie wysłano referencję: `}
                                             connection={referenceLocationData}
                                             defaultValue={prevStep?.referenceStepReferenceLocation || ''}

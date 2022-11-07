@@ -1,9 +1,8 @@
 import React, { FC, useEffect, useState } from 'react'
 import { StepType, StepName, roleTitles, Role, stepNamesRelations, IUser } from '../types'
 import { StepComponentStyled } from '../styles/styled-components'
-import { DateTime } from 'luxon'
-import { fieldNames, selectData } from '../accessories/constants'
 import Changes from './Changes'
+import { getStepProps, getUnactiveStepnames } from '../utilities'
 
 type StepProps = {
     step: StepType
@@ -13,6 +12,35 @@ type StepProps = {
 }
 
 function Step({ step, prevStep, stepName, isHistory }: StepProps) {
+    const unactiveStepNames = getUnactiveStepnames({ passedTo: step.passedTo, returnStep: step.returnStep })
+
+    console.log({ unactiveStepNames })
+
+    const getProps = () => {
+        const props = getStepProps(step)
+
+        let _props = props
+            .filter(
+                (prop) =>
+                    !['createdAt', 'id', 'stepCreator', 'orderId', 'maxPromotion', 'shouldConfirmView'].includes(
+                        prop.key
+                    )
+            )
+            .filter((prop) => prop.value !== null && prop.value !== '')
+
+        return _props.map((prop) => {
+            const belongedUnactiveStepName = unactiveStepNames.find((stepName) => prop.key.includes(stepName))
+            const className = belongedUnactiveStepName ? 'prop unactive' : 'prop'
+
+            return (
+                <div className={className} key={prop.key}>
+                    <p className="description">{prop.fieldName}:</p>
+                    <p className="value">{prop.view}</p>
+                </div>
+            )
+        })
+    }
+
     return prevStep ? (
         <StepComponentStyled>
             <Changes step={step} prevStep={prevStep} />
@@ -24,36 +52,8 @@ function Step({ step, prevStep, stepName, isHistory }: StepProps) {
                 (stepName === 'beffaringStep' || stepName === 'formStep') && (
                     <div className="no-meeting-date">Brakuje terminu spotkania z klientem</div>
                 )}
-            <div className="prop">
-                <p className="description">id:</p>
-                <p className="value">{step.id} </p>
-            </div>
-            {step.formStepClientName && (
-                <div className="prop">
-                    <p className="description">Dane klienta:</p>
-                    <p className="value">
-                        {step.formStepClientName} {step.formStepEmail} {step.formStepPhone}
-                    </p>
-                </div>
-            )}
-            {step.formStepWhereClientFound && step.passedTo === 'formStep' && (
-                <div className="prop">
-                    <p className="description">Skąd znaleziono klienta: </p>
-                    <p className="value">{step.formStepWhereClientFound}</p>
-                </div>
-            )}
-            {step.formStepComment && (
-                <div className="prop">
-                    <p className="description">Komentarz:</p>
-                    <p className="value">{step.formStepComment}</p>
-                </div>
-            )}
-            {step.formStepMeetingDate && (
-                <div className="prop">
-                    <p className="description">Termin spotkania:</p>
-                    <p className="value">{step.formStepMeetingDate as string}</p>
-                </div>
-            )}
+
+            <>{getProps()}</>
         </StepComponentStyled>
     )
 }

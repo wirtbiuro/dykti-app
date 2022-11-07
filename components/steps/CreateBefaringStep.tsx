@@ -13,7 +13,7 @@ import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
-import { submitForm, getMaxPromotion, showErrorMessages } from '../../utilities'
+import { submitForm, getMaxPromotion, showErrorMessages, getReturnStep } from '../../utilities'
 import { DateTime } from 'luxon'
 import { flushSync } from 'react-dom'
 import { useFormInput } from '../../hooks/useFormInput'
@@ -128,6 +128,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         setIsSpinning(true)
 
         await submitForm({
+            prevStep: prevStep!,
             userId: userData.id,
             maxPromotion: prevStep!.maxPromotion,
             target,

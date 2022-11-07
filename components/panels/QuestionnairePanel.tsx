@@ -1,11 +1,7 @@
-import React, { useState } from 'react'
-import { IQuery, IOrder, stepNames, StepName } from '../../types'
-import { useGetOrdersQuery, useGetCompletedOrdersQuery } from '../../state/apiSlice'
-import CreateOfferStep from '../steps/CreateOfferStep'
-import Orders from '../Orders'
-import { getArrIdx, getDatas } from '../../utilities'
+import React from 'react'
+import { IQuery, IOrder, StepName } from '../../types'
+import { getDatas } from '../../utilities'
 import QuestionnaireStep from '../steps/QuestionnaireStep'
-import useRefetchUserOnOrdersError from '../../hooks/useGetOrders'
 import useGetOrders from '../../hooks/useGetOrders'
 import AllCategoryOrders from '../AllCategoryOrders'
 
@@ -13,7 +9,7 @@ const QuestionnairePanel = () => {
     const { data, isError }: IQuery<IOrder> = useGetOrders('QuestionnaireUser')
     // const { data: processedData }: IQuery<IOrder> = useGetCompletedOrdersQuery('OfferCreator')
 
-    const currentStep: StepName = 'completionStep'
+    const currentStep: StepName = 'questionnaireStep'
 
     const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({ data, currentStep })
 
@@ -26,7 +22,7 @@ const QuestionnairePanel = () => {
             completedOrdersData={completedOrdersData}
             passedForEditData={passedForEditData}
             renderedComponent={<QuestionnaireStep />}
-            stepName="completionStep"
+            stepName="questionnaireStep"
         />
     )
 }

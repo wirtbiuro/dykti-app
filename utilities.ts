@@ -14,11 +14,16 @@ import {
     stepNames,
     StepNames,
     IOrder,
+    stepNamesRelations,
+    roleTitles,
+    getStepNames,
 } from './types'
 import { ServerController } from './server-controller'
 import { SyntheticEvent } from 'react'
 import { dyktiApi } from './state/apiSlice'
 import { Modal } from 'antd'
+import { DateTime } from 'luxon'
+import { selectData, fieldNames } from './accessories/constants'
 var cookie = require('cookie')
 var jwt = require('jsonwebtoken')
 
@@ -305,7 +310,81 @@ export const getFirstStepOrderStatus: GetFirstStepOrderStatusType = ({ curStepNa
     return { isCurrent, isEdit, isProceedToNext, isProceedToEdit: false }
 }
 
+interface IGetUnactiveStepnamesTypes {
+    passedTo: StepName
+    returnStep: StepName | null
+}
+
+export const getUnactiveStepnames = ({ passedTo, returnStep }: IGetUnactiveStepnamesTypes): StepName[] => {
+    const stepNames = getStepNames(stepNamesRelations)
+
+    console.log('getUnactiveStepnames')
+    console.log({ passedTo, returnStep })
+
+    const passedToIdx = stepNames.findIndex((stepName) => stepName === passedTo)
+    const returnStepIdx = stepNames.findIndex((stepName) => stepName === returnStep)
+
+    return stepNames.filter((stepName, idx) => {
+        return (returnStep === stepName && returnStep === passedTo) || (passedToIdx <= idx && idx < returnStepIdx)
+    })
+}
+
+interface IResetPrevProps {
+    curStepName: StepName
+    prevToPass?: StepName
+    step: StepType
+}
+
+export const resetPrevProps = ({ curStepName, prevToPass, step }: IResetPrevProps): StepType => {
+    let key: keyof typeof step
+    const resetValues: any = {}
+    const stepNames = getStepNames(stepNamesRelations)
+    const curStepNameIdx = stepNames.findIndex((stepName) => stepName === curStepName)
+    const _prevToPass = prevToPass || getPrevStepName(curStepName)
+    const prevToPassIdx = stepNames.findIndex((stepName) => stepName === _prevToPass)
+    const resetStepnames = stepNames.filter((stepName, idx) => {
+        return idx >= prevToPassIdx || idx < curStepNameIdx
+    })
+    for (key in step) {
+        if (step.hasOwnProperty(key)) {
+            resetStepnames.forEach((stepName) => {
+                if (stepName.includes(key)) {
+                    resetValues[key] = null
+                }
+            })
+        }
+    }
+    return resetValues
+}
+
+interface IGetReturnStepProps {
+    isMainCondition: boolean
+    createdByStep: StepName
+    passedTo: StepName
+    prevReturnStep: StepName | null
+}
+
+export const getReturnStep = ({
+    isMainCondition,
+    createdByStep,
+    passedTo,
+    prevReturnStep,
+}: IGetReturnStepProps): StepName | null => {
+    console.log('getReturnStep')
+    console.log({ isMainCondition, createdByStep, passedTo, prevReturnStep })
+    if (!isMainCondition && createdByStep !== passedTo) {
+        console.log('returnStep', createdByStep)
+        return createdByStep
+    }
+    if (isMainCondition && createdByStep === prevReturnStep && createdByStep !== passedTo) {
+        console.log('returnStep', 'null')
+        return null
+    }
+    return prevReturnStep
+}
+
 interface ISubmitFormProps {
+    prevStep: StepType
     target: EventTarget & WithValueNFocus<ISendCheckboxes>
     isMainCondition: boolean
     curStepName: StepName
@@ -327,6 +406,7 @@ interface ISubmitFormProps {
 type SubmitFormType = ({}: ISubmitFormProps) => Promise<void>
 
 export const submitForm: SubmitFormType = async ({
+    prevStep,
     target,
     isMainCondition,
     curStepName,
@@ -350,7 +430,7 @@ export const submitForm: SubmitFormType = async ({
     const isCurrentOrEdit = isCurrent || isEdit
 
     console.log('submitForm', isMainCondition)
-    console.log({ prevToPass })
+    console.log({ toPrevSendData })
 
     const _passedTo = getPassedTo({
         nextToPass,
@@ -362,7 +442,14 @@ export const submitForm: SubmitFormType = async ({
         prevToPass,
     })
 
-    console.log({ _passedTo })
+    const returnStep = getReturnStep({
+        isMainCondition,
+        createdByStep: curStepName,
+        passedTo: _passedTo,
+        prevReturnStep: prevStep.returnStep,
+    })
+
+    console.log({ returnStep })
     const _maxPromotion = getMaxPromotion(_passedTo, maxPromotion)
     const shouldConfirmView = _passedTo !== curStepName
     console.log({ shouldConfirmView, _passedTo, curStepName })
@@ -373,6 +460,7 @@ export const submitForm: SubmitFormType = async ({
         shouldConfirmView,
         createdByStep: curStepName,
         stepCreatorId: userId,
+        returnStep,
     }
 
     console.log({ _options })
@@ -550,4 +638,71 @@ export const getDatas: GetDatasType = ({ data, currentStep }) => {
         return lastStep.passedTo === currentStep && lastStep.maxPromotion !== currentStep
     })
     return { completedOrdersData, passedForEditData, currentData, editedOrdersData }
+}
+
+export const getStepProps = (step: StepType) => {
+    const stepProps: {
+        key: keyof typeof step
+        fieldName: string
+        view: string
+        value: any
+    }[] = []
+
+    let key: keyof typeof step
+
+    for (key in step) {
+        if (step.hasOwnProperty(key)) {
+            if (key === 'stepCreatorId') {
+                continue
+            }
+
+            let value = step[key]
+            if (value === null) value = '-'
+            if (value === '') value = '-'
+            if (value === true) value = 'tak'
+            if (value === false) value = 'nie'
+
+            if (typeof value === 'string') {
+                if (DateTime.fromISO(value).toString() !== 'Invalid DateTime') {
+                    const dateFormat = ['formStepMeetingDate'].includes(key) ? 'dd.MM.yyyy HH:mm' : 'dd.MM.yyyy'
+                    value = DateTime.fromISO(value).toFormat(dateFormat)
+                }
+            }
+
+            if (['passedTo', 'maxPromotion', 'createdByStep'].includes(key)) {
+                const relation = stepNamesRelations.find((relation) => relation[1] === value)
+                const role = relation![0]
+                value = roleTitles[role]
+            }
+
+            if (
+                [
+                    'workStepTeam',
+                    'questionnaireStepDissatisfaction',
+                    'questionnaireStepSatisfaction',
+                    'referenceStepReferenceLocation',
+                    'contractStepOfferRejectionReason',
+                ].includes(key)
+            ) {
+                type keyType = keyof typeof selectData
+                const _value = value as string
+                const values = _value.split('; ')
+                let _values: string[] = []
+
+                values.map((value) => {
+                    const row = selectData[key as keyType].find((row) => row[0] === value)
+                    if (row) _values.push(row[1])
+                })
+                value = _values.join('; ')
+            }
+
+            stepProps.push({
+                key,
+                fieldName: fieldNames[key],
+                view: value as string,
+                value: step[key],
+            })
+        }
+    }
+    return stepProps
 }

@@ -12,7 +12,7 @@ import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
-import { submitForm, showErrorMessages } from '../../utilities'
+import { submitForm, showErrorMessages, resetPrevProps } from '../../utilities'
 import { flushSync } from 'react-dom'
 import { useFormInput } from '../../hooks/useFormInput'
 import { useCalendarData } from '../../hooks/useCalendarData'
@@ -127,6 +127,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
         setIsSpinning(true)
 
         await submitForm({
+            prevStep: prevStep!,
             userId: userData.id,
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -137,6 +138,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             isFormChecked,
             toPrevSendData: {
                 order,
+                // ...resetPrevProps({ curStepName: 'contractCheckerStep', step: prevStep! }),
                 contractCheckerStepIsContractChecked: isContractCheckedData.isChecked,
                 contractCheckerStepWorkStartDate: null,
                 contractCheckerStepWorkEndDate: null,

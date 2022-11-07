@@ -39,23 +39,23 @@ function FormInput<T extends string>({
     const inputRef = useRef<HTMLInputElement>(null)
 
     const getValue = () => {
-        console.log('form input get value')
+        // console.log('form input get value')
         return inputRef.current?.type === 'text' ? inputRef.current?.value : inputRef.current?.checked
     }
 
     const check = () => {
-        console.log('form input check')
+        // console.log('form input check')
         const isChecked =
             inputRef.current?.type === 'text'
                 ? checkFn(inputRef.current?.value)
                 : checkFn(inputRef.current?.checked || false)
-        console.log({ isChecked })
+        // console.log({ isChecked })
         connection?.__setIsChecked(isChecked)
         return isChecked
     }
 
     const showError = (errDescription: string) => {
-        console.log({ errDescription, errRef })
+        // console.log({ errDescription, errRef })
         showErrorFormModal({
             element: inputRef.current as HTMLInputElement,
             errElement: errRef.current as HTMLDivElement,
@@ -66,7 +66,7 @@ function FormInput<T extends string>({
     }
 
     const onChange = () => {
-        console.log('form input changed', connection)
+        // console.log('form input changed', connection)
         errRef.current!.innerHTML = ''
         check()
         connection?.__setValue(getValue())
@@ -83,7 +83,7 @@ function FormInput<T extends string>({
 
     useEffect(() => {
         check()
-        console.log({ connection })
+        // console.log({ connection })
         connection?.__setShowError(() => showError)
         connection?.__setCheck(() => check)
         connection?.__setSetValue(() => setValue)

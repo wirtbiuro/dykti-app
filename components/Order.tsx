@@ -1,6 +1,6 @@
-import React, { FC, useState } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { IOrder, StepName, StepType } from '../types'
-import { StepStyled } from '../styles/styled-components'
+import { StepStyled, CloseOrderStyled } from '../styles/styled-components'
 import Step from './Step'
 import { withRtkQueryTokensCheck, getDatas } from '../utilities'
 import { useCreateOrderMutation } from '../state/apiSlice'
@@ -8,6 +8,7 @@ import useErrFn from '../hooks/useErrFn'
 import FormInput from './UI/FormInput'
 import { useFormInput } from '../hooks/useFormInput'
 import { Modal } from 'antd'
+import { DateTime } from 'luxon'
 
 interface IOrderProps {
     order: IOrder
@@ -17,7 +18,7 @@ interface IOrderProps {
 
 const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
     const step = order.steps[order.steps.length - 1]
-    console.log({ step, stepName })
+    console.log({ step, stepName, order })
     const shouldConfirmView = step.shouldConfirmView && step.passedTo === stepName
     const isCurrent = step.passedTo === stepName
 
@@ -25,6 +26,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
     const errFn = useErrFn()
 
     const [isModalOpen, setIsModalOpen] = useState(false)
+
     const [modalOrder, setModalOrder] = useState<IOrder>()
     const modalInputData = useFormInput()
 
@@ -73,11 +75,14 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
         console.log('on close prev isModalOpen', isModalOpen)
         setModalOrder(order)
         setIsModalOpen(true)
+        setIsHistory(false)
+        setIsViewing(false)
     }
 
     const onContinueBtn = () => {
         setIsViewing(true)
         setIsHistory(false)
+        setIsModalOpen(false)
     }
 
     const onCloseBtn = () => {
@@ -87,11 +92,21 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
     const onShowHistory = () => {
         setIsHistory(true)
         setIsViewing(false)
+        setIsModalOpen(false)
     }
 
     const onHideHistory = () => {
         setIsHistory(false)
     }
+
+    const getSortSteps = () =>
+        order.steps.map((step, idx) => {
+            return <Step key={step.id} step={step} prevStep={getPrevStep(order, idx)} isHistory={isHistory} />
+        })
+
+    const sortSteps = getSortSteps().sort((a, b) => Number(b.key!) - Number(a.key!))
+
+    console.log({ sortSteps })
 
     return (
         <StepStyled key={order.id}>
@@ -99,10 +114,14 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
             {!isViewing && <button onClick={onContinueBtn}>Kontynuować</button>}
             {isViewing && <button onClick={onCloseBtn}>Zamknij</button>}
             {shouldConfirmView && <button onClick={() => onConfirm(order)}>Potwierdź akceptację</button>}
-            {stepName !== 'lastDecisionStep' && isCurrent && (
+
+            {!isHistory && <button onClick={onShowHistory}>Pokaż historię zmian</button>}
+            {isHistory && <button onClick={onHideHistory}>Zamknij histoię zmian</button>}
+
+            {stepName !== 'lastDecisionStep' && isCurrent && !isModalOpen && (
                 <button onClick={() => onClose(order)}>Zamknąć sprawę</button>
             )}
-            <div style={{ display: isModalOpen ? 'block' : 'none' }}>
+            <CloseOrderStyled isModalOpen={isModalOpen}>
                 Podaj powód, dla którego zamierzasz zamknąć sprawę:
                 <FormInput
                     checkFn={(value) => {
@@ -121,10 +140,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
                 >
                     Anulowanie
                 </button>
-            </div>
-
-            {!isHistory && <button onClick={onShowHistory}>Pokaż historię zmian</button>}
-            {isHistory && <button onClick={onHideHistory}>Zamknij histoię zmian</button>}
+            </CloseOrderStyled>
 
             {React.cloneElement(children as JSX.Element, {
                 isVisible: isViewing,
@@ -135,11 +151,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
             {isHistory && (
                 <div className="changes-wrapper">
                     <strong>Zmiany:</strong>
-                    <div className="changes">
-                        {order.steps.map((step, idx) => (
-                            <Step key={step.id} step={step} prevStep={getPrevStep(order, idx)} isHistory={isHistory} />
-                        ))}
-                    </div>
+                    <div className="changes">{sortSteps}</div>
                 </div>
             )}
             <_Modal open={isModalOpen}>

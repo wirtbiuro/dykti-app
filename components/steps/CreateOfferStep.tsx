@@ -128,6 +128,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         setIsSpinning(true)
 
         await submitForm({
+            prevStep: prevStep!,
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,

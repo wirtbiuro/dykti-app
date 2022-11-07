@@ -37,6 +37,7 @@ model Step{
   passedTo String?
   createdByStep String?
   maxPromotion String?
+  returnStep String?
   shouldConfirmView Boolean?
   isCompleted Boolean?
   orderId Int
