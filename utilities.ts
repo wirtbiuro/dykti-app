@@ -669,10 +669,14 @@ export const getStepProps = (step: StepType) => {
                 }
             }
 
-            if (['passedTo', 'maxPromotion', 'createdByStep'].includes(key)) {
+            if (['passedTo', 'maxPromotion', 'createdByStep', 'returnStep'].includes(key)) {
+                console.log({ key })
+
                 const relation = stepNamesRelations.find((relation) => relation[1] === value)
-                const role = relation![0]
-                value = roleTitles[role]
+                if (relation) {
+                    const role = relation[0]
+                    value = roleTitles[role]
+                }
             }
 
             if (
