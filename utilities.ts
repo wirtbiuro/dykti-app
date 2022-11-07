@@ -446,7 +446,7 @@ export const submitForm: SubmitFormType = async ({
         isMainCondition,
         createdByStep: curStepName,
         passedTo: _passedTo,
-        prevReturnStep: prevStep.returnStep,
+        prevReturnStep: prevStep?.returnStep,
     })
 
     console.log({ returnStep })
