@@ -6,7 +6,7 @@ import { getStepProps, getUnactiveStepnames } from '../utilities'
 
 interface IChangesProps {
     step: StepType
-    prevStep: StepType
+    prevStep?: StepType
 }
 
 const Changes: FC<IChangesProps> = ({ step, prevStep }) => {
@@ -14,7 +14,7 @@ const Changes: FC<IChangesProps> = ({ step, prevStep }) => {
         const stepProps = getStepProps(step)
         const _stepProps = stepProps
             .filter((prop) => !['createdAt', 'id', 'stepCreator', 'shouldConfirmView'].includes(prop.key))
-            .filter((prop) => prevStep && prop.value !== prevStep[prop.key])
+            .filter((prop) => (prevStep && prop.value !== prevStep[prop.key]) || (!prevStep && prop.value !== null))
 
         return _stepProps.map((prop) => {
             return (
@@ -25,13 +25,13 @@ const Changes: FC<IChangesProps> = ({ step, prevStep }) => {
         })
     }
 
-    const creatorName = prevStep.stepCreator?.name || prevStep.stepCreator?.username
+    const creatorName = step.stepCreator?.name || step.stepCreator?.username
 
     return (
         <ChangesStyled>
             <div className="col date">
                 <strong>Godzina&nbsp;i&nbsp;data</strong>
-                <p>{DateTime.fromISO(prevStep.createdAt!).toFormat('dd.MM.yyyy HH:mm')}</p>
+                <p>{DateTime.fromISO(step.createdAt!).toFormat('dd.MM.yyyy HH:mm')}</p>
             </div>
 
             <div className="col creator">

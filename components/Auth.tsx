@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useRef, FormEvent, useEffect } from 'react'
+import React, { SyntheticEvent, useRef, FormEvent, useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { Spin } from 'antd'
 import axios from 'axios'
@@ -28,6 +28,7 @@ const Auth = () => {
     const getUserQueryData = getUser.useQueryState()
 
     const { isLoading, isError, isSuccess } = getUserQueryData
+    const [isSpinning, setIsSpinning] = useState<boolean>(false)
 
     const status = useAppSelector((state: RootState) => state.auth.status)
     // const loading = useAppSelector((state: RootState) => state.user.loading)
@@ -58,6 +59,7 @@ const Auth = () => {
     }, [status])
 
     const close = (e: SyntheticEvent<HTMLDivElement>) => {
+        return
         const target = e.target as HTMLDivElement
         if (target.classList.contains('close-auth')) dispatch(authActions.hide({}))
     }
@@ -91,10 +93,14 @@ const Auth = () => {
 
         const doFn = status === 'SIGN_UP' ? createUser : login
 
-        doFn({
+        setIsSpinning(true)
+
+        await doFn({
             username: target.username.value.trim(),
             password: target.password.value,
         })
+
+        setIsSpinning(false)
     }
 
     const formChanged = (e: SyntheticEvent<HTMLFormElement>) => {
@@ -111,30 +117,34 @@ const Auth = () => {
 
     return (
         <AuthStyled>
-            {/* <Spin spinning={loading}> */}
-            <div className="close-auth" onClick={close}>
-                <div className="auth">
-                    <form onSubmit={submit} onChange={formChanged} ref={formRef}>
-                        <div className="withErr">
-                            <div className="formError" ref={usernameErrRef}></div>
-                            <input type="text" name="username" placeholder="username" />
+            <Spin spinning={isSpinning}>
+                <div className="close-auth" onClick={close}>
+                    {isError && (
+                        <div className="auth">
+                            <form onSubmit={submit} onChange={formChanged} ref={formRef}>
+                                <div className="withErr">
+                                    <div className="formError" ref={usernameErrRef}></div>
+                                    <input type="text" name="username" placeholder="username" />
+                                </div>
+                                <div className="withErr">
+                                    <div className="formError" ref={passwordErrRef}></div>
+                                    <input type="password" name="password" placeholder="password" />
+                                </div>
+                                {status === 'SIGN_UP' && (
+                                    <>
+                                        <div className="formError"></div>
+                                        <input type="password" name="repeat" placeholder="repeat password" />
+                                    </>
+                                )}
+                                <input type="submit" value="send" />
+                            </form>
+                            <a onClick={changeStatus}>
+                                {status === 'SIGN_IN' ? 'Nie masz konta? Sign Up' : 'Masz konto? Sign In'}
+                            </a>
                         </div>
-                        <div className="withErr">
-                            <div className="formError" ref={passwordErrRef}></div>
-                            <input type="password" name="password" placeholder="password" />
-                        </div>
-                        {status === 'SIGN_UP' && (
-                            <>
-                                <div className="formError"></div>
-                                <input type="password" name="repeat" placeholder="repeat password" />
-                            </>
-                        )}
-                        <input type="submit" value="send" />
-                    </form>
-                    <a onClick={changeStatus}>{status === 'SIGN_IN' ? 'Sign Up' : 'Sign In'}</a>
+                    )}
                 </div>
-            </div>
-            {/* </Spin> */}
+            </Spin>
         </AuthStyled>
     )
 }

@@ -71,31 +71,6 @@ export const StepStyled = styled.div`
         margin-top: 20px;
     }
 `
-
-export const StepComponentStyled = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    .prop {
-        padding: 5px 15px;
-        padding-left: 0;
-        &.unactive {
-            color: rgba(0, 0, 0, 0.2);
-        }
-    }
-    .description {
-        font-size: 10px;
-    }
-    .value {
-        font-size: bold;
-    }
-    .no-meeting-date {
-        background-color: orange;
-        color: white;
-        width: 100%;
-        padding-left: 10px;
-    }
-`
-
 export const CreateFormStyled = styled.div`
     background: rgb(247, 247, 247);
     padding: 20px 10px;
@@ -120,7 +95,10 @@ export const AuthStyled = styled.div`
     height: 100vh;
     .close-auth {
         width: 100%;
-        height: 100%;
+        height: 100vh;
+    }
+    form {
+        margin-bottom: 20px;
     }
     .auth {
         margin: auto;
@@ -175,8 +153,10 @@ export const CalendarStyled = styled.div`
     .calendar-view-time {
         margin-right: 5px;
     }
-    select[name='minutes'] {
+    select[name='minutes'],
+    select[name='hours'] {
         margin-right: 10px;
+        margin-bottom: 0;
     }
     .error {
         color: red;
@@ -251,5 +231,58 @@ export const CloseOrderStyled = styled.div`
     margin-top: 20px;
     input {
         margin: 10px 0 20px 0;
+    }
+`
+
+export const AllStyled = styled.div`
+    padding: 20px;
+    width: calc(100vw - 20px);
+    .centered {
+        max-width: 1900px;
+        margin: auto;
+    }
+`
+
+export const StepComponentStyled = styled.div`
+    .no-meeting-date {
+        background-color: orange;
+        color: white;
+        width: 100%;
+        padding-left: 10px;
+    }
+`
+
+export const StepPropsStyled = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    .prop {
+        padding: 5px 15px;
+        padding-left: 0;
+        &.unactive {
+            color: rgba(0, 0, 0, 0.2);
+        }
+    }
+    .description {
+        font-size: 10px;
+    }
+    .value {
+        font-size: bold;
+    }
+    .wrapper {
+        display: flex;
+        flex-direction: column;
+    }
+    .all-props {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .all-prop {
+        max-width: 200px;
+    }
+    .prop-title {
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
     }
 `

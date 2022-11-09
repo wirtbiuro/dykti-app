@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useGetUserQuery, dyktiApi } from '../state/apiSlice'
 import { HeaderStyled } from '../styles/styled-components'
 import axios from 'axios'
 import { useAppDispatch } from '../state/hooks'
 import { authActions } from '../state/authSlice'
+import { Spin } from 'antd'
 
 const Header = () => {
     const [logoutLoading, setLogoutLoading] = useState(false)
@@ -32,7 +33,12 @@ const Header = () => {
         dispatch(authActions.login({}))
     }
 
+    useEffect(() => {
+        onLogin()
+    }, [isError])
+
     return (
+        // <Spin spinning={logoutLoading}>
         <HeaderStyled>
             {!isError && data?.username}
             {data?.username && !isError && (
@@ -40,8 +46,9 @@ const Header = () => {
                     Logout
                 </button>
             )}
-            {(!data || isError) && !isLoading && !isUninitialized && <button onClick={onLogin}>Login</button>}
+            {/* {(!data || isError) && !isLoading && !isUninitialized && <button onClick={onLogin}>Login</button>} */}
         </HeaderStyled>
+        // </Spin>
     )
 }
 

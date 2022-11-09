@@ -8,14 +8,25 @@ import Main from '../components/Main'
 import { IQuery, IUser } from '../types'
 import { useGetUserQuery, dyktiApi } from '../state/apiSlice'
 import { useEffect } from 'react'
+import { Spin } from 'antd'
+import { AllStyled } from '../styles/styled-components'
 
 const Home: NextPage = () => {
+    const getUser = dyktiApi.endpoints.getUser as any
+    const getUserQueryData = getUser.useQueryState()
+
+    const { isLoading, isError, data, isFetching } = getUserQueryData
+
     return (
-        <>
-            <Header />
-            <Main />
-            <Auth />
-        </>
+        <Spin spinning={isFetching || isLoading}>
+            <AllStyled>
+                <div className="centered">
+                    <Header />
+                    <Main />
+                    <Auth />
+                </div>
+            </AllStyled>
+        </Spin>
     )
 }
 

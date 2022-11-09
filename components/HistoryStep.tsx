@@ -12,17 +12,18 @@ type StepProps = {
     isHistory?: boolean
 }
 
-function Step({ step, stepName }: StepProps) {
+function HistoryStep({ step, prevStep, stepName, isHistory }: StepProps) {
+    const unactiveStepNames = getUnactiveStepnames({ passedTo: step.passedTo, returnStep: step.returnStep })
+
+    console.log({ unactiveStepNames })
+
+    if (!isHistory) return null
+
     return (
         <StepComponentStyled>
-            {step?.passedTo === 'beffaringStep' &&
-                !step?.formStepMeetingDate &&
-                (stepName === 'beffaringStep' || stepName === 'formStep') && (
-                    <div className="no-meeting-date">Brakuje terminu spotkania z klientem</div>
-                )}
-            <StepProps step={step} />
+            <Changes step={step} prevStep={prevStep} />
         </StepComponentStyled>
     )
 }
 
-export default Step
+export default HistoryStep
