@@ -20,9 +20,13 @@ async function logout(req: NextApiRequestWithHeaders, res: NextApiResponse) {
         })
         console.log({ deleteRes })
     } catch (error) {
+        res.setHeader('Set-Cookie', [
+            cookie.serialize('refresh', '', { httpOnly: true }),
+            cookie.serialize('token', '', { httpOnly: true }),
+        ])
+
         return res.status(500).json({
-            message:
-                "Something went wrong... Let's reload the page and try to log out again.",
+            message: "Something went wrong... Let's reload the page and try to log out again.",
         })
     }
 
