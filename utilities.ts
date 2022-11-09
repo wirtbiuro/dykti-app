@@ -664,7 +664,7 @@ export const getStepProps = (step: StepType) => {
 
             if (typeof value === 'string') {
                 if (DateTime.fromISO(value).toString() !== 'Invalid DateTime') {
-                    const dateFormat = ['formStepMeetingDate', 'createdAt'].includes(key)
+                    const dateFormat = ['formStepMeetingDate', 'createdAt', 'beffaringStepDocsSendDate'].includes(key)
                         ? 'dd.MM.yyyy HH:mm'
                         : 'dd.MM.yyyy'
                     value = DateTime.fromISO(value).toFormat(dateFormat)

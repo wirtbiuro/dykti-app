@@ -47,6 +47,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const offerDateData = useCalendarData()
 
     const wasThereMeeting = useFormInput()
+    const wereDocsSent = useFormInput()
     const commentData = useFormInput()
 
     const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
@@ -77,9 +78,9 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             showMessage ? wasThereMeeting?.showError!() : null
             return setIsFormChecked(false)
         }
-        if (!docsSendDateData.isChecked) {
+        if (!wereDocsSent.isChecked) {
             console.log('docs send date error')
-            showMessage ? docsSendDateData?.showError!() : null
+            showMessage ? wereDocsSent?.showError!() : null
             return setIsFormChecked(false)
         }
         if (!offerDateData.isChecked) {
@@ -141,7 +142,10 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                 order,
                 formStepMeetingDate: meetingDateData.isChecked ? meetingDateData.value : null,
                 beffaringStepWasThereMeeting: wasThereMeeting.value,
-                beffaringStepDocsSendDate: docsSendDateData.isChecked ? docsSendDateData.value : null,
+                // beffaringStepDocsSendDate: docsSendDateData.isChecked ? docsSendDateData.value : null,
+                beffaringStepDocsSendDate: !wereDocsSent.isChecked
+                    ? null
+                    : prevStep?.beffaringStepDocsSendDate || DateTime.now(),
                 beffaringStepOfferDate: offerDateData.isChecked ? offerDateData.value : null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
@@ -183,18 +187,23 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
                             {wasThereMeeting.value && meetingDateData.isChecked && (
                                 <>
-                                    <br />
-                                    <br />
-                                    <p>Data wysłania dokumentów, zdjęć: </p>
+                                    {/* <p>Data wysłania dokumentów, zdjęć: </p>
 
                                     <CalendarWithTime
                                         defaultDate={order && prevStep?.beffaringStepDocsSendDate}
                                         connection={docsSendDateData}
                                         isTimeEnabled={false}
-                                    />
+                                    /> */}
 
-                                    <br />
-                                    <br />
+                                    <FormInput
+                                        type="checkbox"
+                                        connection={wereDocsSent}
+                                        defaultChecked={prevStep?.beffaringStepDocsSendDate !== null}
+                                        checkFn={(value) => value as boolean}
+                                    >
+                                        <>Dokumenty zostały wysłane.</>
+                                    </FormInput>
+
                                     <p>Kiedy należy przygotować ofertę?</p>
 
                                     <CalendarWithTime

@@ -14,9 +14,34 @@ const Changes: FC<IChangesProps> = ({ step, prevStep }) => {
         const stepProps = getStepProps(step)
         const _stepProps = stepProps
             .filter((prop) => !['createdAt', 'id', 'stepCreator', 'shouldConfirmView'].includes(prop.key))
-            .filter((prop) => (prevStep && prop.value !== prevStep[prop.key]) || (!prevStep && prop.value !== null))
+            .filter(
+                (prop) => (prevStep && prop.value !== prevStep[prop.key]) || (!prevStep && prop.value !== null)
+                // ['beffaringStepDocsSendDate'].includes(prop.key)
+            )
 
         return _stepProps.map((prop) => {
+            if (prop.key === 'beffaringStepDocsSendDate' && step.formStepMeetingDate !== null) {
+                const docsSendMillisEdge = DateTime.fromISO(step.formStepMeetingDate! as string)
+                    .setZone('Europe/Warsaw')
+                    .endOf('day')
+                    .plus({ day: 1 })
+                    .plus({ hour: 9 })
+                    .toMillis()
+
+                const docsSendMillis =
+                    step.beffaringStepDocsSendDate !== null
+                        ? DateTime.fromISO(step.beffaringStepDocsSendDate as string).toMillis()
+                        : DateTime.now()
+
+                if (docsSendMillis > docsSendMillisEdge) {
+                    return (
+                        <div className="change error-change" key={prop.key}>
+                            <strong>{prop.fieldName}:</strong> <p>{prop.view}</p>
+                        </div>
+                    )
+                }
+            }
+
             return (
                 <div className="change" key={prop.key}>
                     <strong>{prop.fieldName}:</strong> <p>{prop.view}</p>

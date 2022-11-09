@@ -7,6 +7,7 @@ export const FormStyled = styled.div`
         height: 50px;
         width: 100%;
         max-width: 400px;
+        cursor: pointer;
     }
     input[type='checkbox'] {
         height: 20px;
@@ -43,6 +44,10 @@ export const FormStyled = styled.div`
     }
     select {
         margin-bottom: 20px;
+    }
+    .formError {
+        color: orange;
+        margin-bottom: 10px;
     }
 `
 
@@ -175,6 +180,9 @@ export const ChangesStyled = styled.div`
         margin-top: 9px;
         strong {
             margin-right: 6px;
+        }
+        &.error-change {
+            color: red;
         }
     }
     .col {
