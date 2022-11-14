@@ -94,6 +94,7 @@ export const fieldNames: Record<keyof FieldnamesKeysType, string> = {
     offerStepBefComments: 'Komentarz do Befaringowca',
     offerStepComment: 'Komentarz twórcy oferty',
     offerStepOfferDate: 'Data utworzenia oferty',
+    offerStepBefaringReturnDate: '',
     questionnaireStepArePaymentsReceived: 'Wpłyneły wszystkie płatności',
     questionnaireStepDissatisfaction: 'Przyczyna niezadowolenia klienta',
     questionnaireStepHaveClientReceviedDocs: 'Klient otrzymał dokumentację',
