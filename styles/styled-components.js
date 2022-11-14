@@ -7,6 +7,8 @@ export const FormStyled = styled.div`
         height: 50px;
         width: 100%;
         max-width: 400px;
+    }
+    input[type='submit'] {
         cursor: pointer;
     }
     input[type='checkbox'] {
@@ -160,11 +162,18 @@ export const CalendarStyled = styled.div`
     }
     select[name='minutes'],
     select[name='hours'] {
-        margin-right: 10px;
+        margin-right: 0px;
         margin-bottom: 0;
     }
     .error {
         color: red;
+    }
+    .date {
+        margin-right: 5px;
+        cursor: pointer;
+    }
+    button {
+        margin-left: 5px;
     }
     margin-bottom: 30px;
 `
@@ -263,6 +272,7 @@ export const StepComponentStyled = styled.div`
 export const StepPropsStyled = styled.div`
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     .prop {
         padding: 5px 15px;
         padding-left: 0;
@@ -292,5 +302,8 @@ export const StepPropsStyled = styled.div`
         font-weight: bold;
         margin-bottom: 20px;
         text-align: center;
+    }
+    button {
+        height: 30px;
     }
 `

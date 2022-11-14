@@ -123,15 +123,25 @@ function CalendarWithTime({ defaultDate, connection, isTimeEnabled = true }: ICa
     const errRef = useRef<HTMLDivElement>(null)
 
     const getValue = () => {
+        console.log('hoursRef.current', hoursRef.current)
+
         const isDate =
-            (selectedDate && hoursRef.current?.value !== 'hh' && minutesRef.current?.value !== 'mm') ||
+            (selectedDate &&
+                hoursRef.current &&
+                minutesRef.current &&
+                hoursRef.current?.value !== 'hh' &&
+                minutesRef.current?.value !== 'mm') ||
             (_defaultDate && isFirstLoad && !isReset)
 
         const timeEnabledCurrentDate = isDate ? selectedDate : null
 
-        const NoTimeEnabledCurrentDate = isReset ? null : selectedDate
+        const noTimeEnabledCurrentDate = isReset ? null : selectedDate
 
-        const currentDate = isTimeEnabled ? timeEnabledCurrentDate : NoTimeEnabledCurrentDate
+        console.log({ isDate, timeEnabledCurrentDate, noTimeEnabledCurrentDate })
+
+        const currentDate = isTimeEnabled ? timeEnabledCurrentDate : noTimeEnabledCurrentDate
+
+        console.log({ currentDate })
 
         return currentDate
     }

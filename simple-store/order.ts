@@ -17,11 +17,11 @@ class OrderStore {
     }
 
     registerFinalCall = (finalCall: Function) => {
-        console.log('registerFinalCall')
+        // console.log('registerFinalCall')
         this.finalCalls.push(finalCall)
     }
     unregisterFinalCall = (finalCall: Function) => {
-        console.log('unregisterFinalCall')
+        // console.log('unregisterFinalCall')
         this.finalCalls = this.finalCalls.filter((_finallCall) => _finallCall !== finalCall)
     }
 

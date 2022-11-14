@@ -1,5 +1,5 @@
 import React, { FC, useState, useEffect } from 'react'
-import { IOrder, StepName, StepType } from '../types'
+import { IOrder, StepType, StepName } from '../types'
 import { StepStyled, CloseOrderStyled } from '../styles/styled-components'
 import Step from './Step'
 import { withRtkQueryTokensCheck, getDatas } from '../utilities'
@@ -10,14 +10,43 @@ import { useFormInput } from '../hooks/useFormInput'
 import { Spin } from 'antd'
 import { useOrderStore } from '../simple-store/order'
 import HistoryStep from './HistoryStep'
+import CreateBefaringStep from '../components/steps/CreateBefaringStep'
+import CreateContractCheckerStep from './steps/CreateContractCheckerStep'
+import CreateContractCreatorStep from './steps/CreateContractCreatorStep'
+import CreateContractStep from './steps/CreateContractStep'
+import CreateForm from './steps/CreateForm'
+import LastDecisionStep from './steps/LastDecisionStep'
+import CreateOfferStep from './steps/CreateOfferStep'
+import QuestionnaireStep from './steps/QuestionnaireStep'
+import ReferenceStep from './steps/ReferenceStep'
+import CreateWorkStep from './steps/CreateWorkStep'
 
 interface IOrderProps {
     order: IOrder
     stepName: StepName
-    children?: JSX.Element
 }
 
-const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
+const Order: FC<IOrderProps> = ({ order, stepName }) => {
+    const [isViewing, setIsViewing] = useState<boolean>(false)
+
+    const createStepRelations: { [P in StepName]: JSX.Element } = {
+        formStep: <CreateForm isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+
+        beffaringStep: <CreateBefaringStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+        contractCheckerStep: (
+            <CreateContractCheckerStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />
+        ),
+        contractCreatorStep: (
+            <CreateContractCreatorStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />
+        ),
+        contractStep: <CreateContractStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+        lastDecisionStep: <LastDecisionStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+        offerStep: <CreateOfferStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+        questionnaireStep: <QuestionnaireStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+        referenceStep: <ReferenceStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+        workStep: <CreateWorkStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+    }
+
     const step = order.steps[order.steps.length - 1]
     console.log({ step, stepName, order })
     const shouldConfirmView = step.shouldConfirmView && step.passedTo === stepName
@@ -32,10 +61,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
     const modalInputData = useFormInput()
 
     const [isHistory, setIsHistory] = useState<boolean>(false)
-    const [isViewing, setIsViewing] = useState<boolean>(false)
     const [isSpinning, setIsSpinning] = useState<boolean>(false)
-
-    const [orderStore, setOrderStore] = useOrderStore()
 
     const minimumSigns = 10
 
@@ -70,6 +96,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
                 return await createOrder({
                     order: modalOrder,
                     passedTo: 'lastDecisionStep',
+                    maxPromotion: 'lastDecisionStep',
                 })
             },
             err: errFn,
@@ -113,21 +140,10 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
 
     console.log({ sortSteps })
 
-    const onShowMore = (orderId?: number) => {
-        setOrderStore({
-            visibleOrderId: orderId || null,
-        })
-    }
-
     return (
         <Spin spinning={isSpinning}>
             <StepStyled key={order.id}>
-                <Step step={step} stepName={stepName} />
-                {orderStore.visibleOrderId === order.id ? (
-                    <button onClick={() => onShowMore()}>Pokaż mniej</button>
-                ) : (
-                    <button onClick={() => onShowMore(order.id)}>Pokaż więcej</button>
-                )}
+                <Step step={step} stepName={stepName} orderId={order.id} />
                 {!isViewing && <button onClick={onContinueBtn}>Kontynuować</button>}
                 {isViewing && <button onClick={onCloseBtn}>Zamknij</button>}
                 {shouldConfirmView && <button onClick={() => onConfirm(order)}>Przyjąłem</button>}
@@ -159,11 +175,7 @@ const Order: FC<IOrderProps> = ({ order, stepName, children }) => {
                     </button>
                 </CloseOrderStyled>
 
-                {React.cloneElement(children as JSX.Element, {
-                    isVisible: isViewing,
-                    setIsVisible: setIsViewing,
-                    order,
-                })}
+                {createStepRelations[stepName]}
 
                 {isHistory && (
                     <div className="changes-wrapper">

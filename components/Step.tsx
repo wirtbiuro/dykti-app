@@ -7,12 +7,11 @@ import StepProps from './StepProps'
 
 type StepProps = {
     step: StepType
-    prevStep?: StepType
-    stepName?: StepName
-    isHistory?: boolean
+    stepName: StepName
+    orderId: number
 }
 
-function Step({ step, stepName }: StepProps) {
+function Step({ step, stepName, orderId }: StepProps) {
     return (
         <StepComponentStyled>
             {step?.passedTo === 'beffaringStep' &&
@@ -20,7 +19,7 @@ function Step({ step, stepName }: StepProps) {
                 (stepName === 'beffaringStep' || stepName === 'formStep') && (
                     <div className="no-meeting-date">Brakuje terminu spotkania z klientem</div>
                 )}
-            <StepProps step={step} />
+            <StepProps step={step} stepName={stepName} orderId={orderId} />
         </StepComponentStyled>
     )
 }

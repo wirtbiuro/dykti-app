@@ -90,6 +90,13 @@
     border-radius: 60px;
     color: rgba(0, 0, 0, 0.38);
 }
+.prev {
+    padding: 10px;
+    cursor: auto;
+    min-width: 44px;
+    border-radius: 60px;
+    color: rgba(0, 0, 0, 0.38);
+}
 .other:hover {
     background-color: rgba(0, 0, 0, 0.04);
 }

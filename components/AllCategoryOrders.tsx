@@ -23,27 +23,19 @@ const AllCategoryOrders: FC<IAllCategoryOrders> = ({
         <>
             <h2>Sprawy bieżące:</h2>
 
-            <Orders orders={currentData} stepName={stepName}>
-                {renderedComponent}
-            </Orders>
+            <Orders orders={currentData} stepName={stepName} />
 
             <h2>Do poprawienia:</h2>
 
-            <Orders orders={editedOrdersData} stepName={stepName}>
-                {renderedComponent}
-            </Orders>
+            <Orders orders={editedOrdersData} stepName={stepName} />
 
             <h2>Przekazane dalej:</h2>
 
-            <Orders orders={completedOrdersData} stepName={stepName}>
-                {renderedComponent}
-            </Orders>
+            <Orders orders={completedOrdersData} stepName={stepName} />
 
             <h2>Przekazane do poprawienia:</h2>
 
-            <Orders orders={passedForEditData} stepName={stepName}>
-                {renderedComponent}
-            </Orders>
+            <Orders orders={passedForEditData} stepName={stepName} />
         </>
     )
 }

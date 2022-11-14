@@ -113,6 +113,14 @@ export const fieldNames: Record<keyof FieldnamesKeysType, string> = {
 }
 
 export const selectData = {
+    formStepWhereClientFound: [
+        ['select', 'Wybierz'],
+        ['mittanbud', 'Mittanbud'],
+        ['google', 'Google'],
+        ['polecenie', 'Polecenie'],
+        ['samochod', 'Reklama na samochodzie'],
+        ['other', 'Inne'],
+    ],
     workStepTeam: [
         ['1', 'Piotr'],
         ['22', 'Adam'],

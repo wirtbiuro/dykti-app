@@ -25,3 +25,13 @@ button {
     border: none;
     cursor: pointer;
 }
+
+.ant-spin-container.ant-spin-blur {
+    width: 100vw;
+    height: 100vh;
+}
+
+.ant-spin-nested-loading > div > .ant-spin.ant-spin-spinning {
+    width: 100vw;
+    height: 100vh;
+}

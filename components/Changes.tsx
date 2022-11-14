@@ -1,8 +1,8 @@
 import React, { FC } from 'react'
-import { StepType, StepName } from '../types'
+import { StepType } from '../types'
 import { DateTime } from 'luxon'
 import { ChangesStyled } from '../styles/styled-components'
-import { getStepProps, getUnactiveStepnames } from '../utilities'
+import { getStepProps, isStepPropErrors, getEdgeDayMillis } from '../utilities'
 
 interface IChangesProps {
     step: StepType
@@ -20,30 +20,14 @@ const Changes: FC<IChangesProps> = ({ step, prevStep }) => {
             )
 
         return _stepProps.map((prop) => {
-            if (prop.key === 'beffaringStepDocsSendDate' && step.formStepMeetingDate !== null) {
-                const docsSendMillisEdge = DateTime.fromISO(step.formStepMeetingDate! as string)
-                    .setZone('Europe/Warsaw')
-                    .endOf('day')
-                    .plus({ day: 1 })
-                    .plus({ hour: 9 })
-                    .toMillis()
-
-                const docsSendMillis =
-                    step.beffaringStepDocsSendDate !== null
-                        ? DateTime.fromISO(step.beffaringStepDocsSendDate as string).toMillis()
-                        : DateTime.now()
-
-                if (docsSendMillis > docsSendMillisEdge) {
-                    return (
-                        <div className="change error-change" key={prop.key}>
-                            <strong>{prop.fieldName}:</strong> <p>{prop.view}</p>
-                        </div>
-                    )
-                }
-            }
+            const className = isStepPropErrors[prop.key]
+                ? isStepPropErrors[prop.key]!(step)
+                    ? 'change error-change'
+                    : 'change'
+                : 'change'
 
             return (
-                <div className="change" key={prop.key}>
+                <div className={className} key={prop.key}>
                     <strong>{prop.fieldName}:</strong> <p>{prop.view}</p>
                 </div>
             )

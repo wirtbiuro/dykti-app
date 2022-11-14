@@ -18,11 +18,12 @@ import { useCalendarData } from '../../hooks/useCalendarData'
 import { flushSync } from 'react-dom'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
+import { DateTime } from 'luxon'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
-const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
+const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
     const [isSpinning, setIsSpinning] = useState(false)
 
@@ -143,6 +144,8 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                 offerStepOfferDate: null,
                 offerStepComment: null,
                 offerStepBefComments: befCommentsData.value,
+                offerStepBefaringReturnDate: DateTime.now(),
+                beffaringStepDocsSendDate: null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             toNextSendData: {
@@ -151,6 +154,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                 offerStepOfferDate: offerDateData.value,
                 offerStepComment: commentData.value,
                 offerStepBefComments: null,
+                beffaringStepDocsSendDate: null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
@@ -227,4 +231,4 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     )
 }
 
-export default CreateForm
+export default CreateOfferStep

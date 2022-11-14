@@ -188,6 +188,7 @@ export interface IOfferStep {
     offerStepBefComments?: string
     offerStepOfferDate?: DateTime | string
     offerStepComment?: string
+    offerStepBefaringReturnDate?: DateTime | string
 }
 
 export interface IContractStep {
@@ -332,3 +333,11 @@ export interface IWithOrder {
 export interface ISendButtonsOutputRef {
     getResults: Function
 }
+
+export type StepPropType = keyof StepType
+
+export type CheckStepPropErrorsType = Partial<
+    {
+        [P in StepPropType]: (step: StepType) => boolean
+    }
+>

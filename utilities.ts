@@ -17,6 +17,7 @@ import {
     stepNamesRelations,
     roleTitles,
     getStepNames,
+    CheckStepPropErrorsType,
 } from './types'
 import { ServerController } from './server-controller'
 import { SyntheticEvent } from 'react'
@@ -329,6 +330,14 @@ export const getUnactiveStepnames = ({ passedTo, returnStep }: IGetUnactiveStepn
     })
 }
 
+export const getPrevStepnames = (stepName: StepName): StepName[] => {
+    const stepNames = getStepNames(stepNamesRelations)
+    const stepNameIdx = stepNames.findIndex((_stepName) => stepName === _stepName)
+    return stepNames.filter((_stepName, idx) => {
+        return idx < stepNameIdx
+    })
+}
+
 interface IResetPrevProps {
     curStepName: StepName
     prevToPass?: StepName
@@ -621,6 +630,7 @@ interface IgetDatasProps {
 }
 
 export const getDatas: GetDatasType = ({ data, currentStep }) => {
+    console.log({ data, currentStep })
     const completedOrdersData = data?.filter((order) => {
         const lastStep = order.steps[order.steps.length - 1]
         return getArrIdx(lastStep.passedTo!, stepNames) - getArrIdx(currentStep, stepNames) > 0
@@ -672,8 +682,6 @@ export const getStepProps = (step: StepType) => {
             }
 
             if (['passedTo', 'maxPromotion', 'createdByStep', 'returnStep'].includes(key)) {
-                console.log({ key })
-
                 const relation = stepNamesRelations.find((relation) => relation[1] === value)
                 if (relation) {
                     const role = relation[0]
@@ -711,4 +719,50 @@ export const getStepProps = (step: StepType) => {
         }
     }
     return stepProps
+}
+
+export const getEdgeDayMillis = (isoString: string): number => {
+    return DateTime.fromISO(isoString)
+        .setZone('Europe/Warsaw')
+        .endOf('day')
+        .plus({ day: 1 })
+        .plus({ hour: 8 })
+        .toMillis()
+}
+
+const isStepnameInPrevStepnames = (step: StepType, stepname: StepName): boolean =>
+    getPrevStepnames(step.passedTo).includes(stepname)
+
+export const isStepPropErrors: CheckStepPropErrorsType = {
+    formStepMeetingDate: (step) => {
+        return isStepnameInPrevStepnames(step, 'formStep') && step.formStepMeetingDate === null
+    },
+
+    beffaringStepWasThereMeeting: (step) => {
+        return isStepnameInPrevStepnames(step, 'beffaringStep') && !step.beffaringStepWasThereMeeting
+    },
+
+    beffaringStepDocsSendDate: (step) => {
+        const docsSendMillis =
+            step.beffaringStepDocsSendDate !== null
+                ? DateTime.fromISO(step.beffaringStepDocsSendDate as string).toMillis()
+                : DateTime.now()
+
+        let docsSendMillisEdge: number =
+            step.offerStepBefaringReturnDate !== null
+                ? getEdgeDayMillis(step.offerStepBefaringReturnDate as string)
+                : step.formStepMeetingDate !== null
+                ? getEdgeDayMillis(step.formStepMeetingDate as string)
+                : 0
+
+        return docsSendMillis > docsSendMillisEdge
+    },
+
+    beffaringStepOfferDate: (step) => {
+        return isStepnameInPrevStepnames(step, 'beffaringStep') && !step.beffaringStepOfferDate
+    },
+}
+
+export const getZeroArrElements = (arr: string[][]): string[] => {
+    return arr.map((item) => item[0])
 }

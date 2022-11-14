@@ -52,6 +52,7 @@ model Step{
   offerStepBefComments String?
   offerStepOfferDate DateTime?
   offerStepComment String?
+  offerStepBefaringReturnDate String?
   contractStepOfferSendingDate DateTime?
   contractStepAreOfferChanges Boolean?
   contractStepOfferChangesComment String?

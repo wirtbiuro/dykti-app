@@ -1,14 +1,18 @@
 import React, { FC } from 'react'
-import { getStepProps, getUnactiveStepnames } from '../utilities'
-import { StepType, StepNames } from '../types'
+import { getStepProps } from '../utilities'
+import { StepType, StepName } from '../types'
 import { StepPropsStyled } from '../styles/styled-components'
 import { useOrderStore } from '../simple-store/order'
 
 interface IStepPropsProps {
     step: StepType
+    stepName: StepName
+    orderId: number
 }
 
-const MainStepProps: FC<IStepPropsProps> = ({ step }) => {
+const MainStepProps: FC<IStepPropsProps> = ({ step, stepName, orderId }) => {
+    const [orderStore, setOrderStore] = useOrderStore()
+
     const props = getStepProps(step)
 
     const getDescription = (propName: keyof StepType): string => {
@@ -19,11 +23,19 @@ const MainStepProps: FC<IStepPropsProps> = ({ step }) => {
         return props.find((prop) => prop.key === propName)?.view || ''
     }
 
+    const onShowMore = (orderId?: number) => {
+        setOrderStore({
+            visibleOrderId: orderId || null,
+        })
+    }
+
     return (
         <StepPropsStyled>
             <div className="prop">
                 <p className="description">{getDescription('formStepClientName')}:</p>
-                <p className="value">{getValue('formStepClientName')}</p>
+                <strong>
+                    <p className="value">{getValue('formStepClientName')}</p>
+                </strong>
             </div>
             <div className="prop">
                 <p className="description">{getDescription('formStepPhone')}:</p>
@@ -37,10 +49,17 @@ const MainStepProps: FC<IStepPropsProps> = ({ step }) => {
                 <p className="description">{getDescription('formStepAddress')}:</p>
                 <p className="value">{getValue('formStepAddress')}</p>
             </div>
-            <div className="prop">
-                <p className="description">{getDescription('createdAt')}:</p>
-                <p className="value">{getValue('createdAt')}</p>
-            </div>
+            {stepName === 'offerStep' && (
+                <div className="prop">
+                    <p className="description">{getDescription('beffaringStepOfferDate')}:</p>
+                    <p className="value">{getValue('beffaringStepOfferDate')}</p>
+                </div>
+            )}
+            {orderStore.visibleOrderId === orderId ? (
+                <button onClick={() => onShowMore()}>Pokaż mniej</button>
+            ) : (
+                <button onClick={() => onShowMore(orderId)}>Pokaż więcej</button>
+            )}
         </StepPropsStyled>
     )
 }
