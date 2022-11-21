@@ -52,8 +52,25 @@ const Main = () => {
         isFetching: lastDecisionsOrderDataIsFetching,
     } = getLastDecisionOrdersData
 
+    const [isLastDecisionDataLoading, setIsLastDecisionDataLoading] = useState<boolean>(true)
+
     useEffect(() => {
-        refetchLastDecisionOrdersData()
+        withRtkQueryTokensCheck({
+            cb: async () => {
+                const res = await refetchLastDecisionOrdersData()
+                console.log({ res })
+                if (!res.isError) {
+                    console.log('no error', res.isError)
+                    setIsLastDecisionDataLoading(false)
+                }
+                return res
+            },
+            err: async () => {
+                console.log('auth err')
+                const res = await refetchLastDecisionOrdersData()
+                setIsLastDecisionDataLoading(false)
+            },
+        })
     }, [])
 
     console.log({ getLastDecisionOrdersData })
@@ -74,12 +91,11 @@ const Main = () => {
         setVisibleRole(role)
     }
 
-    const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = lastDecisionsOrderData
-        ? getDatas({
-              data: lastDecisionsOrderData,
-              currentStep: 'lastDecisionStep',
-          })
-        : { completedOrdersData: null, currentData: null, editedOrdersData: null, passedForEditData: null }
+    const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({
+        data: lastDecisionsOrderData,
+        currentStep: 'lastDecisionStep',
+    })
+    // : { completedOrdersData: null, currentData: null, editedOrdersData: null, passedForEditData: null }
 
     if (data && data.role && !isError) {
         return (
@@ -98,7 +114,7 @@ const Main = () => {
                                 {roleTitles[role]}
                                 {role === 'LastDecisionUser' && (
                                     <span className="last-decision-quantity">
-                                        {currentData === null ? '...' : currentData.length}
+                                        {!currentData ? '...' : currentData.length}
                                     </span>
                                 )}
                             </li>

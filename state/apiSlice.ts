@@ -72,7 +72,10 @@ export const dyktiApi = createApi({
                     body: user,
                 }
             },
-            invalidatesTags: (res: any, err: any, arg: any) => [{ type: 'User' }],
+            invalidatesTags: (res: any, err: any, arg: any) => [
+                { type: 'User' },
+                { type: 'Order', id: 'LastDecisionUser' },
+            ],
             transformResponse: (response: any, meta: any, arg: any) => {
                 return response.user
             },
