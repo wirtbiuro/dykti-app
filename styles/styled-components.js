@@ -91,6 +91,9 @@ export const HeaderStyled = styled.div`
         margin-bottom: 20px;
         margin-left: 10px;
     }
+    .ant-spin-nested-loading > div > .ant-spin .ant-spin-dot {
+        margin: -20px -6px;
+    }
 `
 
 export const AuthStyled = styled.div`
@@ -229,6 +232,14 @@ export const MainStyled = styled.div`
             min-height: 30px;
         }
     }
+    .last-decision-quantity {
+        background-color: orange;
+        color: white;
+        border-radius: 16px;
+        margin-left: 6px;
+        width: 22px;
+        heigth: 22px;
+    }
 `
 
 export const CreatorFormPanelStyled = styled.div`
@@ -254,6 +265,7 @@ export const CloseOrderStyled = styled.div`
 export const AllStyled = styled.div`
     padding: 20px;
     width: calc(100vw - 20px);
+    height: 100vh;
     .centered {
         max-width: 1900px;
         margin: auto;

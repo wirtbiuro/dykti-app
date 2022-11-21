@@ -65,7 +65,7 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
 
         await submitForm({
             prevStep: prevStep!,
-            userId: userData.id,
+            user: userData,
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,

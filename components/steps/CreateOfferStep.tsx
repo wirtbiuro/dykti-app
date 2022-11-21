@@ -137,7 +137,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
-            userId: userData.id,
+            user: userData,
             toPrevSendData: {
                 order,
                 offerStepAreBefDocsGood: false,

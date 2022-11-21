@@ -116,7 +116,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         await submitForm({
             prevStep: prevStep!,
-            userId: userData.id,
+            user: userData,
             maxPromotion: prevStep!.maxPromotion,
             target,
             isMainCondition,

@@ -19,6 +19,7 @@ const Home: NextPage = () => {
 
     return (
         <Spin spinning={isFetching || isLoading}>
+            {/* <Spin spinning={true}> */}
             <AllStyled>
                 <div className="centered">
                     <Header />

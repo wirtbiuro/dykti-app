@@ -8,6 +8,8 @@ import { useAppDispatch, useAppSelector } from '../state/hooks'
 import { authReducer, authActions } from '../state/authSlice'
 import { RootState } from '../state/store'
 import { useCreateUserMutation, useGetUserQuery, useLoginMutation, dyktiApi } from '../state/apiSlice'
+import { useSimpleStore } from '../simple-store/store'
+import { withRtkQueryTokensCheck } from '../utilities'
 
 type FormType = {
     username: { value: String; focus: Function }
@@ -23,11 +25,40 @@ const Auth = () => {
 
     const [createUser, createUserResult] = useCreateUserMutation()
     const [login] = useLoginMutation()
+    const [isUserDataLoading, setIsUserDataLoading] = useState<boolean>(true)
 
     const getUser = dyktiApi.endpoints.getUser as any
-    const getUserQueryData = getUser.useQueryState()
 
-    const { isLoading, isError, isSuccess } = getUserQueryData
+    const getUserQueryData = getUser.useQueryState()
+    const { data, isLoading, isError, isSuccess } = getUserQueryData
+
+    const [refetchUser] = getUser.useLazyQuery()
+
+    const onLogin = () => {
+        dispatch(authActions.login({}))
+    }
+
+    console.log('Auth', { data, isSuccess, isUserDataLoading })
+
+    useEffect(() => {
+        withRtkQueryTokensCheck({
+            cb: async () => {
+                const res = await refetchUser()
+                console.log({ res })
+                if (!res.isError) {
+                    console.log('no error', res.isError)
+                    setIsUserDataLoading(false)
+                }
+                return res
+            },
+            err: () => {
+                console.log('auth err')
+                dispatch(authActions.login({}))
+                setIsUserDataLoading(false)
+            },
+        })
+    }, [])
+
     const [isSpinning, setIsSpinning] = useState<boolean>(false)
 
     const status = useAppSelector((state: RootState) => state.auth.status)
@@ -119,7 +150,7 @@ const Auth = () => {
         <AuthStyled>
             <Spin spinning={isSpinning}>
                 <div className="close-auth" onClick={close}>
-                    {isError && (
+                    {isError && !isUserDataLoading && (
                         <div className="auth">
                             <form onSubmit={submit} onChange={formChanged} ref={formRef}>
                                 <div className="withErr">

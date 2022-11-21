@@ -8,6 +8,7 @@ type ReqBodyType = {
     order?: IOrder
     userId?: number
     role?: Role
+    userRoles?: Role[]
 } & StepType
 
 async function createorder(req: NextApiRequest, res: NextApiResponse) {
@@ -21,7 +22,7 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
         let input = { ...req.body } as ReqBodyType
         delete input.order
         delete input.userId
-        // delete input.role
+        delete input.userRoles
 
         // let _data = {}
         // let key: keyof typeof input

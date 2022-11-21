@@ -2,7 +2,7 @@ import React, { FC } from 'react'
 import { getStepProps } from '../utilities'
 import { StepType, StepName } from '../types'
 import { StepPropsStyled } from '../styles/styled-components'
-import { useOrderStore } from '../simple-store/order'
+import { useSimpleStore } from '../simple-store/store'
 
 interface IStepPropsProps {
     step: StepType
@@ -11,7 +11,7 @@ interface IStepPropsProps {
 }
 
 const MainStepProps: FC<IStepPropsProps> = ({ step, stepName, orderId }) => {
-    const [orderStore, setOrderStore] = useOrderStore()
+    const [orderStore, setOrderStore] = useSimpleStore()
 
     const props = getStepProps(step)
 

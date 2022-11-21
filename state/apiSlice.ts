@@ -29,6 +29,12 @@ export const dyktiApi = createApi({
 
             providesTags: [{ type: 'User' }, ...getOrderProvidesTags()],
         }),
+        getLastDecisionOrders: build.query({
+            query: (role: Role) => `getorders?role=LastDecisionUser`,
+
+            providesTags: [{ type: 'Order', id: 'LastDecisionUser' }],
+        }),
+
         getCompletedOrders: build.query({
             query: (role: Role) => `getorders?completed=true&role=${role}`,
 
@@ -79,12 +85,18 @@ export const dyktiApi = createApi({
                     body: order,
                 }
             },
-            invalidatesTags: (result: any, error: any, args: any) => {
+            invalidatesTags: (result: any, error: any, args: FieldsToSend) => {
                 if (error) {
                     console.log({ error })
                     return []
                 }
                 console.log({ args })
+                if (args.userRoles?.includes('LastDecisionUser') && args.role !== 'LastDecisionUser') {
+                    return [
+                        { type: 'Order', id: args.role },
+                        { type: 'Order', id: 'LastDecisionUser' },
+                    ]
+                }
                 return [{ type: 'Order', id: args.role }]
             },
         }),
@@ -120,4 +132,5 @@ export const {
     useCreateOrderMutation,
     useCreateBefaringStepMutation,
     useConfirmViewingByPerfomerMutation,
+    useGetLastDecisionOrdersQuery,
 } = dyktiApi

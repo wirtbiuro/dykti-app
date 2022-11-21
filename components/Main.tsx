@@ -11,11 +11,14 @@ import ContractPreparerPanel from './panels/ContractPreparerPanel'
 import WorkStepPanel from './panels/WorkStepPanel'
 import QuestionnairePanel from './panels/QuestionnairePanel'
 import ReferencePanel from './panels/ReferencePanel'
-import { withRtkQueryTokensCheck } from '../utilities'
+import { withRtkQueryTokensCheck, getDatas } from '../utilities'
 import useErrFn from '../hooks/useErrFn'
 import LastDecisionPanel from './panels/LastDecisionPanel'
 import { observer } from 'mobx-react-lite'
 import { MainStyled } from '../styles/styled-components'
+import { useSimpleStore } from '../simple-store/store'
+import { useAppDispatch } from '../state/hooks'
+import { authActions } from '../state/authSlice'
 
 type RoleStrategyType = Record<Role, JSX.Element>
 
@@ -32,24 +35,34 @@ const roleStrategy: RoleStrategyType = {
     LastDecisionUser: <LastDecisionPanel />,
 }
 
-const Main = observer(() => {
+const Main = () => {
     const getUser = dyktiApi.endpoints.getUser as any
-    const [refetchUser, { data, isLoading, isError, isSuccess }] = getUser.useLazyQuery()
+    const [refetchUser] = getUser.useLazyQuery()
+    const getUserQueryData = getUser.useQueryState()
+    console.log({ getUserQueryData })
+
+    const { data, isLoading, isError, isSuccess } = getUserQueryData
+
+    const getLastDecisionOrders = dyktiApi.endpoints.getLastDecisionOrders as any
+    const [refetchLastDecisionOrdersData] = getLastDecisionOrders.useLazyQuery()
+    const getLastDecisionOrdersData = getLastDecisionOrders.useQueryState()
+    const {
+        data: lastDecisionsOrderData,
+        isLoading: lastDecisionsOrderDataIsLoading,
+        isFetching: lastDecisionsOrderDataIsFetching,
+    } = getLastDecisionOrdersData
+
+    useEffect(() => {
+        refetchLastDecisionOrdersData()
+    }, [])
+
+    console.log({ getLastDecisionOrdersData })
+
+    const dispatch = useAppDispatch()
 
     // const { isError, data }: IQuery<IUser> = useGetUserQuery()
 
     const [visibleRole, setVisibleRole] = useState<Role>()
-
-    console.log({ data })
-
-    const errFn = useErrFn()
-
-    useEffect(() => {
-        withRtkQueryTokensCheck({
-            cb: refetchUser,
-            err: () => {},
-        })
-    }, [])
 
     useEffect(() => {
         if (data && !isError) {
@@ -60,6 +73,13 @@ const Main = observer(() => {
     const roleClicked = (role: Role) => {
         setVisibleRole(role)
     }
+
+    const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = lastDecisionsOrderData
+        ? getDatas({
+              data: lastDecisionsOrderData,
+              currentStep: 'lastDecisionStep',
+          })
+        : { completedOrdersData: null, currentData: null, editedOrdersData: null, passedForEditData: null }
 
     if (data && data.role && !isError) {
         return (
@@ -76,6 +96,11 @@ const Main = observer(() => {
                                 className="role"
                             >
                                 {roleTitles[role]}
+                                {role === 'LastDecisionUser' && (
+                                    <span className="last-decision-quantity">
+                                        {currentData === null ? '...' : currentData.length}
+                                    </span>
+                                )}
                             </li>
                         )
                     })}
@@ -87,6 +112,6 @@ const Main = observer(() => {
     }
 
     return <div>Dykti app</div>
-})
+}
 
 export default Main

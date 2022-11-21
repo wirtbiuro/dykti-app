@@ -2,7 +2,7 @@ import React, { FC } from 'react'
 import { getStepProps, getUnactiveStepnames } from '../utilities'
 import { StepType, stepNames, stepNamesRelations, roleTitles, getStepNames, StepName } from '../types'
 import { StepPropsStyled } from '../styles/styled-components'
-import { useOrderStore } from '../simple-store/order'
+import { useSimpleStore } from '../simple-store/store'
 import MainStepProps from './MainStepProps'
 
 interface IStepPropsProps {
@@ -12,7 +12,7 @@ interface IStepPropsProps {
 }
 
 const StepProps: FC<IStepPropsProps> = ({ step, stepName, orderId }) => {
-    const [orderStore, setOrderStore] = useOrderStore()
+    const [orderStore, setOrderStore] = useSimpleStore()
 
     const unactiveStepNames = getUnactiveStepnames({ passedTo: step.passedTo, returnStep: step.returnStep })
 

@@ -263,6 +263,7 @@ export interface IRecord {
 export type FieldsToSend = StepType & {
     order?: IOrder
     role?: Role
+    userRoles?: Role[]
 }
 
 export type FormCheckType = ({ showMessage }: { showMessage: boolean }) => void

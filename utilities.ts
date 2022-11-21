@@ -25,6 +25,7 @@ import { dyktiApi } from './state/apiSlice'
 import { Modal } from 'antd'
 import { DateTime } from 'luxon'
 import { selectData, fieldNames } from './accessories/constants'
+import { User } from '@prisma/client'
 var cookie = require('cookie')
 var jwt = require('jsonwebtoken')
 
@@ -399,7 +400,7 @@ interface ISubmitFormProps {
     curStepName: StepName
     maxPromotion: StepName
     passedTo: StepName
-    userId: number
+    user: Partial<User>
     nextToPass?: StepName
     prevToPass?: StepName
     formCheck?: FormCheckType
@@ -421,7 +422,7 @@ export const submitForm: SubmitFormType = async ({
     curStepName,
     maxPromotion,
     passedTo,
-    userId,
+    user,
     nextToPass,
     prevToPass,
     toNextSendData,
@@ -468,7 +469,8 @@ export const submitForm: SubmitFormType = async ({
         maxPromotion: _maxPromotion,
         shouldConfirmView,
         createdByStep: curStepName,
-        stepCreatorId: userId,
+        stepCreatorId: user.id,
+        userRoles: user.role as Role[],
         returnStep,
     }
 

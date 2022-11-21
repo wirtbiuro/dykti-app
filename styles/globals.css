@@ -26,6 +26,11 @@ button {
     cursor: pointer;
 }
 
+#__next {
+    width: calc(100vw - 20px);
+    margin: auto;
+}
+/* 
 .ant-spin-container.ant-spin-blur {
     width: 100vw;
     height: 100vh;
@@ -34,4 +39,4 @@ button {
 .ant-spin-nested-loading > div > .ant-spin.ant-spin-spinning {
     width: 100vw;
     height: 100vh;
-}
+} */

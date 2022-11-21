@@ -5,19 +5,28 @@ import axios from 'axios'
 import { useAppDispatch } from '../state/hooks'
 import { authActions } from '../state/authSlice'
 import { Spin } from 'antd'
+import { useSimpleStore } from '../simple-store/store'
 
 const Header = () => {
     const [logoutLoading, setLogoutLoading] = useState(false)
     const dispatch = useAppDispatch()
 
     const getUser = dyktiApi.endpoints.getUser as any
-    const getUserQueryData = getUser.useQueryState()
-
-    const { isLoading, isError, data, isUninitialized } = getUserQueryData
 
     const [refetchUser] = getUser.useLazyQuery()
 
-    console.log({ data })
+    const getUserQueryData = getUser.useQueryState()
+    const { data, isLoading, isError, isSuccess } = getUserQueryData
+
+    const [simpleStore, setSimpleStore] = useSimpleStore()
+
+    const onLogin = () => {
+        dispatch(authActions.login({}))
+    }
+
+    useEffect(() => {
+        onLogin()
+    }, [isError])
 
     const onLogout = async () => {
         setLogoutLoading(true)
@@ -29,26 +38,19 @@ const Header = () => {
         setLogoutLoading(false)
     }
 
-    const onLogin = () => {
-        dispatch(authActions.login({}))
-    }
-
-    useEffect(() => {
-        onLogin()
-    }, [isError])
-
     return (
-        // <Spin spinning={logoutLoading}>
         <HeaderStyled>
+            {/* <div className="header"></div> */}
             {!isError && data?.username}
             {data?.username && !isError && (
-                <button onClick={onLogout} disabled={logoutLoading}>
-                    Logout
-                </button>
+                <Spin spinning={logoutLoading}>
+                    <button onClick={onLogout} disabled={logoutLoading}>
+                        Logout
+                    </button>
+                </Spin>
             )}
             {/* {(!data || isError) && !isLoading && !isUninitialized && <button onClick={onLogin}>Login</button>} */}
         </HeaderStyled>
-        // </Spin>
     )
 }
 

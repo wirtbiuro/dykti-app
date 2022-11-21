@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react'
 
-interface IOrderStore {
+interface IStore {
     visibleOrderId?: null | number | string
 }
 
-class OrderStore {
-    data: IOrderStore = {
+class Store {
+    data: IStore = {
         visibleOrderId: null,
     }
     finalCalls: Function[] = []
 
-    setData = (data: IOrderStore) => {
+    setData = (data: IStore) => {
         this.data = { ...this.data, ...data }
         console.log({ data: this.data, finalCalls: this.finalCalls })
         this.doFinalCalls()
@@ -32,15 +32,15 @@ class OrderStore {
     }
 }
 
-const orderStore = new OrderStore()
+const simpleStore = new Store()
 
-export const useOrderStore = () => {
-    const [data, setData] = useState<IOrderStore>(orderStore.data)
+export const useSimpleStore = () => {
+    const [data, setData] = useState<IStore>(simpleStore.data)
     useEffect(() => {
-        orderStore.registerFinalCall(setData)
+        simpleStore.registerFinalCall(setData)
         return () => {
-            orderStore.unregisterFinalCall(setData)
+            simpleStore.unregisterFinalCall(setData)
         }
     }, [])
-    return [data, orderStore.setData] as const
+    return [data, simpleStore.setData] as const
 }
