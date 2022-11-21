@@ -154,7 +154,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                 offerStepOfferDate: offerDateData.value,
                 offerStepComment: commentData.value,
                 offerStepBefComments: null,
-                beffaringStepDocsSendDate: null,
+                // beffaringStepDocsSendDate: null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
