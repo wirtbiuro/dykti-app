@@ -91,7 +91,7 @@ export const roleTitles: RoleTitleType = {
     FormCreator: 'Tworzenie formularza',
     BefaringUser: 'Befaring',
     OfferCreator: 'Tworzenie oferty',
-    ContractPreparer: 'Przygotowanie kontraktu',
+    ContractPreparer: 'Ofertowanie',
     ContractChecker: 'Sprawdzenie kontraktu',
     ContractCreator: 'Tworzenie kontraktu',
     WorkRespUser: 'Praca',
@@ -156,6 +156,7 @@ export type StepType = IFormStep & {
     createdBy?: number
     stepCreator?: IUser
     stepCreatorId?: number
+    branchIdx?: number
 } & IBefaringStep &
     IOfferStep &
     IContractStep &
@@ -266,7 +267,7 @@ export type FieldsToSend = StepType & {
     userRoles?: Role[]
 }
 
-export type FormCheckType = ({ showMessage }: { showMessage: boolean }) => void
+export type FormCheckType = ({ showMessage }: { showMessage: boolean }) => boolean
 
 export interface ISendCheckboxes {
     nextCheckbox: boolean

@@ -39,7 +39,7 @@ const Orders: FC<IOrderProps> = ({ orders, stepName }) => {
                             }
                             const aCreatedAt = alastStep.createdAt || DateTime.now().toISO()
                             const bCreatedAt = blastStep.createdAt || DateTime.now().toISO()
-                            return DateTime.fromISO(aCreatedAt).toMillis() - DateTime.fromISO(bCreatedAt).toMillis()
+                            return DateTime.fromISO(bCreatedAt).toMillis() - DateTime.fromISO(aCreatedAt).toMillis()
                         })
                         .map((order) => <Order order={order} key={order.id} stepName={stepName} />)}
             </OrderStyled>

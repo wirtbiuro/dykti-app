@@ -55,6 +55,15 @@ const MainStepProps: FC<IStepPropsProps> = ({ step, stepName, orderId }) => {
                     <p className="value">{getValue('beffaringStepOfferDate')}</p>
                 </div>
             )}
+            {stepName === 'contractCheckerStep' && (
+                <>
+                    <div className="prop">
+                        <p className="description">{getDescription('contractStepSentForVerificationDate')}:</p>
+                        <p className="value">{getValue('contractStepSentForVerificationDate')}</p>
+                    </div>
+                </>
+            )}
+
             {orderStore.visibleOrderId === orderId ? (
                 <button onClick={() => onShowMore()}>Pokaż mniej</button>
             ) : (

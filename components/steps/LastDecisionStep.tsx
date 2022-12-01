@@ -15,7 +15,7 @@ import {
 import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import SendButtons from '../UI/SendButtons'
-import { submitForm, showErrorMessages } from '../../utilities'
+import { submitForm, showErrorMessages, getBranchValues } from '../../utilities'
 import { useFormInput } from '../../hooks/useFormInput'
 import { flushSync } from 'react-dom'
 import FormSelect from '../UI/FormSelect'
@@ -37,7 +37,16 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
 
     const formRef = useRef<FormElement>(null)
 
-    const prevStep = order?.steps[order.steps.length - 1]
+    const {
+        prevStep,
+        branchIdx,
+        prevStepChangeStep,
+        isNewBranchComparedByLastStepnameChange,
+        prevBranchOnProp,
+    } = getBranchValues({
+        stepName: 'lastDecisionStep',
+        order,
+    })
 
     const errFn = useErrFn()
 
@@ -48,7 +57,7 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
         getResults: () => {},
     })
 
-    const formCheck: FormCheckType = () => {}
+    const formCheck: FormCheckType = () => true
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -64,6 +73,7 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
         setIsSpinning(true)
 
         await submitForm({
+            branchIdx,
             prevStep: prevStep!,
             user: userData,
             maxPromotion: prevStep!.maxPromotion,

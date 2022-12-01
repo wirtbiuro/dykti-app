@@ -122,6 +122,11 @@ export const selectData = {
         ['samochod', 'Reklama na samochodzie'],
         ['other', 'Inne'],
     ],
+    standardSelect: [
+        ['select', 'Wybierz'],
+        ['yes', 'Tak'],
+        ['no', 'Nie'],
+    ],
     workStepTeam: [
         ['1', 'Piotr'],
         ['22', 'Adam'],

@@ -153,6 +153,7 @@ export class CalendarModule {
 
     check(showError?: boolean) {
         const _showError: boolean = showError === undefined ? true : showError
+        console.log({ showError, _showError })
         if (this.data.minutes === 'mm' || this.data.hours === 'hh' || this.data.dayMonthYear === null) {
             if (_showError) {
                 this.setError()
@@ -163,6 +164,7 @@ export class CalendarModule {
     }
 
     getSelectedDate(showError?: boolean) {
+        console.log({ showError })
         const isChecked = this.check(showError)
         this.data.internalErrorTrigger = !this.data.internalErrorTrigger
         this.doFinalCalls()

@@ -12,10 +12,9 @@ import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
-import { submitForm, showErrorMessages } from '../../utilities'
+import { submitForm, showErrorMessages, getBranchValues } from '../../utilities'
 import { flushSync } from 'react-dom'
 import { useFormInput } from '../../hooks/useFormInput'
-import { useCalendarData } from '../../hooks/useCalendarData'
 import FormMultiSelect from '../UI/FormMultiSelect'
 import { useFormSelect } from '../../hooks/useFormSelect'
 import { DateTime } from 'luxon'
@@ -23,6 +22,8 @@ import useErrFn from '../../hooks/useErrFn'
 import { useFormMultiSelect } from '../../hooks/useFormMultiSelect'
 import { Spin } from 'antd'
 import { selectData } from '../../accessories/constants'
+import { CalendarModule, useCalendarData } from '../../store/calendar'
+import Calendar from '../calendar/Calendar'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -40,14 +41,49 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     const errFn = useErrFn()
 
-    const prevStep = order?.steps[order.steps.length - 1]
+    const {
+        prevStep,
+        branchIdx,
+        prevStepChangeStep,
+        isNewBranchComparedByLastStepnameChange,
+        prevBranchOnProp,
+    } = getBranchValues({
+        stepName: 'workStep',
+        order,
+    })
 
     const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
         getResults: () => {},
     })
 
-    const workStartDateData = useCalendarData()
-    const workEndDateData = useCalendarData()
+    const [startCalendar] = useState<CalendarModule>(
+        new CalendarModule({
+            withTime: false,
+            selectedDate: isNewBranchComparedByLastStepnameChange
+                ? prevStep?.contractCheckerStepWorkStartDate
+                    ? DateTime.fromISO(prevStep?.contractCheckerStepWorkStartDate as string)
+                    : undefined
+                : prevStep?.workStepWorkStartDate
+                ? DateTime.fromISO(prevStep?.workStepWorkStartDate as string)
+                : undefined,
+        })
+    )
+
+    const [endCalendar] = useState<CalendarModule>(
+        new CalendarModule({
+            withTime: false,
+            selectedDate: isNewBranchComparedByLastStepnameChange
+                ? prevStep?.contractCheckerStepWorkEndDate
+                    ? DateTime.fromISO(prevStep?.contractCheckerStepWorkEndDate as string)
+                    : undefined
+                : prevStep?.workStepWorkEndDate
+                ? DateTime.fromISO(prevStep?.workStepWorkEndDate as string)
+                : undefined,
+        })
+    )
+
+    const workStartDateData = useCalendarData(startCalendar)
+    const workEndDateData = useCalendarData(endCalendar)
     const shouldChangeContractData = useFormInput()
     const teamData = useFormMultiSelect()
     const contractEditsData = useFormInput()
@@ -55,8 +91,6 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
     const [isPrevFormChecked, setIsPrevFormChecked] = useState<boolean>(false)
-
-    const workStartDateDataValue = workStartDateData.value as DateTime
 
     const isMainCondition =
         // workStartDateDataValue?.toUTC().toISO() === prevStep?.contractCheckerStepWorkStartDate &&
@@ -77,8 +111,8 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         formCheck({ showMessage: false })
         prevFormCheck({ showMessage: false })
     }, [
-        workStartDateData.value,
-        workEndDateData.isChecked,
+        workStartDateData.dayMonthYear,
+        workEndDateData.dayMonthYear,
         shouldChangeContractData.isChecked,
         teamData.isChecked,
         contractEditsData.isChecked,
@@ -87,27 +121,27 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
 
-        if (!workStartDateData.isChecked) {
-            console.log('workStartDateData error')
-            showMessage ? workStartDateData.showError!() : null
-            return setIsFormChecked(false)
+        if (!startCalendar.getSelectedDate(showMessage)) {
+            setIsFormChecked(false)
+            return false
+        }
+
+        if (!endCalendar.getSelectedDate(showMessage)) {
+            setIsFormChecked(false)
+            return false
         }
 
         if (!teamData.isChecked) {
             console.log('teamData error')
             showMessage ? teamData.showError!() : null
-            return setIsFormChecked(false)
-        }
-
-        if (!workEndDateData.isChecked) {
-            console.log('workEndDateData error')
-            showMessage && workStartDateData ? workEndDateData.showError!() : null
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         console.log('form checked')
 
-        return setIsFormChecked(true)
+        setIsFormChecked(true)
+        return true
     }
 
     const prevFormCheck: FormCheckType = ({ showMessage }) => {
@@ -116,26 +150,19 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         if (shouldChangeContractData.isChecked) {
             console.log('shouldChangeContractData error')
             showMessage ? shouldChangeContractData.showError!() : null
-            return setIsPrevFormChecked(false)
-        }
-
-        if (!workStartDateData.isChecked) {
-            console.log('workStartDateData error')
-            showMessage && workStartDateData ? workStartDateData.showError!() : null
-            return setIsPrevFormChecked(false)
-        }
-
-        if (workStartDateDataValue?.toUTC().toISO() !== prevStep?.contractCheckerStepWorkStartDate) {
-            return setIsPrevFormChecked(true)
+            setIsPrevFormChecked(false)
+            return false
         }
 
         if (!contractEditsData.isChecked) {
             console.log('contractEditsData error')
             showMessage ? contractEditsData.showError!() : null
-            return setIsPrevFormChecked(false)
+            setIsPrevFormChecked(false)
+            return false
         }
 
-        return setIsPrevFormChecked(true)
+        setIsPrevFormChecked(true)
+        return true
     }
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -161,11 +188,10 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
         if (areErrors) return
 
-        console.log('workEndDateData.value', workEndDateData.value)
-
         setIsSpinning(true)
 
         await submitForm({
+            branchIdx,
             prevStep: prevStep!,
             user: userData,
             maxPromotion: prevStep!.maxPromotion,
@@ -179,15 +205,15 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             toNextSendData: {
                 order,
                 workStepTeam: teamData.value,
-                workStepWorkStartDate: workStartDateData.value,
+                workStepWorkStartDate: startCalendar.getSelectedDate(false),
                 workStepContractEdits: null,
-                workStepWorkEndDate: workEndDateData.value,
+                workStepWorkEndDate: endCalendar.getSelectedDate(false),
                 ...sendButtonsOutputRef.current.getResults(),
             },
             toPrevSendData: {
                 order,
                 workStepTeam: teamData.value,
-                workStepWorkStartDate: workStartDateData.value,
+                workStepWorkStartDate: null,
                 workStepContractEdits: contractEditsData.value,
                 workStepWorkEndDate: null,
                 ...sendButtonsOutputRef.current.getResults(),
@@ -208,23 +234,16 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                         <form ref={formRef} onSubmit={submit}>
                             <>
                                 <>
-                                    <p>Data rozpoczęcia pracy:</p>
-                                    <CalendarWithTime
-                                        defaultDate={
-                                            order &&
-                                            (prevStep?.workStepWorkStartDate ||
-                                                prevStep?.contractCheckerStepWorkStartDate)
-                                        }
-                                        connection={workStartDateData}
-                                        isTimeEnabled={false}
-                                    />
-                                </>
-
-                                <>
                                     <FormInput
                                         type="checkbox"
                                         connection={shouldChangeContractData}
-                                        defaultChecked={prevStep?.workStepContractEdits ? true : false}
+                                        defaultChecked={
+                                            isNewBranchComparedByLastStepnameChange
+                                                ? false
+                                                : prevStep?.workStepContractEdits
+                                                ? true
+                                                : false
+                                        }
                                     >
                                         <>Kontrakt wymaga zmiany</>
                                     </FormInput>
@@ -235,49 +254,41 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                         <p>Zmiany w kontrakcie: </p>
                                         <FormInput
                                             placeholder="Jakich zmian wymaga kontrakt?"
-                                            defaultValue={prevStep?.workStepContractEdits}
+                                            defaultValue={
+                                                isNewBranchComparedByLastStepnameChange
+                                                    ? ''
+                                                    : prevStep?.workStepContractEdits
+                                            }
                                             connection={contractEditsData}
                                         />
                                     </>
                                 )}
 
-                                <>
-                                    <p>Ekipa: </p>
-                                    <FormMultiSelect
-                                        placeholder="Ekipa"
-                                        defaultValue={prevStep?.workStepTeam || ''}
-                                        connection={teamData}
-                                        options={selectData.workStepTeam}
-                                    />
-                                </>
+                                {shouldChangeContractData.isChecked && (
+                                    <>
+                                        <p>Data rozpoczęcia pracy.</p>
+                                        <Calendar
+                                            calendar={startCalendar}
+                                            disabled={prevStep && prevStep?.passedTo !== 'workStep'}
+                                        />
 
-                                {/* {shouldChangeContractData.isChecked && ( */}
-                                <>
-                                    <p>Data zakończenia pracy:</p>
-                                    <CalendarWithTime
-                                        defaultDate={order && prevStep?.workStepWorkEndDate}
-                                        connection={workEndDateData}
-                                        isTimeEnabled={false}
-                                    />
-                                </>
-                                {/* )} */}
+                                        <p>Data zakończenia pracy.</p>
+                                        <Calendar
+                                            calendar={endCalendar}
+                                            disabled={prevStep && prevStep?.passedTo !== 'workStep'}
+                                        />
 
-                                {/* {sendingDateData.isChecked && !isContractAcceptedData.isChecked && (
-                                <>
-                                    <FormSelect
-                                        options={[
-                                            ['select', 'Wybierz powód odrzucenia oferty'],
-                                            ['time', 'Klient potrzebuje więcej czasu'],
-                                            ['offer', 'Wymagane zmiany oferty'],
-                                            ['contract', 'Wymagane zmiany kontraktu'],
-                                        ]}
-                                        name="rejectionReasons"
-                                        title="Przyczyna odrzucenia oferty: "
-                                        connection={rejectionReasonData}
-                                        defaultValue={defaultRejectionValue}
-                                    />
-                                </>
-                            )} */}
+                                        <>
+                                            <p>Ekipa: </p>
+                                            <FormMultiSelect
+                                                placeholder="Ekipa"
+                                                defaultValue={prevStep?.workStepTeam || ''}
+                                                connection={teamData}
+                                                options={selectData.workStepTeam}
+                                            />
+                                        </>
+                                    </>
+                                )}
                             </>
 
                             <SendButtons

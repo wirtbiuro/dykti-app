@@ -90,6 +90,7 @@ model Step{
   returnStep String?
   shouldConfirmView Boolean?
   isCompleted Boolean?
+  branchIdx Int?
 }
 
 model Order{

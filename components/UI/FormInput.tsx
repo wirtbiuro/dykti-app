@@ -14,6 +14,7 @@ interface IFormInputProps<T = string> {
     defaultValue?: string
     defaultChecked?: boolean
     connection?: useFormInputType
+    disabled?: boolean
 }
 
 function FormInput<T extends string>({
@@ -34,6 +35,7 @@ function FormInput<T extends string>({
         return false
     },
     onErrorOk,
+    disabled = false,
 }: IFormInputProps<T>) {
     const errRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
@@ -103,6 +105,7 @@ function FormInput<T extends string>({
                     defaultValue={defaultValue}
                     defaultChecked={defaultChecked}
                     onChange={onChange}
+                    disabled={disabled}
                 />
                 {children}
             </div>

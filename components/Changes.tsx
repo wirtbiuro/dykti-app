@@ -14,10 +14,7 @@ const Changes: FC<IChangesProps> = ({ step, prevStep }) => {
         const stepProps = getStepProps(step)
         const _stepProps = stepProps
             .filter((prop) => !['createdAt', 'id', 'stepCreator', 'shouldConfirmView'].includes(prop.key))
-            .filter(
-                (prop) => (prevStep && prop.value !== prevStep[prop.key]) || (!prevStep && prop.value !== null)
-                // ['beffaringStepDocsSendDate'].includes(prop.key)
-            )
+            .filter((prop) => (prevStep && prop.value !== prevStep[prop.key]) || (!prevStep && prop.value !== null))
 
         return _stepProps.map((prop) => {
             const className = isStepPropErrors[prop.key]

@@ -320,8 +320,8 @@ interface IGetUnactiveStepnamesTypes {
 export const getUnactiveStepnames = ({ passedTo, returnStep }: IGetUnactiveStepnamesTypes): StepName[] => {
     const stepNames = getStepNames(stepNamesRelations)
 
-    console.log('getUnactiveStepnames')
-    console.log({ passedTo, returnStep })
+    // console.log('getUnactiveStepnames')
+    // console.log({ passedTo, returnStep })
 
     const passedToIdx = stepNames.findIndex((stepName) => stepName === passedTo)
     const returnStepIdx = stepNames.findIndex((stepName) => stepName === returnStep)
@@ -411,6 +411,7 @@ interface ISubmitFormProps {
     toNextSendData: FieldsToSend
     createOrder: (data: FieldsToSend) => void
     errFn: (error: IServerControllerError) => void
+    branchIdx?: number
 }
 
 type SubmitFormType = ({}: ISubmitFormProps) => Promise<void>
@@ -431,6 +432,7 @@ export const submitForm: SubmitFormType = async ({
     isPrevFormChecked,
     prevFormCheck = () => {},
     errFn,
+    branchIdx = 0,
 }) => {
     const { isCurrent, isEdit, isProceedToNext, isProceedToEdit } = getOrderStatus({
         curStepName,
@@ -464,6 +466,13 @@ export const submitForm: SubmitFormType = async ({
     const shouldConfirmView = _passedTo !== curStepName
     console.log({ shouldConfirmView, _passedTo, curStepName })
 
+    // let branchIdx = prevStep?.branchIdx || 0
+    // if (!isMainCondition && curStepName !== _passedTo) {
+    //     branchIdx = branchIdx + 1
+    // }
+
+    // console.log({ branchIdx })
+
     const _options = {
         passedTo: _passedTo,
         maxPromotion: _maxPromotion,
@@ -472,6 +481,7 @@ export const submitForm: SubmitFormType = async ({
         stepCreatorId: user.id,
         userRoles: user.role as Role[],
         returnStep,
+        branchIdx,
     }
 
     console.log({ _options })
@@ -568,8 +578,8 @@ export const getWhereStrategyBySteps: getWhereStrategyByStepsType = (prevStepNam
 interface IshowErrorMessagesProps {
     target: EventTarget & WithValueNFocus<ISendCheckboxes>
     flushSync: Function
-    formCheck: ({ showMessage }: { showMessage: boolean }) => void
-    prevFormCheck?: ({ showMessage }: { showMessage: boolean }) => void
+    formCheck: ({ showMessage }: { showMessage: boolean }) => boolean
+    prevFormCheck?: ({ showMessage }: { showMessage: boolean }) => boolean
     isMainCondition: boolean
     isFormChecked: boolean
     isPrevFormChecked?: boolean
@@ -581,7 +591,7 @@ export const showErrorMessages: ShowErrorMessagesTypes = ({
     target,
     flushSync,
     formCheck,
-    prevFormCheck = () => {},
+    prevFormCheck = () => true,
     isMainCondition,
     isPrevFormChecked = false,
     isFormChecked,
@@ -592,29 +602,41 @@ export const showErrorMessages: ShowErrorMessagesTypes = ({
 
     const isPrevChecked = target.prevCheckbox !== undefined && target.prevCheckbox.checked
 
-    flushSync(() => {
-        if (isNextChecked) formCheck({ showMessage: true })
-        if (isPrevChecked) prevFormCheck({ showMessage: true })
-        if (isUncompletedNOTChecked) {
-            isMainCondition ? formCheck({ showMessage: true }) : prevFormCheck({ showMessage: true })
-        }
-    })
+    console.log({ isUncompletedNOTChecked, isNextChecked, isPrevChecked })
 
-    if (
-        (!isFormChecked && isNextChecked) ||
-        (!isPrevFormChecked && isPrevChecked) ||
-        (isUncompletedNOTChecked && (isMainCondition ? !isFormChecked : !isPrevFormChecked))
-    ) {
-        console.log({
-            isFormChecked,
-            isPrevFormChecked,
-            isUncompletedNOTChecked,
-            isNextChecked,
-            isPrevChecked,
-            isMainCondition,
-        })
-        return true
+    if (isNextChecked) {
+        const isFormChecked = formCheck({ showMessage: true })
+        console.log({ isFormChecked })
+        return !isFormChecked
     }
+    if (isPrevChecked) return !prevFormCheck({ showMessage: true })
+    if (isUncompletedNOTChecked) {
+        return isMainCondition ? !formCheck({ showMessage: true }) : !prevFormCheck({ showMessage: true })
+    }
+
+    // flushSync(() => {
+    //     if (isNextChecked) formCheck({ showMessage: true })
+    //     if (isPrevChecked) prevFormCheck({ showMessage: true })
+    //     if (isUncompletedNOTChecked) {
+    //         isMainCondition ? formCheck({ showMessage: true }) : prevFormCheck({ showMessage: true })
+    //     }
+    // })
+
+    // if (
+    //     (!isFormChecked && isNextChecked) ||
+    //     (!isPrevFormChecked && isPrevChecked) ||
+    //     (isUncompletedNOTChecked && (isMainCondition ? !isFormChecked : !isPrevFormChecked))
+    // ) {
+    //     console.log({
+    //         isFormChecked,
+    //         isPrevFormChecked,
+    //         isUncompletedNOTChecked,
+    //         isNextChecked,
+    //         isPrevChecked,
+    //         isMainCondition,
+    //     })
+    //     return true
+    // }
     console.log('submit')
     return false
 }
@@ -632,7 +654,7 @@ interface IgetDatasProps {
 }
 
 export const getDatas: GetDatasType = ({ data, currentStep }) => {
-    console.log({ data, currentStep })
+    // console.log({ data, currentStep })
     const completedOrdersData = data?.filter((order) => {
         const lastStep = order.steps[order.steps.length - 1]
         return getArrIdx(lastStep.passedTo!, stepNames) - getArrIdx(currentStep, stepNames) > 0
@@ -676,9 +698,10 @@ export const getStepProps = (step: StepType) => {
 
             if (typeof value === 'string') {
                 if (DateTime.fromISO(value).toString() !== 'Invalid DateTime') {
-                    const dateFormat = ['formStepMeetingDate', 'createdAt', 'beffaringStepDocsSendDate'].includes(key)
-                        ? 'dd.MM.yyyy HH:mm'
-                        : 'dd.MM.yyyy'
+                    // const dateFormat = ['formStepMeetingDate', 'createdAt', 'beffaringStepDocsSendDate'].includes(key)
+                    //     ? 'dd.MM.yyyy HH:mm'
+                    //     : 'dd.MM.yyyy'
+                    const dateFormat = 'dd.MM.yyyy HH:mm'
                     value = DateTime.fromISO(value).toFormat(dateFormat)
                 }
             }
@@ -767,4 +790,82 @@ export const isStepPropErrors: CheckStepPropErrorsType = {
 
 export const getZeroArrElements = (arr: string[][]): string[] => {
     return arr.map((item) => item[0])
+}
+
+export const getPrevBranchStep = (order: IOrder): StepType | null => {
+    if (!order.steps) return null
+    console.log({ order })
+    const orderSteps = Array.from(order.steps)
+    const steps = orderSteps.sort((a, b) => {
+        return DateTime.fromISO(b.createdAt!).toMillis() - DateTime.fromISO(a.createdAt!).toMillis()
+    })
+    const curBrunchIdx = steps[0].branchIdx
+    if (!curBrunchIdx || curBrunchIdx === 0) {
+        return null
+    } else {
+        return steps.find((step) => step.branchIdx === curBrunchIdx - 1) || null
+    }
+}
+
+interface IGetBranchIdxProps {
+    prevStep?: StepType
+    stepName: StepName
+}
+export const getBranchIdx: (props: IGetBranchIdxProps) => number = ({ prevStep, stepName }) => {
+    if (!prevStep) return 0
+    const branchIdx =
+        prevStep.returnStep === prevStep.createdByStep &&
+        prevStep.returnStep !== prevStep.passedTo &&
+        prevStep.createdByStep !== stepName
+            ? prevStep.branchIdx! + 1
+            : prevStep.branchIdx
+    console.log({ branchIdx })
+    return branchIdx || 0
+}
+
+interface IGetPrevStepChangeStep {
+    stepName: StepName
+    order?: IOrder
+}
+export const getPrevStepChangeStep: (props: IGetPrevStepChangeStep) => StepType | null = ({ stepName, order }) => {
+    if (!order) return null
+    const orderSteps = Array.from(order.steps)
+    const steps = orderSteps.sort((a, b) => {
+        return DateTime.fromISO(b.createdAt!).toMillis() - DateTime.fromISO(a.createdAt!).toMillis()
+    })
+    const step = steps.find(
+        (step) => step.createdByStep === stepName
+        // && step.createdByStep !== step.passedTo
+    )
+    return step || null
+}
+
+interface IGetBranchValuesProps {
+    stepName: StepName
+    order?: IOrder
+}
+export const getBranchValues = ({ stepName, order }: IGetBranchValuesProps) => {
+    const prevStep = order?.steps[order.steps.length - 1]
+
+    const branchIdx = getBranchIdx({ prevStep, stepName })
+    const prevStepChangeStep = getPrevStepChangeStep({ order, stepName })
+
+    const isNewBranchComparedByLastStepnameChange = branchIdx !== 0 && branchIdx !== prevStepChangeStep?.branchIdx!
+    const isNewBranchComparedByPrevStep = branchIdx !== 0 && branchIdx !== prevStep?.branchIdx!
+
+    const orderSteps = order ? Array.from(order.steps) : []
+    const steps = orderSteps.sort((a, b) => {
+        return DateTime.fromISO(b.createdAt!).toMillis() - DateTime.fromISO(a.createdAt!).toMillis()
+    })
+    const prevBranchOnProp =
+        steps.find((step) => step.createdByStep === stepName && step.branchIdx !== branchIdx) || null
+
+    return {
+        prevStep,
+        branchIdx,
+        prevStepChangeStep,
+        isNewBranchComparedByLastStepnameChange,
+        isNewBranchComparedByPrevStep,
+        prevBranchOnProp,
+    }
 }

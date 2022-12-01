@@ -138,7 +138,7 @@ const Order: FC<IOrderProps> = ({ order, stepName }) => {
 
     const sortSteps = getSortSteps().sort((a, b) => Number(b.key!) - Number(a.key!))
 
-    console.log({ sortSteps })
+    // console.log({ sortSteps })
 
     return (
         <Spin spinning={isSpinning}>

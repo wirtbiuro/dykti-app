@@ -13,7 +13,15 @@ import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
-import { submitForm, getMaxPromotion, showErrorMessages, getReturnStep } from '../../utilities'
+import {
+    submitForm,
+    getMaxPromotion,
+    showErrorMessages,
+    getReturnStep,
+    getBranchIdx,
+    getPrevStepChangeStep,
+    getBranchValues,
+} from '../../utilities'
 import { DateTime } from 'luxon'
 import { flushSync } from 'react-dom'
 import { useFormInput } from '../../hooks/useFormInput'
@@ -22,6 +30,7 @@ import { Spin } from 'antd'
 import Calendar from '../calendar/Calendar'
 import { CalendarModule, useCalendarData } from '../../store/calendar'
 import { Modal } from 'antd'
+import PrevBranchProp from '../PrevBranchProp'
 
 type FieldsToSend = StepType & {
     order?: IOrder
@@ -32,7 +41,24 @@ type FormElement = HTMLFormElement & FormType
 const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
-    const prevStep = order?.steps[order.steps.length - 1]
+    const {
+        prevStep,
+        branchIdx,
+        prevStepChangeStep,
+        isNewBranchComparedByLastStepnameChange,
+        prevBranchOnProp,
+    } = getBranchValues({
+        stepName: 'beffaringStep',
+        order,
+    })
+
+    console.log({
+        prevStep,
+        branchIdx,
+        prevStepChangeStep,
+        isNewBranchComparedByLastStepnameChange,
+        prevBranchOnProp,
+    })
 
     const [meetingCalendar] = useState<CalendarModule>(
         new CalendarModule({
@@ -84,7 +110,7 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
     const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
 
     useEffect(() => {
-        console.log('meetingCalendarData.dayMonthYear changed')
+        // console.log('meetingCalendarData.dayMonthYear changed')
 
         const meetingDate = meetingCalendar.getSelectedDate(false)
 
@@ -92,7 +118,7 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
             ? offerCalendar.setSelectedDate(meetingDate.endOf('day').plus({ days: 7 }))
             : offerCalendar.setSelectedDate(null)
 
-        console.log('offerCalendarData', meetingDate && isMeetingDataChecked && wasThereMeeting.isChecked)
+        // console.log('offerCalendarData', meetingDate && isMeetingDataChecked && wasThereMeeting.isChecked)
 
         // offerDateData.setValue && offerDateData.setValue(meetingDate?.endOf('day').plus({ days: 7 }))
     }, [
@@ -116,10 +142,11 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
     ])
 
     const formCheck: FormCheckType = ({ showMessage }) => {
-        console.log('form check')
+        // console.log('form check')
 
         if (!meetingCalendar.getSelectedDate(showMessage)) {
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         if (!isMeetingDataChecked) {
@@ -128,7 +155,8 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                       content: 'Nie możesz przejść dalej, dopóki spotkanie się nie rozpocznie.',
                   })
                 : null
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         // if (!meetingDateData.isChecked) {
@@ -139,16 +167,19 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         if (!wasThereMeeting.isChecked) {
             console.log('was there meeting error')
             showMessage ? wasThereMeeting?.showError!() : null
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
         if (!wereDocsSent.isChecked) {
             console.log('docs send date error')
             showMessage ? wereDocsSent?.showError!() : null
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         if (!offerCalendar.getSelectedDate(showMessage)) {
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         // if (!offerDateData.isChecked) {
@@ -159,7 +190,8 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
 
         console.log('form checked')
 
-        return setIsFormChecked(true)
+        setIsFormChecked(true)
+        return true
     }
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -197,6 +229,7 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         setIsSpinning(true)
 
         await submitForm({
+            branchIdx,
             prevStep: prevStep!,
             user: userData,
             maxPromotion: prevStep!.maxPromotion,
@@ -215,8 +248,12 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                     ? null
                     : !wereDocsSent.isChecked
                     ? null
-                    : prevStep?.beffaringStepDocsSendDate || DateTime.now(),
+                    : // : prevStep?.beffaringStepDocsSendDate || DateTime.now(),
+                    isNewBranchComparedByLastStepnameChange
+                    ? DateTime.now()
+                    : prevStep?.beffaringStepDocsSendDate,
                 beffaringStepOfferDate: offerCalendar.getSelectedDate(),
+                beffaringStepComment: commentData.value,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
@@ -241,7 +278,10 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                 connection={meetingDateData}
                             /> */}
 
-                            <Calendar calendar={meetingCalendar} />
+                            <Calendar
+                                calendar={meetingCalendar}
+                                disabled={prevStep && prevStep?.passedTo !== 'beffaringStep'}
+                            />
 
                             {/* {meetingData?.check !== undefined && meetingDateData?.isChecked && ( */}
                             {isMeetingDataChecked && (
@@ -259,6 +299,7 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                                 : false
                                         }
                                         checkFn={(value) => value as boolean}
+                                        disabled={prevStep && prevStep?.passedTo !== 'beffaringStep'}
                                     >
                                         <>Spotkanie sie odbyło</>
                                     </FormInput>
@@ -284,6 +325,7 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                         connection={wereDocsSent}
                                         defaultChecked={prevStep?.beffaringStepDocsSendDate !== null}
                                         checkFn={(value) => value as boolean}
+                                        disabled={prevStep && prevStep?.passedTo !== 'beffaringStep'}
                                     >
                                         <>Dokumenty zostały wysłane.</>
                                     </FormInput>
@@ -299,13 +341,24 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                         isTimeEnabled={false}
                                     /> */}
 
-                                    <Calendar calendar={offerCalendar} />
+                                    <Calendar
+                                        calendar={offerCalendar}
+                                        disabled={prevStep && prevStep?.passedTo !== 'beffaringStep'}
+                                    />
                                 </div>
                             )}
+
                             <p>Komentarz: </p>
+                            {prevBranchOnProp && (
+                                <PrevBranchProp prevStepChangeStep={prevBranchOnProp} propName="beffaringStepComment" />
+                            )}
                             <FormInput
                                 placeholder="komentarz"
-                                defaultValue={prevStep?.beffaringStepComment}
+                                defaultValue={
+                                    isNewBranchComparedByLastStepnameChange
+                                        ? ''
+                                        : prevStepChangeStep?.beffaringStepComment
+                                }
                                 connection={commentData}
                             />
 

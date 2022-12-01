@@ -172,8 +172,20 @@ export const CalendarStyled = styled.div`
         color: red;
     }
     .date {
-        margin-right: 5px;
-        cursor: pointer;
+        margin-right: 0px;
+        cursor: context-menu;
+        border: 1px solid black;
+        background: white;
+        padding: 1px 4px;
+        border-radius: 2px;
+    }
+    .date.date-disabled {
+        margin-right: 6px;
+        cursor: context-menu;
+        border: none;
+        background: transparent;
+        padding: 0;
+        border-radius: none;
     }
     button {
         margin-left: 5px;
@@ -318,4 +330,9 @@ export const StepPropsStyled = styled.div`
     button {
         height: 30px;
     }
+`
+
+export const PrevBranchPropStyled = styled.div`
+    color: orange;
+    font-size: 9px;
 `

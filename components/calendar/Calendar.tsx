@@ -5,9 +5,10 @@ import { CalendarStyled } from '../../styles/styled-components'
 
 type CalendarType = {
     calendar: CalendarModule
+    disabled?: boolean
 }
 
-const Calendar: FC<CalendarType> = ({ calendar }) => {
+const Calendar: FC<CalendarType> = ({ calendar, disabled }) => {
     const data = useCalendarData(calendar)
 
     const withTime = data.withTime
@@ -23,7 +24,7 @@ const Calendar: FC<CalendarType> = ({ calendar }) => {
     //     }
     // }, [calendar])
 
-    console.log({ data })
+    // console.log({ data })
 
     const [isClosed, setIsClosed] = useState<boolean>(true)
 
@@ -69,6 +70,7 @@ const Calendar: FC<CalendarType> = ({ calendar }) => {
     }
 
     function onClose() {
+        if (disabled) return
         setIsClosed(!isClosed)
     }
 
@@ -81,12 +83,18 @@ const Calendar: FC<CalendarType> = ({ calendar }) => {
         <CalendarStyled>
             <div>{data.error}</div>
             <div>
-                <span className="date" onClick={onClose}>
+                <span className={`date ${disabled ? 'date-disabled' : ''}`} onClick={onClose}>
                     {getDate()}
                 </span>
                 {withTime && (
                     <>
-                        <select name="hours" onChange={hoursChanged} value={data.hours} ref={hoursRef}>
+                        <select
+                            name="hours"
+                            onChange={hoursChanged}
+                            value={data.hours}
+                            ref={hoursRef}
+                            disabled={disabled}
+                        >
                             <option value="hh">hh</option>
                             <option value={9}>09</option>
                             <option value={10}>10</option>
@@ -101,7 +109,13 @@ const Calendar: FC<CalendarType> = ({ calendar }) => {
                             <option value={19}>19</option>
                             <option value={20}>20</option>
                         </select>
-                        <select name="minutes" onChange={minutesChanged} value={data.minutes} ref={minutesRef}>
+                        <select
+                            name="minutes"
+                            onChange={minutesChanged}
+                            value={data.minutes}
+                            ref={minutesRef}
+                            disabled={disabled}
+                        >
                             <option value="mm">mm</option>
                             <option value={0}>00</option>
                             <option value={15}>15</option>
@@ -110,7 +124,7 @@ const Calendar: FC<CalendarType> = ({ calendar }) => {
                         </select>
                     </>
                 )}
-                <button onClick={(e) => onReset(e)}>Reset</button>
+                {!disabled && <button onClick={(e) => onReset(e)}>Reset</button>}
             </div>
             {!isClosed && <CalendarComponent calendar={calendar} />}
         </CalendarStyled>

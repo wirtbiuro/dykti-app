@@ -15,6 +15,7 @@ interface IFormSelectProps<T = string> {
     connection?: useFormSelectType
     options: string[][]
     title?: string
+    disabled?: boolean
 }
 function FormSelect({
     connection,
@@ -27,6 +28,7 @@ function FormSelect({
     onErrorOk,
     options,
     title,
+    disabled = false,
 }: IFormSelectProps<string>) {
     const errRef = useRef<HTMLDivElement>(null)
     const selectRef = useRef<HTMLSelectElement>(null)
@@ -144,6 +146,7 @@ function FormSelect({
                             className={getIsSelected(option[0]) ? 'multi-selected' : 'not-selected'}
                             key={option[0]}
                             onMouseDown={onTouschStart}
+                            disabled={disabled}
                         >
                             {option[1]}
                         </option>

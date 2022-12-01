@@ -39,7 +39,7 @@ const Main = () => {
     const getUser = dyktiApi.endpoints.getUser as any
     const [refetchUser] = getUser.useLazyQuery()
     const getUserQueryData = getUser.useQueryState()
-    console.log({ getUserQueryData })
+    // console.log({ getUserQueryData })
 
     const { data, isLoading, isError, isSuccess } = getUserQueryData
 
@@ -58,7 +58,7 @@ const Main = () => {
         withRtkQueryTokensCheck({
             cb: async () => {
                 const res = await refetchLastDecisionOrdersData()
-                console.log({ res })
+                // console.log({ res })
                 if (!res.isError) {
                     console.log('no error', res.isError)
                     setIsLastDecisionDataLoading(false)
@@ -66,14 +66,14 @@ const Main = () => {
                 return res
             },
             err: async () => {
-                console.log('auth err')
+                // console.log('auth err')
                 const res = await refetchLastDecisionOrdersData()
                 setIsLastDecisionDataLoading(false)
             },
         })
-    }, [])
+    }, [data])
 
-    console.log({ getLastDecisionOrdersData })
+    // console.log({ getLastDecisionOrdersData })
 
     const dispatch = useAppDispatch()
 

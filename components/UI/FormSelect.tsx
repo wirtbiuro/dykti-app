@@ -13,6 +13,7 @@ interface IFormSelectProps<T = string> {
     connection?: useFormSelectType
     options: string[][]
     title?: string
+    disabled?: boolean
 }
 function FormSelect<T extends string>({
     connection,
@@ -25,6 +26,7 @@ function FormSelect<T extends string>({
     onErrorOk,
     options,
     title,
+    disabled = false,
 }: IFormSelectProps<T>) {
     const errRef = useRef<HTMLDivElement>(null)
     const selectRef = useRef<HTMLSelectElement>(null)
@@ -77,7 +79,7 @@ function FormSelect<T extends string>({
         <div className="withErr">
             <p>{title}</p>
             <div className="formError" ref={errRef}></div>
-            <select name={name} ref={selectRef} defaultValue={defaultValue} onChange={onChange}>
+            <select name={name} ref={selectRef} defaultValue={defaultValue} onChange={onChange} disabled={disabled}>
                 <>
                     {options.map((option) => (
                         <option value={option[0]} key={option[0]}>

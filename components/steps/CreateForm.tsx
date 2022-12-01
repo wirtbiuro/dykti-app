@@ -87,41 +87,48 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         if (!nameData.isChecked) {
             console.log('nameData error')
             showMessage ? nameData.showError!() : null
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         if (!emailData.isChecked && !phoneData.isChecked) {
             console.log('emailPhoneData error')
             showMessage ? phoneData.showError!() : null
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         if (!addressData.isChecked) {
             console.log('addressData error')
             showMessage ? addressData.showError!() : null
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         if (whereClientFoundData.value?.includes('select')) {
             console.log('whereClientFoundData error')
             showMessage ? whereClientFoundData?.showError!() : null
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         if (whereClientFoundData.value?.includes('other') && otherWhereClientFoundData.value === '') {
             console.log('otherWhereClientFoundData error')
             showMessage ? otherWhereClientFoundData?.showError!() : null
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         if (!calendar.getSelectedDate(showMessage)) {
             console.log('calendar error')
-            return setIsFormChecked(false)
+            setIsFormChecked(false)
+            return false
         }
 
         console.log('form checked')
 
-        return setIsFormChecked(true)
+        setIsFormChecked(true)
+        return true
     }
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -160,7 +167,10 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                 formStepCity: cityData.value,
                 formStepClientName: nameData.value,
                 formStepComment: commentData.value,
-                formStepWhereClientFound: whereClientFoundData.value,
+                formStepWhereClientFound:
+                    whereClientFoundData.value === 'other'
+                        ? otherWhereClientFoundData.value
+                        : whereClientFoundData.value,
                 formStepEmail: emailData.value,
                 formStepPhone: phoneData.value,
                 formStepMeetingDate: calendar.getSelectedDate(),
@@ -229,7 +239,15 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                 <>
                                     <FormInput
                                         placeholder="Napisz tutaj"
-                                        defaultValue={prevStep?.formStepWhereClientFound}
+                                        defaultValue={
+                                            prevStep?.formStepWhereClientFound
+                                                ? getZeroArrElements(selectData.formStepWhereClientFound).includes(
+                                                      prevStep?.formStepWhereClientFound
+                                                  )
+                                                    ? ''
+                                                    : prevStep?.formStepWhereClientFound
+                                                : ''
+                                        }
                                         connection={otherWhereClientFoundData}
                                     />
                                 </>
@@ -237,7 +255,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
                             <p>Czas spotkania:</p>
 
-                            <Calendar calendar={calendar} />
+                            <Calendar calendar={calendar} disabled={prevStep && prevStep?.passedTo !== 'formStep'} />
 
                             <p>Komentarz: </p>
                             <FormInput

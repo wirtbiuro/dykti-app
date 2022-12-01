@@ -12,13 +12,17 @@ import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
 import CalendarWithTime from '../CalendarWithTime'
 import SendButtons from '../UI/SendButtons'
-import { submitForm, showErrorMessages } from '../../utilities'
+import { submitForm, showErrorMessages, getBranchIdx, getPrevStepChangeStep, getBranchValues } from '../../utilities'
 import { useFormInput } from '../../hooks/useFormInput'
 import { useCalendarData } from '../../hooks/useCalendarData'
 import { flushSync } from 'react-dom'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
 import { DateTime } from 'luxon'
+import PrevBranchProp from '../PrevBranchProp'
+import FormSelect from '../UI/FormSelect'
+import { selectData } from '../../accessories/constants'
+import { useFormSelect } from '../../hooks/useFormSelect'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -33,13 +37,33 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
 
     const formRef = useRef<FormElement>(null)
 
-    const prevStep = order?.steps[order.steps.length - 1]
+    const {
+        prevStep,
+        branchIdx,
+        prevStepChangeStep,
+        isNewBranchComparedByLastStepnameChange,
+        isNewBranchComparedByPrevStep,
+        prevBranchOnProp,
+    } = getBranchValues({
+        stepName: 'offerStep',
+        order,
+    })
+
+    console.log({
+        prevStep,
+        branchIdx,
+        prevStepChangeStep,
+        isNewBranchComparedByLastStepnameChange,
+        isNewBranchComparedByPrevStep,
+        prevBranchOnProp,
+    })
 
     const errFn = useErrFn()
 
-    const areDocsGoodData = useFormInput()
+    const areDocsGoodData = useFormSelect()
     const befCommentsData = useFormInput()
     const commentData = useFormInput()
+    const isOfferReadyData = useFormInput()
     const offerDateData = useCalendarData()
 
     const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
@@ -52,20 +76,29 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
     useEffect(() => {
         formCheck({ showMessage: false })
         prevFormCheck({ showMessage: false })
-    }, [offerDateData.isChecked, befCommentsData.isChecked])
+    }, [isOfferReadyData.isChecked, befCommentsData.isChecked])
 
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
 
-        if (!offerDateData.isChecked) {
-            console.log('offer date error')
-            showMessage ? offerDateData?.showError!() : null
-            return setIsFormChecked(false)
+        if (!areDocsGoodData.isChecked) {
+            console.log('areDocsGoodData error')
+            showMessage ? areDocsGoodData?.showError!() : null
+            setIsFormChecked(false)
+            return false
+        }
+
+        if (!isOfferReadyData.isChecked) {
+            console.log('isOfferReadyData error')
+            showMessage ? isOfferReadyData?.showError!() : null
+            setIsFormChecked(false)
+            return false
         }
 
         console.log('form checked')
 
-        return setIsFormChecked(true)
+        setIsFormChecked(true)
+        return true
     }
 
     const prevFormCheck: FormCheckType = ({ showMessage }) => {
@@ -73,13 +106,17 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
 
         if (!befCommentsData.isChecked) {
             showMessage ? befCommentsData.showError!() : null
-            return setIsPrevFormChecked(false)
+            setIsPrevFormChecked(false)
+            return false
         }
 
         console.log('prev form checked')
 
-        return setIsPrevFormChecked(true)
+        setIsPrevFormChecked(true)
+        return true
     }
+
+    const isMainCondition = areDocsGoodData.value !== 'no'
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -87,8 +124,6 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
         const _createOrder = createOrder as (data: FieldsToSend) => void
 
         console.log(target)
-
-        const isMainCondition = areDocsGoodData.isChecked
 
         const areErrors = showErrorMessages({
             flushSync,
@@ -129,6 +164,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
         setIsSpinning(true)
 
         await submitForm({
+            branchIdx,
             prevStep: prevStep!,
             maxPromotion: prevStep!.maxPromotion,
             target,
@@ -141,17 +177,21 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
             toPrevSendData: {
                 order,
                 offerStepAreBefDocsGood: false,
-                offerStepOfferDate: null,
-                offerStepComment: null,
+                // offerStepOfferDate: null,
+                // offerStepComment: null,
                 offerStepBefComments: befCommentsData.value,
                 offerStepBefaringReturnDate: DateTime.now(),
-                beffaringStepDocsSendDate: null,
+                // beffaringStepDocsSendDate: null,
+                // beffaringStepComment: null,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             toNextSendData: {
                 order,
-                offerStepAreBefDocsGood: true,
-                offerStepOfferDate: offerDateData.value,
+                offerStepAreBefDocsGood:
+                    areDocsGoodData.value === 'select' ? null : areDocsGoodData.value === 'yes' ? true : false,
+                offerStepOfferDate: isNewBranchComparedByLastStepnameChange
+                    ? DateTime.now()
+                    : prevStep?.offerStepOfferDate,
                 offerStepComment: commentData.value,
                 offerStepBefComments: null,
                 // beffaringStepDocsSendDate: null,
@@ -172,7 +212,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                 <CreateFormStyled>
                     <FormStyled>
                         <form ref={formRef} onSubmit={submit}>
-                            <FormInput
+                            {/* <FormInput
                                 type="checkbox"
                                 connection={areDocsGoodData}
                                 defaultChecked={
@@ -182,30 +222,82 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                                 }
                                 checkFn={(value) => value === true}
                             >
-                                <>Dokumenty od Befaring Mana są w porządku</>
-                            </FormInput>
-                            {!areDocsGoodData.isChecked && (
+                                <>Dokumenty od Befaringowca są w porządku</>
+                            </FormInput> */}
+
+                            <FormSelect
+                                options={selectData.standardSelect}
+                                name="areDocsGood"
+                                title="Dokumenty od Befaringowca są w porządku: "
+                                connection={areDocsGoodData}
+                                defaultValue={
+                                    isNewBranchComparedByLastStepnameChange
+                                        ? 'select'
+                                        : typeof prevStep?.offerStepAreBefDocsGood !== 'boolean'
+                                        ? 'select'
+                                        : prevStep?.offerStepAreBefDocsGood
+                                        ? 'yes'
+                                        : 'no'
+                                }
+                            />
+
+                            {areDocsGoodData.value === 'no' && (
                                 <>
                                     <p>Co jest nie tak z dokumentami?: </p>
+                                    {prevBranchOnProp && (
+                                        <PrevBranchProp
+                                            prevStepChangeStep={prevBranchOnProp}
+                                            propName="offerStepBefComments"
+                                        />
+                                    )}
                                     <FormInput
                                         placeholder="Co jest nie tak z dokumentami."
-                                        defaultValue={prevStep?.offerStepBefComments}
+                                        defaultValue={
+                                            isNewBranchComparedByLastStepnameChange
+                                                ? ''
+                                                : prevStep?.offerStepBefComments
+                                        }
                                         connection={befCommentsData}
                                     />
                                 </>
                             )}
-                            {areDocsGoodData.isChecked && (
+                            {areDocsGoodData.value === 'yes' && (
                                 <>
-                                    <p>Data utworzenia oferty: </p>
+                                    {/* <p>Data utworzenia oferty: </p>
                                     <CalendarWithTime
                                         defaultDate={order && prevStep?.offerStepOfferDate}
                                         connection={offerDateData}
                                         isTimeEnabled={false}
-                                    />
+                                    /> */}
+                                    <FormInput
+                                        type="checkbox"
+                                        connection={isOfferReadyData}
+                                        defaultChecked={
+                                            isNewBranchComparedByLastStepnameChange
+                                                ? false
+                                                : prevStep?.beffaringStepOfferDate
+                                                ? true
+                                                : false
+                                        }
+                                        checkFn={(value) => value === true}
+                                    >
+                                        <>Oferta przygotowana</>
+                                    </FormInput>
+
                                     <p>Komentarz: </p>
+                                    {prevBranchOnProp && (
+                                        <PrevBranchProp
+                                            prevStepChangeStep={prevBranchOnProp}
+                                            propName="offerStepComment"
+                                        />
+                                    )}
                                     <FormInput
                                         placeholder="komentarz"
-                                        defaultValue={prevStep?.offerStepComment}
+                                        defaultValue={
+                                            isNewBranchComparedByLastStepnameChange
+                                                ? ''
+                                                : prevStepChangeStep?.offerStepComment
+                                        }
                                         connection={commentData}
                                     />
                                 </>
@@ -218,7 +310,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                                 isFormChecked={isFormChecked}
                                 step={order?.steps[order.steps.length - 1]}
                                 formCheck={formCheck}
-                                isMainCondition={areDocsGoodData.isChecked}
+                                isMainCondition={isMainCondition}
                                 isPrevFormChecked={isPrevFormChecked}
                                 prevFormCheck={prevFormCheck}
                             />
