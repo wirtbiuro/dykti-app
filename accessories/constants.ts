@@ -111,6 +111,7 @@ export const fieldNames: Record<keyof FieldnamesKeysType, string> = {
     workStepTeam: 'Ekipa',
     workStepWorkEndDate: 'Data rozpoczęcia pracy',
     workStepWorkStartDate: 'Data zakończenia pracy',
+    branchIdx: 'Numer oddziału',
 }
 
 export const selectData = {
