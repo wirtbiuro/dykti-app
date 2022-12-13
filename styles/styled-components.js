@@ -86,6 +86,8 @@ export const CreateFormStyled = styled.div`
 export const HeaderStyled = styled.div`
     display: flex;
     justify-content: flex-end;
+    max-width: 1700px;
+    margin: auto;
     button {
         color: white;
         margin-bottom: 20px;
@@ -229,6 +231,8 @@ export const OtherRoleBtnStyled = styled.div`
 `
 
 export const MainStyled = styled.div`
+    max-width: 1700px;
+    margin: auto;
     .roles {
         display: flex;
         align-items: center;
@@ -281,7 +285,7 @@ export const CloseOrderStyled = styled.div`
 
 export const AllStyled = styled.div`
     padding: 20px;
-    width: calc(100vw - 20px);
+    width: 100vw;
     height: 100vh;
     .centered {
         max-width: 1900px;
