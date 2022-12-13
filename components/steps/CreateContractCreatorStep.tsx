@@ -213,7 +213,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             isPrevFormChecked,
             prevToPass:
                 rejectionReasonData.value === 'time'
-                    ? 'formStep'
+                    ? 'contractStep'
                     : rejectionReasonData.value === 'offer'
                     ? 'offerStep'
                     : rejectionReasonData.value === 'contract'
