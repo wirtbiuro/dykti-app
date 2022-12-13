@@ -4,8 +4,8 @@ import { PrismaClient } from '@prisma/client'
 import { NextApiRequestWithHeaders } from '../../types'
 
 export type CreateWorkerData = {
-    username: String
-    name: String
+    username: string
+    name: string
 }
 
 export default async function createuser(req: NextApiRequestWithHeaders, res: NextApiResponse) {
