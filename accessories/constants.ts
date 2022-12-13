@@ -51,9 +51,9 @@ export const monthNames = {
     ],
 }
 
-type FieldnamesKeysType = Omit<StepType, 'stepCreatorId'>
+// type FieldnamesKeysType = Omit<StepType, 'stepCreatorId'>
 
-export const fieldNames: Record<keyof FieldnamesKeysType, string> = {
+export const fieldNames: Record<keyof StepType, string> = {
     passedTo: 'Przeniesiony do',
     returnStep: 'Krok powrotny',
     beffaringStepComment: 'Komentarz Befaringowca',
@@ -112,6 +112,8 @@ export const fieldNames: Record<keyof FieldnamesKeysType, string> = {
     workStepWorkEndDate: 'Data rozpoczęcia pracy',
     workStepWorkStartDate: 'Data zakończenia pracy',
     branchIdx: 'Numer oddziału',
+    currentOrder: 'Praca bieżąca',
+    stepCreatorId: 'Identyfikator twórcy kroku',
 }
 
 export const selectData = {

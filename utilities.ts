@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'axios'
 import {
-    IAxiosError,
+    IWorker,
     IServerControllerError,
     PropNames,
     StepType,
@@ -674,6 +674,60 @@ export const getDatas: GetDatasType = ({ data, currentStep }) => {
     return { completedOrdersData, passedForEditData, currentData, editedOrdersData }
 }
 
+export const getStepPropValue: (step: StepType, prop: keyof StepType) => any = (step, prop) => {
+    const key = prop
+    let value = step[key]
+    if (value === null) value = '-'
+    if (value === '') value = '-'
+    if (value === true) value = 'tak'
+    if (value === false) value = 'nie'
+
+    if (typeof value === 'string') {
+        if (DateTime.fromISO(value).toString() !== 'Invalid DateTime') {
+            // const dateFormat = ['formStepMeetingDate', 'createdAt', 'beffaringStepDocsSendDate'].includes(key)
+            //     ? 'dd.MM.yyyy HH:mm'
+            //     : 'dd.MM.yyyy'
+            const dateFormat = 'dd.MM.yyyy HH:mm'
+            value = DateTime.fromISO(value).toFormat(dateFormat)
+        }
+    }
+
+    if (key === 'workStepTeam') {
+        const _value = (value as IWorker[]) || []
+        value = _value.map((worker: IWorker) => worker.name).join('; ')
+    }
+
+    if (['passedTo', 'maxPromotion', 'createdByStep', 'returnStep'].includes(key)) {
+        const relation = stepNamesRelations.find((relation) => relation[1] === value)
+        if (relation) {
+            const role = relation[0]
+            value = roleTitles[role]
+        }
+    }
+
+    if (
+        [
+            // 'workStepTeam',
+            'questionnaireStepDissatisfaction',
+            'questionnaireStepSatisfaction',
+            'referenceStepReferenceLocation',
+            'contractStepOfferRejectionReason',
+        ].includes(key)
+    ) {
+        type keyType = keyof typeof selectData
+        const _value = value as string
+        const values = _value.split('; ')
+        let _values: string[] = []
+
+        values.map((value) => {
+            const row = selectData[key as keyType].find((row) => row[0] === value)
+            if (row) _values.push(row[1])
+        })
+        value = _values.join('; ')
+    }
+    return value
+}
+
 export const getStepProps = (step: StepType) => {
     const stepProps: {
         key: keyof typeof step
@@ -686,54 +740,11 @@ export const getStepProps = (step: StepType) => {
 
     for (key in step) {
         if (step.hasOwnProperty(key)) {
-            if (key === 'stepCreatorId') {
+            if (['stepCreatorId', 'currentOrder'].includes(key)) {
                 continue
             }
 
-            let value = step[key]
-            if (value === null) value = '-'
-            if (value === '') value = '-'
-            if (value === true) value = 'tak'
-            if (value === false) value = 'nie'
-
-            if (typeof value === 'string') {
-                if (DateTime.fromISO(value).toString() !== 'Invalid DateTime') {
-                    // const dateFormat = ['formStepMeetingDate', 'createdAt', 'beffaringStepDocsSendDate'].includes(key)
-                    //     ? 'dd.MM.yyyy HH:mm'
-                    //     : 'dd.MM.yyyy'
-                    const dateFormat = 'dd.MM.yyyy HH:mm'
-                    value = DateTime.fromISO(value).toFormat(dateFormat)
-                }
-            }
-
-            if (['passedTo', 'maxPromotion', 'createdByStep', 'returnStep'].includes(key)) {
-                const relation = stepNamesRelations.find((relation) => relation[1] === value)
-                if (relation) {
-                    const role = relation[0]
-                    value = roleTitles[role]
-                }
-            }
-
-            if (
-                [
-                    'workStepTeam',
-                    'questionnaireStepDissatisfaction',
-                    'questionnaireStepSatisfaction',
-                    'referenceStepReferenceLocation',
-                    'contractStepOfferRejectionReason',
-                ].includes(key)
-            ) {
-                type keyType = keyof typeof selectData
-                const _value = value as string
-                const values = _value.split('; ')
-                let _values: string[] = []
-
-                values.map((value) => {
-                    const row = selectData[key as keyType].find((row) => row[0] === value)
-                    if (row) _values.push(row[1])
-                })
-                value = _values.join('; ')
-            }
+            const value = getStepPropValue(step, key)
 
             stepProps.push({
                 key,

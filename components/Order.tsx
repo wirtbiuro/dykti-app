@@ -3,7 +3,7 @@ import { IOrder, StepType, StepName } from '../types'
 import { StepStyled, CloseOrderStyled } from '../styles/styled-components'
 import Step from './Step'
 import { withRtkQueryTokensCheck, getDatas } from '../utilities'
-import { useCreateOrderMutation } from '../state/apiSlice'
+import { useCreateOrderMutation, dyktiApi } from '../state/apiSlice'
 import useErrFn from '../hooks/useErrFn'
 import FormInput from './UI/FormInput'
 import { useFormInput } from '../hooks/useFormInput'
@@ -27,6 +27,10 @@ interface IOrderProps {
 }
 
 const Order: FC<IOrderProps> = ({ order, stepName }) => {
+    const getUser = dyktiApi.endpoints.getUser as any
+    const getUserQueryData = getUser.useQuery()
+    const { data: userData } = getUserQueryData
+
     const [isViewing, setIsViewing] = useState<boolean>(false)
 
     const createStepRelations: { [P in StepName]: JSX.Element } = {
@@ -45,6 +49,8 @@ const Order: FC<IOrderProps> = ({ order, stepName }) => {
         questionnaireStep: <QuestionnaireStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
         referenceStep: <ReferenceStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
         workStep: <CreateWorkStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+        completedOrdersStep: <></>,
+        rejectedOrdersStep: <></>,
     }
 
     const step = order.steps[order.steps.length - 1]
@@ -97,6 +103,7 @@ const Order: FC<IOrderProps> = ({ order, stepName }) => {
                     order: modalOrder,
                     passedTo: 'lastDecisionStep',
                     maxPromotion: 'lastDecisionStep',
+                    stepCreatorId: userData.id,
                 })
             },
             err: errFn,
@@ -146,7 +153,7 @@ const Order: FC<IOrderProps> = ({ order, stepName }) => {
                 <Step step={step} stepName={stepName} orderId={order.id} />
                 {!isViewing && <button onClick={onContinueBtn}>Kontynuować</button>}
                 {isViewing && <button onClick={onCloseBtn}>Zamknij</button>}
-                {shouldConfirmView && <button onClick={() => onConfirm(order)}>Przyjąłem</button>}
+                {/* {shouldConfirmView && <button onClick={() => onConfirm(order)}>Przyjąłem</button>} */}
 
                 {!isHistory && <button onClick={onShowHistory}>Pokaż historię zmian</button>}
                 {isHistory && <button onClick={onHideHistory}>Zamknij histoię zmian</button>}

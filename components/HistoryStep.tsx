@@ -13,9 +13,9 @@ type StepProps = {
 }
 
 function HistoryStep({ step, prevStep, stepName, isHistory }: StepProps) {
-    const unactiveStepNames = getUnactiveStepnames({ passedTo: step.passedTo, returnStep: step.returnStep })
+    // const unactiveStepNames = getUnactiveStepnames({ passedTo: step.passedTo, returnStep: step.returnStep })
 
-    console.log({ unactiveStepNames })
+    // console.log({ unactiveStepNames })
 
     if (!isHistory) return null
 

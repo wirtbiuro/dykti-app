@@ -7,6 +7,7 @@ import {
     FormCheckType,
     ISendCheckboxes,
     FieldsToSend,
+    IWorker,
 } from '../../types'
 import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import FormInput from '../UI/FormInput'
@@ -35,6 +36,15 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const getUserQueryData = getUser.useQuery()
     const { data: userData } = getUserQueryData
 
+    const getWorkers = dyktiApi.endpoints.getWorkers as any
+    const getWorkersQueryData = getWorkers.useQuery()
+    const { data: workersData } = getWorkersQueryData
+
+    console.log({ workersData })
+
+    const workersOptions =
+        workersData?.workers?.map((worker: { username: string; name: string }) => [worker.username, worker.name]) || []
+
     const [isSpinning, setIsSpinning] = useState(false)
 
     const formRef = useRef<FormElement>(null)
@@ -51,6 +61,9 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         stepName: 'workStep',
         order,
     })
+
+    const workTeam = (prevStep?.workStepTeam as IWorker[]) || []
+    const workTeamString = workTeam.map((worker) => worker.username).join('; ')
 
     const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
         getResults: () => {},
@@ -282,9 +295,9 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                             <p>Ekipa: </p>
                                             <FormMultiSelect
                                                 placeholder="Ekipa"
-                                                defaultValue={prevStep?.workStepTeam || ''}
+                                                defaultValue={workTeamString}
                                                 connection={teamData}
-                                                options={selectData.workStepTeam}
+                                                options={workersOptions}
                                             />
                                         </>
                                     </>

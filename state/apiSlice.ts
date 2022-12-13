@@ -29,6 +29,11 @@ export const dyktiApi = createApi({
 
             providesTags: [{ type: 'User' }, ...getOrderProvidesTags()],
         }),
+        getWorkers: build.query({
+            query: () => `getworkers`,
+
+            providesTags: [{ type: 'Worker' }],
+        }),
         getLastDecisionOrders: build.query({
             query: (role: Role) => `getorders?role=LastDecisionUser`,
 
@@ -98,6 +103,7 @@ export const dyktiApi = createApi({
                     return [
                         { type: 'Order', id: args.role },
                         { type: 'Order', id: 'LastDecisionUser' },
+                        { type: 'Worker' },
                     ]
                 }
                 return [{ type: 'Order', id: args.role }]

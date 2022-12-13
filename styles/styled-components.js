@@ -223,6 +223,11 @@ export const ChangesStyled = styled.div`
     }
 `
 
+export const OtherRoleBtnStyled = styled.div`
+    font-weight: ${(props) => (props.isSelected ? 'bold' : 'normal')};
+    cursor: pointer;
+`
+
 export const MainStyled = styled.div`
     .roles {
         display: flex;

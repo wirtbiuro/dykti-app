@@ -33,8 +33,9 @@ model Refresh{
 
 model Step{
   id Int @id @default(autoincrement())
-  orderId Int
-  order Order? @relation(fields: [orderId], references: [id])
+  orderId Int?
+  order Order? @relation("OrderSteps", fields: [orderId], references: [id])
+  currentOrder Order? @relation("OrderCurrentStep")
   formStepClientName String?
   formStepPhone String?
   formStepEmail String?
@@ -68,14 +69,13 @@ model Step{
   contractCreatorStepContractRejectionReason String?
   stepCreatorId Int?
   stepCreator User? @relation("UserCreatedSteps", fields: [stepCreatorId], references: [id])
-  workStepTeam String?
+  workStepTeam Worker[] 
   workStepWorkStartDate DateTime?
   workStepWorkEndDate DateTime?
   workStepContractEdits String?
   questionnaireStepIsAcceptanceReport Boolean?
   questionnaireStepHaveClientReceviedDocs Boolean?
   questionnaireStepArePaymentsReceived Boolean?
-  questionnaireStepIsClientSatisfied Boolean?
   questionnaireStepSatisfaction String?
   questionnaireStepOtherSatisfaction String?
   questionnaireStepDissatisfaction String?
@@ -96,5 +96,15 @@ model Step{
 model Order{
   id Int @id @default(autoincrement())
   createdAt DateTime @default(now())
+  steps Step[] @relation("OrderSteps")
+  currentStep Step @relation("OrderCurrentStep", fields: [currentStepId], references: [id])
+  currentStepId Int @unique
+}
+
+model Worker{
+  id Int @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  name String?
+  username String @unique
   steps Step[]
 }

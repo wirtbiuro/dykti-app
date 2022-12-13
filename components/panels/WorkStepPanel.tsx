@@ -11,6 +11,8 @@ const WorkStepPanel = () => {
 
     const { data, isError }: IQuery<IOrder> = useGetOrders('WorkRespUser')
 
+    console.log({ data })
+
     const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({ data, currentStep })
 
     if (!data) return <>Ładowanie danych...</>

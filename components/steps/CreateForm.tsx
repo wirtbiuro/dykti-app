@@ -184,6 +184,11 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         setIsVisible!(false)
     }
 
+    const disabled =
+        prevStep &&
+        prevStep?.passedTo !== 'formStep' &&
+        !(prevStep?.passedTo === 'beffaringStep' && prevStep?.createdByStep === 'formStep')
+
     return (
         <Spin spinning={isSpinning}>
             <div style={{ maxHeight: isVisible ? 'none' : '0px', overflow: 'hidden' }}>
@@ -196,16 +201,19 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                 connection={nameData}
                                 placeholder="imię i nazwisko klienta"
                                 defaultValue={prevStep?.formStepClientName}
+                                disabled={disabled}
                             />
                             <FormInput
                                 connection={phoneData}
                                 placeholder="Numer kontaktowy"
                                 defaultValue={prevStep?.formStepPhone}
+                                disabled={disabled}
                             />
                             <FormInput
                                 connection={emailData}
                                 placeholder="E-mail"
                                 defaultValue={prevStep?.formStepEmail}
+                                disabled={disabled}
                             />
                             <p>Adres zamówienia: </p>
                             {/* <FormInput connection={cityData} placeholder="Miasto" defaultValue={prevStep?.formStepCity} /> */}
@@ -213,6 +221,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                 connection={addressData}
                                 placeholder="Adres obiektu"
                                 defaultValue={prevStep?.formStepAddress}
+                                disabled={disabled}
                             />
                             {/* <p>Gdzie znaleziono klienta: </p> */}
                             {/* <FormInput
@@ -233,6 +242,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                             : 'other'
                                         : 'select'
                                 }
+                                disabled={disabled}
                             />
 
                             {whereClientFoundData.value?.includes('other') && (
@@ -249,31 +259,39 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                                 : ''
                                         }
                                         connection={otherWhereClientFoundData}
+                                        disabled={disabled}
                                     />
                                 </>
                             )}
 
                             <p>Czas spotkania:</p>
 
-                            <Calendar calendar={calendar} disabled={prevStep && prevStep?.passedTo !== 'formStep'} />
+                            <Calendar
+                                calendar={calendar}
+                                // disabled={prevStep && prevStep?.passedTo !== 'formStep'}
+                                disabled={disabled}
+                            />
 
                             <p>Komentarz: </p>
                             <FormInput
                                 connection={commentData}
                                 placeholder="komentarz"
                                 defaultValue={prevStep?.formStepComment}
+                                disabled={disabled}
                             />
-                            <SendButtons
-                                passedTo={prevStep?.passedTo || 'formStep'}
-                                maxPromotion={prevStep?.maxPromotion || 'formStep'}
-                                curStepName="formStep"
-                                dataRef={sendButtonsOutputRef}
-                                isFormChecked={isFormChecked}
-                                step={order?.steps[order.steps.length - 1]}
-                                formCheck={formCheck}
-                                isMainCondition={true}
-                            />
-                            <input type="submit" value="Zapisz" />
+                            {!disabled && (
+                                <SendButtons
+                                    passedTo={prevStep?.passedTo || 'formStep'}
+                                    maxPromotion={prevStep?.maxPromotion || 'formStep'}
+                                    curStepName="formStep"
+                                    dataRef={sendButtonsOutputRef}
+                                    isFormChecked={isFormChecked}
+                                    step={order?.steps[order.steps.length - 1]}
+                                    formCheck={formCheck}
+                                    isMainCondition={true}
+                                />
+                            )}
+                            {!disabled && <input type="submit" value="Zapisz" />}
                         </form>
                     </FormStyled>
                 </CreateFormStyled>

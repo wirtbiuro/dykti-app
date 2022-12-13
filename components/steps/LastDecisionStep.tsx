@@ -59,16 +59,12 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
 
     const formCheck: FormCheckType = () => true
 
+    const isMainCondition = closeConfirmationData.isChecked
+
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
         e.preventDefault()
         const target = e.target as typeof e.target & FormType
         const _createOrder = createOrder as (data: FieldsToSend) => void
-
-        console.log(target)
-        console.log('closeConfirmationData.isChecked', closeConfirmationData.isChecked)
-        console.log('nextToPassData.value', nextToPassData.value)
-
-        const isMainCondition = false
 
         setIsSpinning(true)
 
@@ -81,11 +77,13 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
             isMainCondition,
             curStepName: 'lastDecisionStep',
             passedTo: prevStep!.passedTo,
-            nextToPass: closeConfirmationData.isChecked ? 'lastDecisionStep' : (nextToPassData.value as StepName),
-            toNextSendData: { ...sendButtonsOutputRef.current.getResults() },
+            nextToPass: closeConfirmationData.isChecked ? 'rejectedOrdersStep' : (nextToPassData.value as StepName),
+            toNextSendData: {
+                order,
+                ...sendButtonsOutputRef.current.getResults(),
+            },
             toPrevSendData: {
                 order,
-                isCompleted: closeConfirmationData.value,
                 ...sendButtonsOutputRef.current.getResults(),
             },
             createOrder: _createOrder,
@@ -115,9 +113,18 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
 
                             {!closeConfirmationData.isChecked && (
                                 <FormSelect
-                                    options={roles.map((role) => {
-                                        return [getStepnameByRole(role), roleTitles[role]]
-                                    })}
+                                    options={roles
+                                        .filter(
+                                            (role) =>
+                                                ![
+                                                    'LastDecisionUser',
+                                                    'RejectedOrdersViewer',
+                                                    'CompletedOrdersViewer',
+                                                ].includes(role)
+                                        )
+                                        .map((role) => {
+                                            return [getStepnameByRole(role), roleTitles[role]]
+                                        })}
                                     name="rejectionReasons"
                                     title={`Na jaki poziom należy przenieść sprawę?`}
                                     connection={nextToPassData}

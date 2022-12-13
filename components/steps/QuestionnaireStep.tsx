@@ -186,7 +186,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
-            nextToPass: isClientSatisfiedData.value ? 'referenceStep' : 'questionnaireStep',
+            nextToPass: isClientSatisfiedData.value ? 'referenceStep' : 'completedOrdersStep',
             // nextToPass: 'questionnaireStep',
             toNextSendData: {
                 order,
@@ -194,7 +194,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                 questionnaireStepIsAcceptanceReport: isAcceptanceReportData.value,
                 questionnaireStepHaveClientReceviedDocs: haveClientReceviedDocsData.value,
                 questionnaireStepArePaymentsReceived: arePaymentsReceivedData.value,
-                questionnaireStepIsClientSatisfied: isClientSatisfiedData.value,
+                // questionnaireStepIsClientSatisfied: isClientSatisfiedData.value,
                 questionnaireStepSatisfaction: isClientSatisfiedData.value ? clientSatisfactionData.value : null,
                 questionnaireStepOtherSatisfaction:
                     isClientSatisfiedData.value && clientSatisfactionData.value?.includes('other')

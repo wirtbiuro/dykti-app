@@ -26,51 +26,43 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
 
         if (input.workStepTeam) {
             let workersString = input.workStepTeam as string
-            console.log({ workersString })
             const workers = workersString.split('; ')
             const prismaWorkersArr: { username: string }[] = []
             workers.forEach((worker) => {
                 prismaWorkersArr.push({ username: worker })
             })
-            console.log({ workers })
-            input.workStepTeam =
-                workers.length > 0 && workers[0] !== ''
-                    ? {
-                          connect: prismaWorkersArr,
-                      }
-                    : undefined
-        } else {
-            input.workStepTeam = undefined
+            input.workStepTeam = {
+                connect: prismaWorkersArr,
+            }
         }
 
-        const stepCreator = {
-            connect: { id: input.stepCreatorId },
-        }
-        delete input.stepCreatorId
+        // let _data = {}
+        // let key: keyof typeof input
+        // for (key in input) {
+        //     if (input.hasOwnProperty(key)) {
+        //         const element = input[key];
+        //         _data = {..._data, element}
+        //     }
+        // }
 
         if (order) {
             const step = {
                 ...order.steps[order.steps.length - 1],
-            } as StepType & { orderId?: number; currentOrder: IOrder }
-            console.log({ step })
+            } as StepType & { orderId?: number }
             delete step.orderId
             delete step.id
             delete step.createdAt
-            delete step.stepCreatorId
-            delete step.workStepTeam
-            delete step.currentOrder
-
-            const _step = await _prisma.step.create({
-                data: { ...step, ...input, stepCreator },
-            })
+            delete step.stepCreator
 
             const _order = await _prisma.order.update({
                 where: { id: order.id },
                 data: {
                     steps: {
-                        connect: { id: _step.id },
+                        create: {
+                            ...step,
+                            ...input,
+                        },
                     },
-                    currentStepId: _step.id,
                 },
             })
 
@@ -78,16 +70,13 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
         }
 
         if (!order) {
-            const _step = await _prisma.step.create({
-                data: { ...input, stepCreator },
-            })
-
             const order = await _prisma.order.create({
                 data: {
                     steps: {
-                        connect: [{ id: _step.id }],
+                        create: {
+                            ...input,
+                        },
                     },
-                    currentStepId: _step.id,
                 },
             })
 

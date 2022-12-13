@@ -205,6 +205,11 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
         setIsVisible!(false)
     }
 
+    const disabled =
+        prevStep &&
+        prevStep?.passedTo !== 'offerStep' &&
+        !(prevStep?.passedTo === 'contractStep' && prevStep?.createdByStep === 'offerStep')
+
     return (
         <Spin spinning={isSpinning}>
             {' '}
@@ -239,6 +244,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                                         ? 'yes'
                                         : 'no'
                                 }
+                                disabled={prevStep && prevStep?.passedTo !== 'offerStep'}
                             />
 
                             {areDocsGoodData.value === 'no' && (
@@ -258,6 +264,14 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                                                 : prevStep?.offerStepBefComments
                                         }
                                         connection={befCommentsData}
+                                        disabled={
+                                            prevStep &&
+                                            prevStep?.passedTo !== 'offerStep' &&
+                                            !(
+                                                prevStep?.passedTo === 'beffaringStep' &&
+                                                prevStep?.createdByStep === 'offerStep'
+                                            )
+                                        }
                                     />
                                 </>
                             )}
@@ -280,6 +294,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                                                 : false
                                         }
                                         checkFn={(value) => value === true}
+                                        disabled={prevStep && prevStep?.passedTo !== 'offerStep'}
                                     >
                                         <>Oferta przygotowana</>
                                     </FormInput>
@@ -299,9 +314,13 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                                                 : prevStepChangeStep?.offerStepComment
                                         }
                                         connection={commentData}
+                                        disabled={disabled}
                                     />
                                 </>
                             )}
+                            {/* {prevStep?.passedTo === 'offerStep' ||
+                                (prevStep?.createdByStep === 'offerStep' &&
+                                    (prevStep.passedTo === 'beffaringStep' || prevStep.passedTo === 'contractStep') && ( */}
                             <SendButtons
                                 curStepName="offerStep"
                                 maxPromotion={prevStep!.maxPromotion}
@@ -314,7 +333,12 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                                 isPrevFormChecked={isPrevFormChecked}
                                 prevFormCheck={prevFormCheck}
                             />
+                            {/* ))} */}
+                            {/* {prevStep?.passedTo === 'offerStep' ||
+                                (prevStep?.createdByStep === 'offerStep' &&
+                                    (prevStep.passedTo === 'beffaringStep' || prevStep.passedTo === 'contractStep') && ( */}
                             <input type="submit" value="Zapisz" />
+                            {/* ))} */}
                         </form>
                     </FormStyled>
                 </CreateFormStyled>

@@ -87,35 +87,35 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
             console.log('isOfferSentData error')
             showMessage ? isOfferSentData.showError!() : null
             setIsFormChecked(false)
-                        return false
+            return false
         }
 
         if (!areOfferChangesData.isChecked) {
             showMessage ? areOfferChangesData.showError!() : null
             console.log('areOfferChangesData error')
             setIsFormChecked(false)
-                        return false
+            return false
         }
 
         if (!isOfferAcceptedData.isChecked) {
             showMessage ? isOfferAcceptedData.showError!() : null
             console.log('isOfferAcceptedData error')
             setIsFormChecked(false)
-                        return false
+            return false
         }
 
         if (isOfferAcceptedData.value === 'yes' && !sentForVerificationData.isChecked) {
             showMessage ? sentForVerificationData.showError!() : null
             console.log('sentForVerificationData error')
             setIsFormChecked(false)
-                        return false
+            return false
         }
 
         if (isOfferAcceptedData.value === 'no' && !rejectionReasonsData.isChecked) {
             showMessage ? rejectionReasonsData.showError!() : null
             console.log('rejectionReasonsData error')
             setIsFormChecked(false)
-                        return false
+            return false
         }
 
         if (
@@ -126,7 +126,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
             showMessage ? otherRejectionData.showError!() : null
             console.log('otherRejectionData error')
             setIsFormChecked(false)
-                        return false
+            return false
         }
 
         console.log('form checked')
@@ -142,7 +142,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
             console.log({ offerChangesData })
             showMessage ? offerChangesData.showError!() : null
             setIsPrevFormChecked(false)
-                        return false
+            return false
         }
 
         console.log('prev form checked')
@@ -295,6 +295,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                         : false
                                 }
                                 checkFn={(value) => value === true}
+                                disabled={prevStep && prevStep.passedTo !== 'contractStep'}
                             >
                                 <>Oferta wysłana</>
                             </FormInput>
@@ -327,6 +328,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                             ? 'yes'
                                             : 'no'
                                     }
+                                    disabled={prevStep && prevStep.passedTo !== 'contractStep'}
                                 />
                             )}
                             {isOfferSentData.isChecked && areOfferChangesData.value === 'yes' && (
@@ -346,6 +348,14 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                                 : prevStep?.contractStepOfferChangesComment
                                         }
                                         connection={offerChangesData}
+                                        disabled={
+                                            prevStep &&
+                                            prevStep.passedTo !== 'contractStep' &&
+                                            !(
+                                                prevStep?.passedTo === 'offerStep' &&
+                                                prevStep?.createdByStep === 'contractStep'
+                                            )
+                                        }
                                     />
                                 </>
                             )}
@@ -378,6 +388,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                                 ? 'yes'
                                                 : 'no'
                                         }
+                                        disabled={prevStep && prevStep.passedTo !== 'contractStep'}
                                     />
 
                                     {isOfferAcceptedData.value === 'yes' && (
@@ -399,6 +410,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                                         : false
                                                 }
                                                 checkFn={(value) => value === true}
+                                                disabled={prevStep && prevStep.passedTo !== 'contractStep'}
                                             >
                                                 <>Kontrakt jest przygotowany i wysłany do weryfikacji</>
                                             </FormInput>
@@ -413,6 +425,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                                 title="Przyczyna odrzucenia oferty: "
                                                 connection={rejectionReasonsData}
                                                 defaultValue={defaultRejectionValue}
+                                                disabled={prevStep && prevStep.passedTo !== 'contractStep'}
                                             />
 
                                             {rejectionReasonsData.value === 'other' && (
@@ -422,6 +435,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                                         placeholder="Inna przyczyna odrzucenia oferty"
                                                         defaultValue={defaultOtherRejectionValue}
                                                         connection={otherRejectionData}
+                                                        disabled={prevStep && prevStep.passedTo !== 'contractStep'}
                                                     />
                                                 </>
                                             )}

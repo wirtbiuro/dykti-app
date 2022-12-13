@@ -133,13 +133,13 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
-            nextToPass: 'referenceStep',
+            nextToPass: 'completedOrdersStep',
             toNextSendData: {
                 order,
                 isCompleted:
                     wasReferenceRequestSentData.value &&
-                    isClientReferenceData.value === 'yes' &&
-                    referenceLocationData.value &&
+                    ((isClientReferenceData.value === 'yes' && referenceLocationData.value) ||
+                        isClientReferenceData.value === 'no') &&
                     isNextChecked
                         ? true
                         : false,

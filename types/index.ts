@@ -50,6 +50,8 @@ export const stepNamesRelations = [
     ['QuestionnaireUser', 'questionnaireStep'] as const,
     ['ReferenceUser', 'referenceStep'] as const,
     ['LastDecisionUser', 'lastDecisionStep'] as const,
+    ['RejectedOrdersViewer', 'rejectedOrdersStep'] as const,
+    ['CompletedOrdersViewer', 'completedOrdersStep'] as const,
 ]
 
 export type StepNamesRelationsArrType = typeof stepNamesRelations
@@ -59,6 +61,8 @@ export type StepNamesRelationsType = typeof stepNamesRelations[number]
 export type Role = StepNamesRelationsType[0]
 
 export type StepName = StepNamesRelationsType[1]
+
+export type OtherRole = 'WorkerViewer'
 
 export const getStepNames: (stepNamesRelations: StepNamesRelationsArrType) => StepName[] = (stepNamesRelations) => {
     const stepNames: StepName[] = []
@@ -98,6 +102,8 @@ export const roleTitles: RoleTitleType = {
     QuestionnaireUser: 'Zakończenie',
     ReferenceUser: 'Prośba o referencje',
     LastDecisionUser: 'Potwierdzenie zakończenia',
+    RejectedOrdersViewer: 'Odrzucone sprawy',
+    CompletedOrdersViewer: 'Zakończone sprawy',
 }
 
 // export const stepNames = [
@@ -130,6 +136,7 @@ export interface IOrder {
     id: number
     createdAt: string
     steps: Array<StepType>
+    currentStep?: StepType
 }
 
 export interface IOutputRef {
@@ -157,6 +164,7 @@ export type StepType = IFormStep & {
     stepCreator?: IUser
     stepCreatorId?: number
     branchIdx?: number
+    currentOrder?: IOrder
 } & IBefaringStep &
     IOfferStep &
     IContractStep &
@@ -215,7 +223,7 @@ export interface IContractCreatorStep {
 }
 
 export interface IWorkStep {
-    workStepTeam?: string
+    workStepTeam?: IWorker[] | string | { connect: { username: string }[] }
     workStepWorkStartDate?: DateTime | string
     workStepContractEdits?: string
     workStepWorkEndDate?: DateTime | string
@@ -236,6 +244,14 @@ export interface IReferenceStep {
     referenceStepWasSentRequest?: boolean
     referenceStepIsClientReference?: boolean
     referenceStepReferenceLocation?: string
+}
+
+export interface IWorker {
+    id: number
+    createdAt: DateTime | string
+    name: string
+    username: string
+    steps: StepType[]
 }
 
 export type StepFields = [keyof StepType, string][]

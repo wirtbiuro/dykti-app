@@ -264,6 +264,11 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         setIsVisible!(false)
     }
 
+    const disabled =
+        prevStep &&
+        prevStep?.passedTo !== 'beffaringStep' &&
+        !(prevStep?.passedTo === 'offerStep' && prevStep?.createdByStep === 'beffaringStep')
+
     return (
         <Spin spinning={isSpinning}>
             {' '}
@@ -277,11 +282,11 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                 defaultDate={order && prevStep?.formStepMeetingDate}
                                 connection={meetingDateData}
                             /> */}
+                            {/* {prevBranchOnProp && (
+                                <PrevBranchProp prevStepChangeStep={prevBranchOnProp} propName="formStepMeetingDate" />
+                            )} */}
 
-                            <Calendar
-                                calendar={meetingCalendar}
-                                disabled={prevStep && prevStep?.passedTo !== 'beffaringStep'}
-                            />
+                            <Calendar calendar={meetingCalendar} disabled={disabled} />
 
                             {/* {meetingData?.check !== undefined && meetingDateData?.isChecked && ( */}
                             {isMeetingDataChecked && (
@@ -340,11 +345,14 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                         connection={offerDateData}
                                         isTimeEnabled={false}
                                     /> */}
+                                    {/* {prevBranchOnProp && (
+                                        <PrevBranchProp
+                                            prevStepChangeStep={prevBranchOnProp}
+                                            propName="beffaringStepOfferDate"
+                                        />
+                                    )} */}
 
-                                    <Calendar
-                                        calendar={offerCalendar}
-                                        disabled={prevStep && prevStep?.passedTo !== 'beffaringStep'}
-                                    />
+                                    <Calendar calendar={offerCalendar} disabled={disabled} />
                                 </div>
                             )}
 
@@ -360,19 +368,22 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                         : prevStepChangeStep?.beffaringStepComment
                                 }
                                 connection={commentData}
+                                disabled={disabled}
                             />
 
-                            <SendButtons
-                                curStepName="beffaringStep"
-                                passedTo={prevStep!.passedTo}
-                                maxPromotion={prevStep!.maxPromotion}
-                                dataRef={sendButtonsOutputRef}
-                                isFormChecked={isFormChecked}
-                                step={order?.steps[order.steps.length - 1]}
-                                formCheck={formCheck}
-                            />
+                            {!disabled && (
+                                <SendButtons
+                                    curStepName="beffaringStep"
+                                    passedTo={prevStep!.passedTo}
+                                    maxPromotion={prevStep!.maxPromotion}
+                                    dataRef={sendButtonsOutputRef}
+                                    isFormChecked={isFormChecked}
+                                    step={order?.steps[order.steps.length - 1]}
+                                    formCheck={formCheck}
+                                />
+                            )}
 
-                            <input type="submit" value="Zapisz" />
+                            {!disabled && <input type="submit" value="Zapisz" />}
                         </form>
                     </FormStyled>
                 </CreateFormStyled>

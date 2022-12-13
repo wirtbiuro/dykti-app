@@ -44,18 +44,64 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
                               ],
                           },
                           none: {
-                              isCompleted: true,
+                              OR: [
+                                  {
+                                      passedTo: 'completedOrdersStep',
+                                  },
+                                  {
+                                      passedTo: 'rejectedOrdersStep',
+                                  },
+                              ],
                           },
+                          //   none: {
+                          //       isCompleted: true,
+                          //   },
+                      },
+                  }
+                : ['CompletedOrdersViewer', 'RejectedOrdersViewer'].includes(_role)
+                ? {
+                      currentStep: {
+                          OR: [
+                              {
+                                  passedTo: 'completedOrdersStep',
+                              },
+                              {
+                                  passedTo: 'rejectedOrdersStep',
+                              },
+                          ],
                       },
                   }
                 : {
+                      currentStep: {
+                          isNot: {
+                              OR: [
+                                  {
+                                      passedTo: 'completedOrdersStep',
+                                  },
+                                  {
+                                      passedTo: 'rejectedOrdersStep',
+                                  },
+                              ],
+                          },
+                      },
                       steps: {
                           some: {
                               passedTo: getStepnameByRole(_role),
                           },
-                          none: {
-                              isCompleted: true,
-                          },
+                          //   none: {
+                          //       OR: [
+                          //           {
+                          //               passedTo: 'completedOrdersStep',
+                          //           },
+                          //           {
+                          //               passedTo: 'rejectedOrdersStep',
+                          //           },
+                          //       ],
+                          //   },
+
+                          //   none: {
+                          //       isCompleted: true,
+                          //   },
                       },
                   }
 
@@ -63,11 +109,12 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
             where,
             include: {
                 steps: {
-                    include: { stepCreator: true },
+                    include: { stepCreator: true, workStepTeam: true, currentOrder: true },
                     orderBy: {
                         createdAt: 'asc',
                     },
                 },
+                currentStep: { include: { stepCreator: true, workStepTeam: true, currentOrder: true } },
             },
         })
 

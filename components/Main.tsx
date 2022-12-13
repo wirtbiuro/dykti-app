@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { useGetUserQuery, dyktiApi } from '../state/apiSlice'
-import CreateForm from './steps/CreateForm'
-import { IQuery, IUser, Role, roleTitles } from '../types'
+import { dyktiApi } from '../state/apiSlice'
+import { Role, roleTitles, OtherRole } from '../types'
 import BefaringPanel from './panels/BefaringPanel'
 import CreatorFormPanel from './panels/CreatorFormPanel'
 import OfferCreatorPanel from './panels/OfferCreatorPanel'
@@ -12,15 +11,14 @@ import WorkStepPanel from './panels/WorkStepPanel'
 import QuestionnairePanel from './panels/QuestionnairePanel'
 import ReferencePanel from './panels/ReferencePanel'
 import { withRtkQueryTokensCheck, getDatas } from '../utilities'
-import useErrFn from '../hooks/useErrFn'
 import LastDecisionPanel from './panels/LastDecisionPanel'
-import { observer } from 'mobx-react-lite'
-import { MainStyled } from '../styles/styled-components'
-import { useSimpleStore } from '../simple-store/store'
+import { MainStyled, OtherRoleBtnStyled } from '../styles/styled-components'
 import { useAppDispatch } from '../state/hooks'
-import { authActions } from '../state/authSlice'
+import Workers from './workers'
+import CompletedOrdersPanel from './panels/CompletedOrdersPanel'
+import RejectedOrdersPanel from './panels/RejectedOrdersPanel'
 
-type RoleStrategyType = Record<Role, JSX.Element>
+type RoleStrategyType = Record<Role | OtherRole, JSX.Element>
 
 const roleStrategy: RoleStrategyType = {
     FormCreator: <CreatorFormPanel />,
@@ -33,6 +31,9 @@ const roleStrategy: RoleStrategyType = {
     QuestionnaireUser: <QuestionnairePanel />,
     ReferenceUser: <ReferencePanel />,
     LastDecisionUser: <LastDecisionPanel />,
+    WorkerViewer: <Workers />,
+    CompletedOrdersViewer: <CompletedOrdersPanel />,
+    RejectedOrdersViewer: <RejectedOrdersPanel />,
 }
 
 const Main = () => {
@@ -79,7 +80,9 @@ const Main = () => {
 
     // const { isError, data }: IQuery<IUser> = useGetUserQuery()
 
-    const [visibleRole, setVisibleRole] = useState<Role>()
+    const [visibleRole, setVisibleRole] = useState<Role | OtherRole>()
+
+    console.log({ visibleRole })
 
     useEffect(() => {
         if (data && !isError) {
@@ -87,7 +90,7 @@ const Main = () => {
         }
     }, [data, isError])
 
-    const roleClicked = (role: Role) => {
+    const roleClicked = (role: Role | OtherRole) => {
         setVisibleRole(role)
     }
 
@@ -101,7 +104,15 @@ const Main = () => {
         return (
             <MainStyled>
                 <ul className="roles">
-                    {data.role.map((role: Role) => {
+                    {data.role.map((role: Role | OtherRole) => {
+                        if (role === 'WorkerViewer') {
+                            return (
+                                <OtherRoleBtnStyled key={role} isSelected={visibleRole === role}>
+                                    <div onClick={() => roleClicked(role)}>Robotnicy</div>
+                                </OtherRoleBtnStyled>
+                            )
+                        }
+
                         return (
                             <li
                                 key={role}
