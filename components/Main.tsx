@@ -14,7 +14,7 @@ import { withRtkQueryTokensCheck, getDatas } from '../utilities'
 import LastDecisionPanel from './panels/LastDecisionPanel'
 import { MainStyled, OtherRoleBtnStyled } from '../styles/styled-components'
 import { useAppDispatch } from '../state/hooks'
-import Workers from './workers'
+import Workers from './Workers'
 import CompletedOrdersPanel from './panels/CompletedOrdersPanel'
 import RejectedOrdersPanel from './panels/RejectedOrdersPanel'
 
