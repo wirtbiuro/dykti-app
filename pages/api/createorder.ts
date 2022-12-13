@@ -58,7 +58,7 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
             delete step.createdAt
             delete step.stepCreatorId
             delete step.workStepTeam
-            delete step.currentOrder
+            delete step?.currentOrder
 
             const _step = await _prisma.step.create({
                 data: { ...step, ...input, stepCreator },
