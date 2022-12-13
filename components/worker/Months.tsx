@@ -25,7 +25,11 @@ const Months: FC<IMonthsProps> = ({ lastDay }) => {
                     monthDays = monthDays - day + 1
                 }
 
-                return <MonthStyled days={monthDays}>{monthName}</MonthStyled>
+                return (
+                    <MonthStyled days={monthDays} key={idx}>
+                        {monthName}
+                    </MonthStyled>
+                )
             })}
         </MonthsStyled>
     )

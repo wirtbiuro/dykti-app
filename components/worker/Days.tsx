@@ -20,7 +20,11 @@ const Days: FC<IDays> = ({ lastDay }) => {
             <div className="name">Dzień</div>
             {idxArr.map((idx) => {
                 const day = now.plus({ days: idx }).day
-                return <div className="day">{day}</div>
+                return (
+                    <div className="day" key={idx}>
+                        {day}
+                    </div>
+                )
             })}
         </DaysStyled>
     )
