@@ -51,14 +51,14 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
         if (order) {
             const step = {
                 ...order.steps[order.steps.length - 1],
-            } as StepType & { orderId?: number; currentOrder: IOrder }
+            } as StepType & { orderId?: number; currentOrder?: IOrder }
             console.log({ step })
             delete step.orderId
             delete step.id
             delete step.createdAt
             delete step.stepCreatorId
             delete step.workStepTeam
-            delete step?.currentOrder
+            delete step.currentOrder
 
             const _step = await _prisma.step.create({
                 data: { ...step, ...input, stepCreator },
