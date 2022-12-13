@@ -26,7 +26,7 @@ async function getworkers(req: NextApiRequest, res: NextApiResponse) {
 
         console.log({ busySteps })
 
-        const ids = busySteps.map((step: StepType) => step.id)
+        const ids = busySteps.map((step: any) => step.id)
         console.log({ ids })
 
         const workers = await prisma.worker.findMany({
