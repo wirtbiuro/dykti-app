@@ -9,6 +9,7 @@ interface IAllCategoryOrders {
     passedForEditData: IOrder[]
     renderedComponent: JSX.Element
     stepName: StepName
+    currentOrEditedOrdersData: IOrder[]
 }
 
 const AllCategoryOrders: FC<IAllCategoryOrders> = ({
@@ -18,16 +19,18 @@ const AllCategoryOrders: FC<IAllCategoryOrders> = ({
     passedForEditData,
     renderedComponent,
     stepName,
+    currentOrEditedOrdersData,
 }) => {
     return (
         <>
             <h2>Sprawy bieżące:</h2>
 
-            <Orders orders={currentData} stepName={stepName} />
+            {/* <Orders orders={currentData} stepName={stepName} /> */}
+            <Orders orders={currentOrEditedOrdersData} stepName={stepName} />
 
-            <h2>Do poprawienia:</h2>
+            {/* <h2>Do poprawienia:</h2>
 
-            <Orders orders={editedOrdersData} stepName={stepName} />
+            <Orders orders={editedOrdersData} stepName={stepName} /> */}
 
             <h2>Przekazane dalej:</h2>
 

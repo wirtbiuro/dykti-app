@@ -12,7 +12,13 @@ const BefaringPanel = () => {
 
     const { data, isError, error, refetch }: IQuery<IOrder> = useGetOrders('BefaringUser')
 
-    const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({
+    const {
+        completedOrdersData,
+        currentData,
+        editedOrdersData,
+        passedForEditData,
+        currentOrEditedOrdersData,
+    } = getDatas({
         data,
         currentStep,
     })
@@ -21,6 +27,7 @@ const BefaringPanel = () => {
 
     return (
         <AllCategoryOrders
+            currentOrEditedOrdersData={currentOrEditedOrdersData}
             currentData={currentData}
             editedOrdersData={editedOrdersData}
             completedOrdersData={completedOrdersData}

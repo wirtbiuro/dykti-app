@@ -72,12 +72,10 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [startCalendar] = useState<CalendarModule>(
         new CalendarModule({
             withTime: false,
-            selectedDate: isNewBranchComparedByLastStepnameChange
-                ? prevStep?.contractCheckerStepWorkStartDate
-                    ? DateTime.fromISO(prevStep?.contractCheckerStepWorkStartDate as string)
-                    : undefined
-                : prevStep?.workStepWorkStartDate
+            selectedDate: prevStep?.workStepWorkStartDate
                 ? DateTime.fromISO(prevStep?.workStepWorkStartDate as string)
+                : prevStep?.contractCheckerStepWorkStartDate
+                ? DateTime.fromISO(prevStep?.contractCheckerStepWorkStartDate as string)
                 : undefined,
         })
     )
@@ -85,18 +83,27 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [endCalendar] = useState<CalendarModule>(
         new CalendarModule({
             withTime: false,
-            selectedDate: isNewBranchComparedByLastStepnameChange
-                ? prevStep?.contractCheckerStepWorkEndDate
-                    ? DateTime.fromISO(prevStep?.contractCheckerStepWorkEndDate as string)
-                    : undefined
-                : prevStep?.workStepWorkEndDate
+            selectedDate: prevStep?.workStepWorkEndDate
                 ? DateTime.fromISO(prevStep?.workStepWorkEndDate as string)
+                : prevStep?.contractCheckerStepWorkEndDate
+                ? DateTime.fromISO(prevStep?.contractCheckerStepWorkEndDate as string)
                 : undefined,
         })
     )
 
     const workStartDateData = useCalendarData(startCalendar)
     const workEndDateData = useCalendarData(endCalendar)
+
+    useEffect(() => {
+        if (
+            startCalendar.data.dayMonthYear &&
+            endCalendar.data.dayMonthYear &&
+            endCalendar.data.dayMonthYear?.toMillis() - startCalendar.data.dayMonthYear?.toMillis() < 0
+        ) {
+            endCalendar.setSelectedDate(startCalendar.getSelectedDate() || null)
+        }
+    }, [startCalendar.data.dayMonthYear, endCalendar.data.dayMonthYear])
+
     const shouldChangeContractData = useFormInput()
     const teamData = useFormMultiSelect()
     const contractEditsData = useFormInput()
@@ -257,6 +264,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                                 ? true
                                                 : false
                                         }
+                                        disabled={prevStep && prevStep?.passedTo !== 'workStep'}
                                     >
                                         <>Kontrakt wymaga zmiany</>
                                     </FormInput>
@@ -298,6 +306,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                                 defaultValue={workTeamString}
                                                 connection={teamData}
                                                 options={workersOptions}
+                                                disabled={prevStep && prevStep?.passedTo !== 'workStep'}
                                             />
                                         </>
                                     </>

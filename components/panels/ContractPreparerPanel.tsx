@@ -14,12 +14,19 @@ const ContractPreparerPanel = () => {
 
     const currentStep: StepName = 'contractStep'
 
-    const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({ data, currentStep })
+    const {
+        completedOrdersData,
+        currentData,
+        editedOrdersData,
+        passedForEditData,
+        currentOrEditedOrdersData,
+    } = getDatas({ data, currentStep })
 
     if (!data) return <>Ładowanie danych...</>
 
     return (
         <AllCategoryOrders
+            currentOrEditedOrdersData={currentOrEditedOrdersData}
             currentData={currentData}
             editedOrdersData={editedOrdersData}
             completedOrdersData={completedOrdersData}

@@ -1,6 +1,6 @@
 import React, { FC } from 'react'
 import { getStepProps, getUnactiveStepnames } from '../utilities'
-import { StepType, stepNames, stepNamesRelations, roleTitles, getStepNames, StepName } from '../types'
+import { StepType, stepNames, stepNamesRelations, roleTitles, getStepNames, StepName, IOrder } from '../types'
 import { StepPropsStyled } from '../styles/styled-components'
 import { useSimpleStore } from '../simple-store/store'
 import MainStepProps from './MainStepProps'
@@ -8,10 +8,10 @@ import MainStepProps from './MainStepProps'
 interface IStepPropsProps {
     step: StepType
     stepName: StepName
-    orderId: number
+    order: IOrder
 }
 
-const StepProps: FC<IStepPropsProps> = ({ step, stepName, orderId }) => {
+const StepProps: FC<IStepPropsProps> = ({ step, stepName, order }) => {
     const [orderStore, setOrderStore] = useSimpleStore()
 
     const unactiveStepNames = getUnactiveStepnames({ passedTo: step.passedTo, returnStep: step.returnStep })
@@ -60,7 +60,7 @@ const StepProps: FC<IStepPropsProps> = ({ step, stepName, orderId }) => {
     return (
         <StepPropsStyled>
             <div className="wrapper">
-                <MainStepProps step={step} stepName={stepName} orderId={orderId} />
+                <MainStepProps step={step} stepName={stepName} order={order} />
                 {orderStore.visibleOrderId === step.orderId && (
                     <div className="all-props">
                         {stepNamesRelations

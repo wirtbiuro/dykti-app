@@ -118,20 +118,17 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             console.log('isContractCheckedData error')
             showMessage ? isContractCheckedData.showError!() : null
             setIsFormChecked(false)
-                        return false
-
+            return false
         }
 
         if (!startCalendar.getSelectedDate(showMessage)) {
             setIsFormChecked(false)
-                        return false
-
+            return false
         }
 
         if (!endCalendar.getSelectedDate(showMessage)) {
-             setIsFormChecked(false)
-                         return false
-
+            setIsFormChecked(false)
+            return false
         }
         // if (!workEndDateData.isChecked) {
         //     console.log('workEndDateData error')
@@ -141,8 +138,8 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         console.log('form checked')
 
-         setIsFormChecked(true)
-                     return true
+        setIsFormChecked(true)
+        return true
     }
 
     const prevFormCheck: FormCheckType = ({ showMessage }) => {
@@ -160,13 +157,13 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             console.log('commentsData error')
             showMessage ? commentsData.showError!() : null
             setIsPrevFormChecked(false)
-                        return false
+            return false
         }
 
         console.log('prev form checked')
 
         setIsPrevFormChecked(true)
-                    return true
+        return true
     }
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -253,7 +250,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                                 <FormSelect
                                     options={selectData.standardSelect}
                                     name="isContractCheckedData"
-                                    title="Kontrakt jest weryfikowan"
+                                    title="Kontrakt jest prawidłowy"
                                     connection={isContractCheckedData}
                                     defaultValue={
                                         isNewBranchComparedByLastStepnameChange

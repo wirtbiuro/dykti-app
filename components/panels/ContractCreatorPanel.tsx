@@ -14,12 +14,19 @@ const ContractCreatorPanel = () => {
 
     const { data, isError }: IQuery<IOrder> = useGetOrders('ContractCreator')
 
-    const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({ data, currentStep })
+    const {
+        completedOrdersData,
+        currentData,
+        editedOrdersData,
+        passedForEditData,
+        currentOrEditedOrdersData,
+    } = getDatas({ data, currentStep })
 
     if (!data) return <>Ładowanie danych...</>
 
     return (
         <AllCategoryOrders
+            currentOrEditedOrdersData={currentOrEditedOrdersData}
             currentData={currentData}
             editedOrdersData={editedOrdersData}
             completedOrdersData={completedOrdersData}

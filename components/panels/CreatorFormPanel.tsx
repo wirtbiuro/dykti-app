@@ -17,7 +17,13 @@ const CreatorFormPanel = () => {
 
     const currentStep: StepName = 'formStep'
 
-    const { completedOrdersData, currentData, editedOrdersData, passedForEditData } = getDatas({ data, currentStep })
+    const {
+        completedOrdersData,
+        currentData,
+        editedOrdersData,
+        passedForEditData,
+        currentOrEditedOrdersData,
+    } = getDatas({ data, currentStep })
 
     const noMeetingDateData = data?.filter((order) => {
         const lastStep = order.steps[order.steps.length - 1]
@@ -49,11 +55,11 @@ const CreatorFormPanel = () => {
 
             <h2>Sprawy bieżące:</h2>
 
-            <Orders orders={currentData} stepName="formStep" />
+            <Orders orders={currentOrEditedOrdersData} stepName="formStep" />
 
-            <h2>Do poprawienia:</h2>
+            {/* <h2>Do poprawienia:</h2>
 
-            <Orders orders={editedOrdersData} stepName="formStep" />
+            <Orders orders={editedOrdersData} stepName="formStep" /> */}
 
             <h2>Przekazane dalej:</h2>
 

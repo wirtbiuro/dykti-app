@@ -285,7 +285,7 @@ export const CloseOrderStyled = styled.div`
 
 export const AllStyled = styled.div`
     padding: 20px;
-    width: 100vw;
+    width: calc(100vw - 17px);
     height: 100vh;
     .centered {
         max-width: 1900px;
@@ -309,6 +309,7 @@ export const StepPropsStyled = styled.div`
     .prop {
         padding: 5px 15px;
         padding-left: 0;
+        max-width: 300px;
         &.unactive {
             color: rgba(0, 0, 0, 0.2);
         }
@@ -338,10 +339,20 @@ export const StepPropsStyled = styled.div`
     }
     button {
         height: 30px;
+        margin: 5px 0;
+    }
+    .direction {
+        padding-right: 10px;
+        padding-top: 10px;
     }
 `
 
 export const PrevBranchPropStyled = styled.div`
     color: orange;
     font-size: 9px;
+`
+
+export const SendButtonsWrapper = styled.div`
+    overflow: hidden;
+    max-height: ${(props) => (props.visible ? 'auto' : '0px')};
 `

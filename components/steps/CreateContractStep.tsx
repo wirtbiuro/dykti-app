@@ -1,5 +1,5 @@
 import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
-import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
+import { FormStyled, CreateFormStyled, SendButtonsWrapper } from '../../styles/styled-components'
 import {
     WithValueNFocus,
     IWithOrder,
@@ -80,8 +80,20 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         otherRejectionData.isChecked,
     ])
 
+    const isOfferSentDefault =
+        // isNewBranchComparedByLastStepnameChange
+        //     ? false
+        //     :
+        prevStepChangeStep?.contractStepOfferSendingDate ? true : false
+
+    console.log({ isOfferSentDefault })
+
     const formCheck: FormCheckType = ({ showMessage }) => {
         console.log('form check')
+
+        if (!isOfferSentDefault) {
+            return true
+        }
 
         if (!isOfferSentData.isChecked) {
             console.log('isOfferSentData error')
@@ -152,7 +164,10 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
     }
 
     const getIsMainCondition = () => {
-        return !isOfferSentData.isChecked || (isOfferSentData.isChecked && areOfferChangesData.value === 'no')
+        if (!isOfferSentDefault) {
+            return true
+        }
+        return !isOfferSentData.isChecked || (isOfferSentData.isChecked && areOfferChangesData.value !== 'yes')
     }
 
     const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -178,8 +193,13 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
 
         setIsSpinning(true)
 
-        const contractStepAreOfferChanges =
-            areOfferChangesData.value === 'select' ? null : areOfferChangesData.value === 'yes' ? true : false
+        const contractStepAreOfferChanges = !areOfferChangesData.value
+            ? null
+            : areOfferChangesData.value === 'select'
+            ? null
+            : areOfferChangesData.value === 'yes'
+            ? true
+            : false
 
         const contractStepOfferSendingDate = !isOfferSentData.value
             ? null
@@ -204,15 +224,16 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
-            nextToPass:
-                isOfferAcceptedData.value === 'no' &&
-                (rejectionReasonsData.value === 'select'
-                    ? false
-                    : rejectionReasonsData.value === 'other'
-                    ? otherRejectionData.isChecked
-                    : true)
-                    ? 'lastDecisionStep'
-                    : 'contractCheckerStep',
+            nextToPass: !isOfferSentDefault
+                ? 'contractStep'
+                : isOfferAcceptedData.value === 'no' &&
+                  (rejectionReasonsData.value === 'select'
+                      ? false
+                      : rejectionReasonsData.value === 'other'
+                      ? otherRejectionData.isChecked
+                      : true)
+                ? 'lastDecisionStep'
+                : 'contractCheckerStep',
             toPrevSendData: {
                 order,
                 contractStepAreOfferChanges,
@@ -287,20 +308,14 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                             <FormInput
                                 type="checkbox"
                                 connection={isOfferSentData}
-                                defaultChecked={
-                                    isNewBranchComparedByLastStepnameChange
-                                        ? false
-                                        : prevStepChangeStep?.contractStepOfferSendingDate
-                                        ? true
-                                        : false
-                                }
+                                defaultChecked={isOfferSentDefault}
                                 checkFn={(value) => value === true}
-                                disabled={prevStep && prevStep.passedTo !== 'contractStep'}
+                                disabled={(prevStep && prevStep.passedTo !== 'contractStep') || isOfferSentDefault}
                             >
                                 <>Oferta wysłana</>
                             </FormInput>
 
-                            {isOfferSentData.isChecked && (
+                            {isOfferSentDefault && isOfferSentData.isChecked && (
                                 // <FormInput
                                 //     type="checkbox"
                                 //     connection={areOfferChangesData}
@@ -331,7 +346,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                     disabled={prevStep && prevStep.passedTo !== 'contractStep'}
                                 />
                             )}
-                            {isOfferSentData.isChecked && areOfferChangesData.value === 'yes' && (
+                            {isOfferSentDefault && isOfferSentData.isChecked && areOfferChangesData.value === 'yes' && (
                                 <>
                                     <p>Zmiany w ofercie: </p>
                                     {prevBranchOnProp && (
@@ -359,7 +374,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                     />
                                 </>
                             )}
-                            {isOfferSentData.isChecked && areOfferChangesData.value === 'no' && (
+                            {isOfferSentDefault && isOfferSentData.isChecked && areOfferChangesData.value === 'no' && (
                                 <>
                                     {/* <FormInput
                                         type="checkbox"
@@ -444,18 +459,20 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                 </>
                             )}
 
-                            <SendButtons
-                                maxPromotion={prevStep!.maxPromotion}
-                                passedTo={prevStep!.passedTo}
-                                curStepName="contractStep"
-                                dataRef={sendButtonsOutputRef}
-                                isFormChecked={isFormChecked}
-                                step={order?.steps[order.steps.length - 1]}
-                                formCheck={formCheck}
-                                isMainCondition={getIsMainCondition()}
-                                isPrevFormChecked={isPrevFormChecked}
-                                prevFormCheck={prevFormCheck}
-                            />
+                            <SendButtonsWrapper visible={isOfferSentDefault}>
+                                <SendButtons
+                                    maxPromotion={prevStep!.maxPromotion}
+                                    passedTo={prevStep!.passedTo}
+                                    curStepName="contractStep"
+                                    dataRef={sendButtonsOutputRef}
+                                    isFormChecked={isFormChecked}
+                                    step={order?.steps[order.steps.length - 1]}
+                                    formCheck={formCheck}
+                                    isMainCondition={getIsMainCondition()}
+                                    isPrevFormChecked={isPrevFormChecked}
+                                    prevFormCheck={prevFormCheck}
+                                />
+                            </SendButtonsWrapper>
                             <input type="submit" value="Zapisz" />
                         </form>
                     </FormStyled>

@@ -37,13 +37,7 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
 
     const formRef = useRef<FormElement>(null)
 
-    const {
-        prevStep,
-        branchIdx,
-        prevStepChangeStep,
-        isNewBranchComparedByLastStepnameChange,
-        prevBranchOnProp,
-    } = getBranchValues({
+    const { prevStep, branchIdx, isNewBranchComparedByLastStepnameChange, prevBranchOnProp } = getBranchValues({
         stepName: 'lastDecisionStep',
         order,
     })

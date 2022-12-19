@@ -103,7 +103,7 @@ export const roleTitles: RoleTitleType = {
     ReferenceUser: 'Prośba o referencje',
     LastDecisionUser: 'Potwierdzenie zakończenia',
     RejectedOrdersViewer: 'Odrzucone sprawy',
-    CompletedOrdersViewer: 'Zakończone sprawy',
+    CompletedOrdersViewer: 'Zrealizowane projekty',
 }
 
 // export const stepNames = [
@@ -165,6 +165,8 @@ export type StepType = IFormStep & {
     stepCreatorId?: number
     branchIdx?: number
     currentOrder?: IOrder
+    deadline?: DateTime | string | null
+    nextDeadline?: DateTime | string | null
 } & IBefaringStep &
     IOfferStep &
     IContractStep &
@@ -186,6 +188,7 @@ export interface IFormStep {
 }
 
 export interface IBefaringStep {
+    beffaringStepMeetingDate?: DateTime | string
     beffaringStepWasThereMeeting?: boolean
     beffaringStepOfferDate?: DateTime | string
     beffaringStepComment?: string

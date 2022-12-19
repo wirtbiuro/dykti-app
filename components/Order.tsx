@@ -150,7 +150,7 @@ const Order: FC<IOrderProps> = ({ order, stepName }) => {
     return (
         <Spin spinning={isSpinning}>
             <StepStyled key={order.id}>
-                <Step step={step} stepName={stepName} orderId={order.id} />
+                <Step step={step} stepName={stepName} order={order} />
                 {!isViewing && <button onClick={onContinueBtn}>Kontynuować</button>}
                 {isViewing && <button onClick={onCloseBtn}>Zamknij</button>}
                 {/* {shouldConfirmView && <button onClick={() => onConfirm(order)}>Przyjąłem</button>} */}

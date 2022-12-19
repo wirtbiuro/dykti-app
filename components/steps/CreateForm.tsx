@@ -19,7 +19,7 @@ import { Spin } from 'antd'
 import Calendar from '../calendar/Calendar'
 import { CalendarModule, useCalendarData } from '../../store/calendar'
 import { DateTime } from 'luxon'
-import { selectData } from '../../accessories/constants'
+import { selectData, workDayStartHours } from '../../accessories/constants'
 import FormSelect from '../UI/FormSelect'
 import { useFormSelect } from '../../hooks/useFormSelect'
 
@@ -161,6 +161,12 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             passedTo: prevStep?.passedTo || 'formStep',
             formCheck,
             isFormChecked,
+            deadline: prevStep?.deadline,
+            supposedNextDeadline: calendar
+                .getSelectedDate()
+                ?.endOf('day')
+                .plus({ days: 1 })
+                .plus({ hours: workDayStartHours }),
             toNextSendData: {
                 order,
                 formStepAddress: addressData.value,

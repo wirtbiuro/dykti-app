@@ -44,6 +44,7 @@ model Step{
   formStepMeetingDate DateTime?
   formStepWhereClientFound String?
   formStepComment String?
+  beffaringStepMeetingDate DateTime?
   beffaringStepWasThereMeeting Boolean?
   beffaringStepOfferDate DateTime?
   beffaringStepInfoSendingDate DateTime?
@@ -91,6 +92,8 @@ model Step{
   shouldConfirmView Boolean?
   isCompleted Boolean?
   branchIdx Int?
+  deadline DateTime?
+  nextDeadline DateTime?
 }
 
 model Order{

@@ -53,9 +53,14 @@ export const monthNames = {
 
 // type FieldnamesKeysType = Omit<StepType, 'stepCreatorId'>
 
+export const workDayStartHours = 8
+
 export const fieldNames: Record<keyof StepType, string> = {
+    deadline: 'Deadline',
+    nextDeadline: 'Next Deadline',
     passedTo: 'Przeniesiony do',
     returnStep: 'Krok powrotny',
+    beffaringStepMeetingDate: 'Data spotkania Befaringowca z klientem',
     beffaringStepComment: 'Komentarz Befaringowca',
     beffaringStepDocsSendDate: 'Kiedy Befaringowiec wysłał dokumenty',
     beffaringStepOfferDate: 'Kiedy przygotować ofertę',
@@ -139,11 +144,13 @@ export const selectData = {
     questionnaireStepSatisfaction: [
         ['timeFrame', 'Ramy czasowe'],
         ['endDate', 'Data zakonczenia'],
+        ['quality', 'Jakość'],
         ['other', 'Inne'],
     ],
     questionnaireStepDissatisfaction: [
         ['timeFrame', 'Ramy czasowe'],
         ['endDate', 'Data zakonczenia'],
+        ['quality', 'Jakość'],
         ['other', 'Inne'],
     ],
     referenceStepReferenceLocation: [

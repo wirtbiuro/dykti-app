@@ -287,6 +287,26 @@ export const getPassedTo: GetPassedToType = ({
     return _passedTo
 }
 
+type GetNextDeadlineType = ({}: IGetNextDeadlineProps) => string | DateTime | null | undefined
+
+interface IGetNextDeadlineProps {
+    deadline: string | DateTime | null | undefined
+    supposedNextDeadline: string | DateTime | null | undefined
+    isCurrentOrEdit: boolean
+    target: EventTarget & WithValueNFocus<ISendCheckboxes>
+}
+
+export const getNextDeadline: GetNextDeadlineType = ({ deadline, supposedNextDeadline, isCurrentOrEdit, target }) => {
+    console.log({ deadline, supposedNextDeadline, isCurrentOrEdit, target })
+    const nextDeadline: string | DateTime | null | undefined = isCurrentOrEdit
+        ? target.nextCheckbox?.checked
+            ? supposedNextDeadline
+            : deadline
+        : deadline
+
+    return nextDeadline
+}
+
 type GetFirstStepOrderStatusType = ({}: {
     curStepName?: StepName
     step?: StepType
@@ -412,6 +432,8 @@ interface ISubmitFormProps {
     createOrder: (data: FieldsToSend) => void
     errFn: (error: IServerControllerError) => void
     branchIdx?: number
+    deadline?: DateTime | string | null
+    supposedNextDeadline?: DateTime | string | null
 }
 
 type SubmitFormType = ({}: ISubmitFormProps) => Promise<void>
@@ -433,6 +455,8 @@ export const submitForm: SubmitFormType = async ({
     prevFormCheck = () => {},
     errFn,
     branchIdx = 0,
+    deadline = null,
+    supposedNextDeadline = null,
 }) => {
     const { isCurrent, isEdit, isProceedToNext, isProceedToEdit } = getOrderStatus({
         curStepName,
@@ -443,6 +467,8 @@ export const submitForm: SubmitFormType = async ({
 
     console.log('submitForm', isMainCondition)
     console.log({ toPrevSendData })
+
+    const nextDeadline = getNextDeadline({ deadline, supposedNextDeadline, isCurrentOrEdit, target })
 
     const _passedTo = getPassedTo({
         nextToPass,
@@ -482,6 +508,8 @@ export const submitForm: SubmitFormType = async ({
         userRoles: user.role as Role[],
         returnStep,
         branchIdx,
+        deadline,
+        nextDeadline,
     }
 
     console.log({ _options })
@@ -646,6 +674,7 @@ type GetDatasType = ({}: IgetDatasProps) => {
     passedForEditData: IOrder[]
     currentData: IOrder[]
     editedOrdersData: IOrder[]
+    currentOrEditedOrdersData: IOrder[]
 }
 
 interface IgetDatasProps {
@@ -671,7 +700,12 @@ export const getDatas: GetDatasType = ({ data, currentStep }) => {
         const lastStep = order.steps[order.steps.length - 1]
         return lastStep.passedTo === currentStep && lastStep.maxPromotion !== currentStep
     })
-    return { completedOrdersData, passedForEditData, currentData, editedOrdersData }
+    const currentOrEditedOrdersData = data?.filter((order) => {
+        const lastStep = order.steps[order.steps.length - 1]
+        return lastStep.passedTo === currentStep
+    })
+
+    return { completedOrdersData, passedForEditData, currentData, editedOrdersData, currentOrEditedOrdersData }
 }
 
 export const getStepPropValue: (step: StepType, prop: keyof StepType) => any = (step, prop) => {
@@ -851,6 +885,19 @@ export const getPrevStepChangeStep: (props: IGetPrevStepChangeStep) => StepType 
     return step || null
 }
 
+export const getLastStepWherePassedToWasChanged: (props: IGetPrevStepChangeStep) => StepType | null = ({
+    stepName,
+    order,
+}) => {
+    if (!order) return null
+    const orderSteps = Array.from(order.steps)
+    const steps = orderSteps.sort((a, b) => {
+        return DateTime.fromISO(b.createdAt!).toMillis() - DateTime.fromISO(a.createdAt!).toMillis()
+    })
+    const step = steps.find((step) => step.passedTo === stepName && step.createdByStep !== step.passedTo)
+    return step || null
+}
+
 interface IGetBranchValuesProps {
     stepName: StepName
     order?: IOrder
@@ -860,6 +907,8 @@ export const getBranchValues = ({ stepName, order }: IGetBranchValuesProps) => {
 
     const branchIdx = getBranchIdx({ prevStep, stepName })
     const prevStepChangeStep = getPrevStepChangeStep({ order, stepName })
+
+    const lastStepWherePassedToWasChanged = getLastStepWherePassedToWasChanged({ order, stepName })
 
     const isNewBranchComparedByLastStepnameChange = branchIdx !== 0 && branchIdx !== prevStepChangeStep?.branchIdx!
     const isNewBranchComparedByPrevStep = branchIdx !== 0 && branchIdx !== prevStep?.branchIdx!
@@ -875,6 +924,7 @@ export const getBranchValues = ({ stepName, order }: IGetBranchValuesProps) => {
         prevStep,
         branchIdx,
         prevStepChangeStep,
+        lastStepWherePassedToWasChanged,
         isNewBranchComparedByLastStepnameChange,
         isNewBranchComparedByPrevStep,
         prevBranchOnProp,
