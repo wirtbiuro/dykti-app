@@ -18,7 +18,8 @@ import FormMultiSelect from '../UI/FormMultiSelect'
 import { useFormSelect } from '../../hooks/useFormSelect'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin, Modal } from 'antd'
-import { selectData } from '../../accessories/constants'
+import { selectData, workDayStartHours } from '../../accessories/constants'
+import { DateTime } from 'luxon'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -188,6 +189,8 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
             isFormChecked,
             nextToPass: isClientSatisfiedData.value ? 'referenceStep' : 'completedOrdersStep',
             // nextToPass: 'questionnaireStep',
+            deadline: prevStep?.nextDeadline,
+            supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             toNextSendData: {
                 order,
                 isCompleted: isNextChecked && isClientSatisfiedData.value ? false : true,

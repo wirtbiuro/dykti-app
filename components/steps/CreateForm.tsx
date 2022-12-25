@@ -165,8 +165,7 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             supposedNextDeadline: calendar
                 .getSelectedDate()
                 ?.endOf('day')
-                .plus({ days: 1 })
-                .plus({ hours: workDayStartHours }),
+                .plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             toNextSendData: {
                 order,
                 formStepAddress: addressData.value,

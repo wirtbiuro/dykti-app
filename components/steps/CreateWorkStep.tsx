@@ -22,7 +22,7 @@ import { DateTime } from 'luxon'
 import useErrFn from '../../hooks/useErrFn'
 import { useFormMultiSelect } from '../../hooks/useFormMultiSelect'
 import { Spin } from 'antd'
-import { selectData } from '../../accessories/constants'
+import { selectData, workDayStartHours } from '../../accessories/constants'
 import { CalendarModule, useCalendarData } from '../../store/calendar'
 import Calendar from '../calendar/Calendar'
 
@@ -222,6 +222,10 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             formCheck,
             isFormChecked,
             isPrevFormChecked,
+            deadline: prevStep?.nextDeadline,
+            supposedNextDeadline: isMainCondition
+                ? endCalendar.getSelectedDate()!.endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 })
+                : DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             toNextSendData: {
                 order,
                 workStepTeam: teamData.value,

@@ -247,10 +247,15 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                       .getSelectedDate()!
                       .setZone('Europe/Warsaw')
                       .endOf('day')
-                      .plus({ days: 1 })
-                      .plus({ hours: workDayStartHours })
-                : null,
-            supposedNextDeadline: null,
+                      .plus({ days: 1, hours: workDayStartHours, minutes: 1 })
+                : prevStep?.nextDeadline,
+            supposedNextDeadline: offerCalendar.getSelectedDate(),
+            // ? offerCalendar
+            //       .getSelectedDate()!
+            //       .setZone('Europe/Warsaw')
+            //       .endOf('day')
+            //       .plus({ days: 1, hours: workDayStartHours, minutes: 1 })
+            // : null,
             toNextSendData: {
                 order,
                 beffaringStepMeetingDate: meetingCalendar.getSelectedDate(),

@@ -79,6 +79,14 @@ const MainStepProps: FC<IStepPropsProps> = ({ step, stepName, order }) => {
                         <p className="value">{getValue('beffaringStepComment', props)}</p>
                     </div>
                 )}
+
+            {step.passedTo === stepName && stepName !== 'formStep' && (
+                <div className="prop">
+                    <p className="description">{'Wplyneło'}:</p>
+                    <p className="value">{getValue('createdAt', props)}</p>
+                </div>
+            )}
+
             {step.nextDeadline && step.passedTo === stepName && (
                 <div className="prop">
                     <p className="description">{getDescription('deadline', props)}:</p>

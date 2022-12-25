@@ -18,7 +18,7 @@ import { useFormInput } from '../../hooks/useFormInput'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
 import FormSelect from '../UI/FormSelect'
-import { selectData } from '../../accessories/constants'
+import { selectData, workDayStartHours } from '../../accessories/constants'
 import { useFormSelect } from '../../hooks/useFormSelect'
 import Calendar from '../calendar/Calendar'
 import { CalendarModule, useCalendarData } from '../../store/calendar'
@@ -198,6 +198,8 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
+            deadline: prevStep?.nextDeadline,
+            supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             toPrevSendData: {
                 order,
                 // ...resetPrevProps({ curStepName: 'contractCheckerStep', step: prevStep! }),
@@ -252,6 +254,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                                     name="isContractCheckedData"
                                     title="Kontrakt jest prawidłowy"
                                     connection={isContractCheckedData}
+                                    disabled={prevStep && prevStep?.passedTo !== 'contractCheckerStep'}
                                     defaultValue={
                                         isNewBranchComparedByLastStepnameChange
                                             ? 'select'
@@ -307,6 +310,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                                                     : prevStep?.contractCheckerStepComments
                                             }
                                             connection={commentsData}
+                                            // disabled={prevStep && prevStep?.passedTo !== 'contractCheckerStep'}
                                         />
                                     </>
                                 )}

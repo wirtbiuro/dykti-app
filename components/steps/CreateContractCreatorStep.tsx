@@ -22,7 +22,7 @@ import { Spin } from 'antd'
 import Calendar from '../calendar/Calendar'
 import { CalendarModule, useCalendarData } from '../../store/calendar'
 import { DateTime } from 'luxon'
-import { selectData } from '../../accessories/constants'
+import { selectData, workDayStartHours } from '../../accessories/constants'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -211,6 +211,8 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             formCheck,
             isFormChecked,
             isPrevFormChecked,
+            deadline: prevStep?.nextDeadline,
+            supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             prevToPass:
                 rejectionReasonData.value === 'time'
                     ? 'contractStep'
@@ -327,7 +329,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
                                         <FormSelect
                                             options={[
-                                                ['select', 'Wybierz powód odrzucenia oferty'],
+                                                ['select', 'Wybierz powód odrzucenia kontraktu'],
                                                 ['time', 'Klient potrzebuje więcej czasu'],
                                                 ['offer', 'Wymagane zmiany oferty'],
                                                 ['contract', 'Wymagane zmiany kontraktu'],

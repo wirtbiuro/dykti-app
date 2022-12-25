@@ -20,7 +20,7 @@ import { useFormSelect } from '../../hooks/useFormSelect'
 import FormSelect from '../UI/FormSelect'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
-import { selectData } from '../../accessories/constants'
+import { selectData, workDayStartHours } from '../../accessories/constants'
 import { DateTime } from 'luxon'
 import PrevBranchProp from '../PrevBranchProp'
 
@@ -224,6 +224,8 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
             passedTo: prevStep!.passedTo,
             formCheck,
             isFormChecked,
+            deadline: isOfferSentData.isChecked ? null : prevStep?.nextDeadline,
+            supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             nextToPass: !isOfferSentDefault
                 ? 'contractStep'
                 : isOfferAcceptedData.value === 'no' &&

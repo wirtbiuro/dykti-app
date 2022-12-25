@@ -56,7 +56,7 @@ export const monthNames = {
 export const workDayStartHours = 8
 
 export const fieldNames: Record<keyof StepType, string> = {
-    deadline: 'Deadline',
+    deadline: 'Wykonanie do:',
     nextDeadline: 'Next Deadline',
     passedTo: 'Przeniesiony do',
     returnStep: 'Krok powrotny',

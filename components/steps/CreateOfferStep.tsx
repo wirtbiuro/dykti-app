@@ -21,7 +21,7 @@ import { Spin } from 'antd'
 import { DateTime } from 'luxon'
 import PrevBranchProp from '../PrevBranchProp'
 import FormSelect from '../UI/FormSelect'
-import { selectData } from '../../accessories/constants'
+import { selectData, workDayStartHours } from '../../accessories/constants'
 import { useFormSelect } from '../../hooks/useFormSelect'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
@@ -174,6 +174,8 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
             formCheck,
             isFormChecked,
             user: userData,
+            deadline: prevStep?.nextDeadline,
+            supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             toPrevSendData: {
                 order,
                 offerStepAreBefDocsGood: false,
