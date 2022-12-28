@@ -1,28 +1,20 @@
 import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
 import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
-import {
-    WithValueNFocus,
-    IWithOrder,
-    ISendButtonsOutputRef,
-    FormCheckType,
-    ISendCheckboxes,
-    FieldsToSend,
-} from '../../types'
+import { WithValueNFocus, IWithOrder, ISendButtonsOutputRef, ISendCheckboxes } from '../../types'
 import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
-import FormInput from '../UI/FormInput'
-import CalendarWithTime from '../CalendarWithTime'
-import SendButtons from '../UI/SendButtons'
-import { submitForm, showErrorMessages, resetPrevProps, getBranchValues } from '../../utilities'
-import { flushSync } from 'react-dom'
-import { useFormInput } from '../../hooks/useFormInput'
+import TextFormInput from '../components/TextFormInput'
+import { getBranchValues, mainSubmitForm, NullableFieldsToSend } from '../../utilities'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
-import FormSelect from '../UI/FormSelect'
+import FormSelect from '../components/FormSelect'
 import { selectData, workDayStartHours } from '../../accessories/constants'
-import { useFormSelect } from '../../hooks/useFormSelect'
-import Calendar from '../calendar/Calendar'
-import { CalendarModule, useCalendarData } from '../../store/calendar'
+import { useFormSelect } from '../../hooks/new/useFormSelect'
+import Calendar from '../components/calendar'
+import { useCalendarData } from '../../hooks/new/useCalendarData'
 import { DateTime } from 'luxon'
+import { useTextFormInput } from '../../hooks/new/useTextFormInput'
+import { useCheckboxFormInput } from '../../hooks/new/useCheckboxFormInput'
+import NextPrevCheckbox from '../components/NextPrevCheckbox'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -40,10 +32,6 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
     const errFn = useErrFn()
 
-    const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
-        getResults: () => {},
-    })
-
     const {
         prevStep,
         branchIdx,
@@ -55,169 +43,116 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
         order,
     })
 
-    const isContractCheckedData = useFormSelect()
-    const commentsData = useFormInput()
-
-    const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
-    const [isPrevFormChecked, setIsPrevFormChecked] = useState<boolean>(false)
-
-    const [startCalendar] = useState<CalendarModule>(
-        new CalendarModule({
-            withTime: false,
-            selectedDate: prevStep?.contractCheckerStepWorkStartDate
-                ? DateTime.fromISO(prevStep?.contractCheckerStepWorkStartDate as string)
-                : undefined,
-        })
-    )
-
-    const [endCalendar] = useState<CalendarModule>(
-        new CalendarModule({
-            withTime: false,
-            selectedDate: prevStep?.contractCheckerStepWorkEndDate
-                ? DateTime.fromISO(prevStep?.contractCheckerStepWorkEndDate as string)
-                : undefined,
-        })
-    )
-
-    const startCalendarData = useCalendarData(startCalendar)
-    const endCalendarData = useCalendarData(endCalendar)
-
-    useEffect(() => {
-        // isMainCondition
-        //     ? formCheck({ showMessage: false })
-        //     : prevFormCheck({ showMessage: false })
-        console.log('useeffect formcheck')
-        formCheck({ showMessage: false })
-        prevFormCheck({ showMessage: false })
-    }, [
-        isContractCheckedData.isChecked,
-        startCalendarData.dayMonthYear,
-        commentsData.isChecked,
-        endCalendarData.dayMonthYear,
-    ])
-
-    useEffect(() => {
-        try {
-            if (
-                (isContractCheckedData.value === 'yes' && prevStep?.contractCheckerStepIsContractChecked === false) ||
-                (isContractCheckedData.value === 'no' && prevStep?.contractCheckerStepIsContractChecked === true)
-            ) {
-                commentsData.setValue!('')
-            } else if (isContractCheckedData.value === 'select') {
-            } else {
-                commentsData.setValue && commentsData.setValue!(prevStep?.contractCheckerStepComments)
-            }
-        } catch (error) {}
-    }, [isContractCheckedData.value])
+    const isContractCheckedData = useFormSelect({
+        options: selectData.standardSelect,
+        initialValue: isNewBranchComparedByLastStepnameChange
+            ? 'select'
+            : typeof prevStep?.contractCheckerStepIsContractChecked !== 'boolean'
+            ? 'select'
+            : prevStep?.contractCheckerStepIsContractChecked
+            ? 'yes'
+            : 'no',
+        title: 'Kontrakt jest prawidłowy',
+    })
 
     const isMainCondition = isContractCheckedData.value !== 'no'
 
-    const formCheck: FormCheckType = ({ showMessage }) => {
-        console.log('form check')
-        if (isContractCheckedData.value !== 'yes') {
-            console.log('isContractCheckedData error')
-            showMessage ? isContractCheckedData.showError!() : null
-            setIsFormChecked(false)
+    const startCalendarData = useCalendarData({
+        selectedDate: prevStep?.contractCheckerStepWorkStartDate
+            ? DateTime.fromISO(prevStep?.contractCheckerStepWorkStartDate as string)
+            : undefined,
+    })
+
+    const endCalendarData = useCalendarData({
+        selectedDate: prevStep?.contractCheckerStepWorkEndDate
+            ? DateTime.fromISO(prevStep?.contractCheckerStepWorkEndDate as string)
+            : undefined,
+    })
+
+    const commentsData = useTextFormInput({
+        initialTextValue: isNewBranchComparedByLastStepnameChange ? '' : prevStep?.contractCheckerStepComments,
+        placeholder: isMainCondition ? 'Komentarz' : 'Jakich zmian wymaga kontrakt?',
+        title: 'Komentarz:',
+    })
+
+    const nextPrevCheckboxData = useCheckboxFormInput({
+        initialValue: true,
+    })
+
+    useEffect(() => {
+        commentsData.setTextValue('')
+        commentsData.setErrorValue('')
+        if (isContractCheckedData.value === 'no') {
+            startCalendarData.reset()
+            startCalendarData.setErrorValue('')
+            endCalendarData.reset()
+            endCalendarData.setErrorValue('')
+        }
+    }, [isContractCheckedData.value])
+
+    const nextCheck = (showMessage: boolean) => {
+        if (!isContractCheckedData.check(showMessage)) {
+            return false
+        }
+        if (!startCalendarData.check(showMessage)) {
+            return false
+        }
+        if (!endCalendarData.check(showMessage)) {
+            return false
+        }
+        if (!isContractCheckedData.check(showMessage)) {
             return false
         }
 
-        if (!startCalendar.getSelectedDate(showMessage)) {
-            setIsFormChecked(false)
-            return false
-        }
-
-        if (!endCalendar.getSelectedDate(showMessage)) {
-            setIsFormChecked(false)
-            return false
-        }
-        // if (!workEndDateData.isChecked) {
-        //     console.log('workEndDateData error')
-        //     showMessage ? workEndDateData.showError!() : null
-        //     return setIsFormChecked(false)
-        // }
-
-        console.log('form checked')
-
-        setIsFormChecked(true)
         return true
     }
 
-    const prevFormCheck: FormCheckType = ({ showMessage }) => {
-        console.log('prev form check')
-
-        // if (!offerChangesData.isChecked) {
-        //     console.log({ offerChangesData })
-        //     showMessage && offerChangesData.showError
-        //         ? offerChangesData?.showError()
-        //         : null
-        //     return setIsPrevFormChecked(false)
-        // }
-
-        if (!commentsData.isChecked) {
-            console.log('commentsData error')
-            showMessage ? commentsData.showError!() : null
-            setIsPrevFormChecked(false)
+    const prevCheck = (showMessage: boolean) => {
+        if (!commentsData.check(showMessage)) {
             return false
         }
-
-        console.log('prev form checked')
-
-        setIsPrevFormChecked(true)
         return true
     }
 
-    const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: SyntheticEvent) => {
+        const _createOrder = createOrder as (data: NullableFieldsToSend) => void
+
         e.preventDefault()
-        const target = e.target as typeof e.target & FormType
-        const _createOrder = createOrder as (data: FieldsToSend) => void
-
-        const areErrors = showErrorMessages({
-            flushSync,
-            formCheck,
-            isFormChecked,
-            isMainCondition,
-            isPrevFormChecked,
-            prevFormCheck,
-            target,
-        })
-
-        console.log('submit')
-
-        if (areErrors) return
+        console.log('on submit')
+        if (isMainCondition && nextPrevCheckboxData.check(false)) {
+            if (!nextCheck(true)) {
+                return
+            }
+        }
+        if (!isMainCondition && nextPrevCheckboxData.check(false)) {
+            if (!prevCheck(true)) {
+                return
+            }
+        }
+        const data = {
+            contractCheckerStepIsContractChecked:
+                isContractCheckedData.value === 'yes' ? true : isContractCheckedData.value === 'no' ? false : null,
+            contractCheckerStepWorkStartDate: startCalendarData.date,
+            contractCheckerStepWorkEndDate: endCalendarData.date,
+            contractCheckerStepComments: commentsData.textValue,
+        }
 
         setIsSpinning(true)
 
-        await submitForm({
+        await mainSubmitForm({
             branchIdx,
             prevStep: prevStep!,
             user: userData,
             maxPromotion: prevStep!.maxPromotion,
-            target,
+            isNextPrevChecked: nextPrevCheckboxData.check(false),
             isMainCondition,
             curStepName: 'contractCheckerStep',
             passedTo: prevStep!.passedTo,
-            formCheck,
-            isFormChecked,
             deadline: prevStep?.nextDeadline,
             supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
-            toPrevSendData: {
+            sendData: {
                 order,
-                // ...resetPrevProps({ curStepName: 'contractCheckerStep', step: prevStep! }),
-                contractCheckerStepIsContractChecked:
-                    isContractCheckedData.value === 'yes' ? true : isContractCheckedData.value === 'no' ? false : null,
-                contractCheckerStepWorkStartDate: null,
-                contractCheckerStepWorkEndDate: null,
-                contractCheckerStepComments: commentsData.value,
-                ...sendButtonsOutputRef.current.getResults(),
-            },
-            toNextSendData: {
-                order,
-                contractCheckerStepIsContractChecked:
-                    isContractCheckedData.value === 'yes' ? true : isContractCheckedData.value === 'no' ? false : null,
-                contractCheckerStepWorkStartDate: startCalendar.getSelectedDate(false),
-                contractCheckerStepWorkEndDate: endCalendar.getSelectedDate(false),
-                contractCheckerStepComments: commentsData.value,
-                ...sendButtonsOutputRef.current.getResults(),
+                ...data,
             },
             createOrder: _createOrder,
             errFn,
@@ -234,100 +169,34 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             <div style={{ display: isVisible ? 'block' : 'none' }}>
                 <CreateFormStyled>
                     <FormStyled>
-                        <form ref={formRef} onSubmit={submit}>
-                            <>
-                                {/* <FormInput
-                                    type="checkbox"
-                                    connection={isContractCheckedData}
-                                    defaultChecked={
-                                        typeof prevStep?.contractCheckerStepIsContractChecked === 'boolean'
-                                            ? prevStep?.contractCheckerStepIsContractChecked
-                                            : false
-                                    }
-                                    checkFn={(value) => value as boolean}
-                                >
-                                    <>Kontrakt jest weryfikowan</>
-                                </FormInput> */}
+                        <form ref={formRef} onSubmit={onSubmit}>
+                            <FormSelect connection={isContractCheckedData} 
+                                    disabled = {prevStep?.passedTo !== 'contractCheckerStep'}
+/>
 
-                                <FormSelect
-                                    options={selectData.standardSelect}
-                                    name="isContractCheckedData"
-                                    title="Kontrakt jest prawidłowy"
-                                    connection={isContractCheckedData}
-                                    disabled={prevStep && prevStep?.passedTo !== 'contractCheckerStep'}
-                                    defaultValue={
-                                        isNewBranchComparedByLastStepnameChange
-                                            ? 'select'
-                                            : typeof prevStep?.contractCheckerStepIsContractChecked !== 'boolean'
-                                            ? 'select'
-                                            : prevStep?.contractCheckerStepIsContractChecked
-                                            ? 'yes'
-                                            : 'no'
-                                    }
-                                />
+                            {isContractCheckedData.value === 'yes' && (
+                                <>
+                                    <p>Przybliżona data rozpoczęcia pracy.</p>
+                                    <Calendar
+                                        connection={startCalendarData}
+                                        disabled={prevStep?.passedTo !== 'contractCheckerStep'}
+                                    />
+                                    <p>Przybliżona data zakończenia pracy.</p>
+                                    <Calendar
+                                        connection={endCalendarData}
+                                        disabled={prevStep?.passedTo !== 'contractCheckerStep'}
+                                    />
+                                </>
+                            )}
 
-                                {isContractCheckedData.value === 'yes' && (
-                                    <>
-                                        {/* <>
-                                            <p>Przybliżona data rozpoczęcia pracy.</p>
-                                            <CalendarWithTime
-                                                defaultDate={order && prevStep?.contractCheckerStepWorkStartDate}
-                                                connection={workStartDateData}
-                                                isTimeEnabled={false}
-                                            />
-                                        </>
-                                        <>
-                                            <p>Przybliżona data zakończenia pracy.</p>
-                                            <CalendarWithTime
-                                                defaultDate={order && prevStep?.contractCheckerStepWorkEndDate}
-                                                connection={workEndDateData}
-                                                isTimeEnabled={false}
-                                            />
-                                        </> */}
-                                        <p>Przybliżona data rozpoczęcia pracy.</p>
-                                        <Calendar
-                                            calendar={startCalendar}
-                                            disabled={prevStep && prevStep?.passedTo !== 'contractCheckerStep'}
-                                        />
-                                        <p>Przybliżona data zakończenia pracy.</p>
-                                        <Calendar
-                                            calendar={endCalendar}
-                                            disabled={prevStep && prevStep?.passedTo !== 'contractCheckerStep'}
-                                        />
-                                    </>
-                                )}
+                            {isContractCheckedData.value !== 'select' && <TextFormInput connection={commentsData} />}
 
-                                {isContractCheckedData.value !== 'select' && (
-                                    <>
-                                        <p>Komentarz: </p>
-                                        <FormInput
-                                            placeholder={
-                                                isMainCondition ? 'Komentarz' : 'Jakich zmian wymaga kontrakt?'
-                                            }
-                                            defaultValue={
-                                                isNewBranchComparedByLastStepnameChange
-                                                    ? ''
-                                                    : prevStep?.contractCheckerStepComments
-                                            }
-                                            connection={commentsData}
-                                            // disabled={prevStep && prevStep?.passedTo !== 'contractCheckerStep'}
-                                        />
-                                    </>
-                                )}
-                            </>
-
-                            <SendButtons
-                                curStepName="contractCheckerStep"
-                                maxPromotion={prevStep!.maxPromotion}
-                                passedTo={prevStep!.passedTo}
-                                dataRef={sendButtonsOutputRef}
-                                isFormChecked={isFormChecked}
-                                step={prevStep}
-                                formCheck={formCheck}
+                            <NextPrevCheckbox
+                                connection={nextPrevCheckboxData}
                                 isMainCondition={isMainCondition}
-                                isPrevFormChecked={isPrevFormChecked}
-                                prevFormCheck={prevFormCheck}
+                                isCurrentStep={prevStep?.passedTo === 'contractCheckerStep'}
                             />
+
                             <input type="submit" value="Zapisz" />
                         </form>
                     </FormStyled>
@@ -338,3 +207,5 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 }
 
 export default CreateContractCheckerStep
+
+//295

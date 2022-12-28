@@ -12,6 +12,7 @@
     "@ant-design/icons": "^4.7.0",
     "@prisma/client": "^4.0.0",
     "@reduxjs/toolkit": "^1.8.3",
+    "@types/styled-components": "^5.1.26",
     "antd": "^4.21.5",
     "axios": "^0.27.2",
     "bcrypt": "^5.0.1",

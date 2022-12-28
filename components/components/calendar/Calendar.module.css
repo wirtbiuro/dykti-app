@@ -1,0 +1,145 @@
+.myCalendar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 50%;
+    margin-right: 50px;
+}
+@media (max-width: 800px) {
+    .myCalendar {
+        width: auto;
+        margin-right: 0;
+    }
+}
+.myRezCalendar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 50%;
+    margin-right: 50px;
+}
+@media (max-width: 1350px) {
+    .myRezCalendar {
+        min-width: 440px;
+    }
+}
+@media (max-width: 1300px) {
+    .myRezCalendar {
+        min-width: 360px;
+    }
+}
+@media (max-width: 1200px) {
+    .myRezCalendar {
+        margin-right: 0;
+        margin-bottom: 40px;
+    }
+}
+@media (max-width: 800px) {
+    .myRezCalendar {
+        width: 100%;
+    }
+}
+@media (max-width: 600px) {
+    .myRezCalendar {
+        min-width: auto;
+    }
+}
+.rows {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.row {
+    display: flex;
+}
+.day {
+    padding: 10px;
+    cursor: pointer;
+    min-width: 44px;
+    border-radius: 60px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+}
+.day:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+.current {
+    padding: 10px;
+    cursor: pointer;
+    min-width: 44px;
+    border-radius: 60px;
+    background-color: black;
+    background-color: white;
+    color: #fff;
+    color: black;
+    border: 1px solid #4caed5;
+    box-sizing: border-box;
+}
+.current:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+.current:hover {
+    background-color: black;
+    color: #fff;
+    box-sizing: border-box;
+}
+.other {
+    padding: 10px;
+    cursor: pointer;
+    min-width: 44px;
+    border-radius: 60px;
+    color: rgba(0, 0, 0, 0.38);
+}
+.prev {
+    padding: 10px;
+    cursor: auto;
+    min-width: 44px;
+    border-radius: 60px;
+    color: rgba(0, 0, 0, 0.38);
+}
+.other:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+.first {
+    padding: 10px;
+    cursor: pointer;
+    min-width: 44px;
+    border-radius: 60px;
+    font-weight: bolder;
+}
+.first:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+.dayWrapper {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+.week {
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    color: rgba(0, 0, 0, 0.38);
+    font-size: 0.75rem;
+    font-weight: 400;
+    padding: 10px 0;
+}
+.top {
+    display: flex;
+    justify-content: space-between;
+    font: normal normal 900 29px/35px black;
+    color: black;
+    padding: 20px;
+}
+.arrow {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+.arrow:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+.monthName {
+    text-align: center;
+}

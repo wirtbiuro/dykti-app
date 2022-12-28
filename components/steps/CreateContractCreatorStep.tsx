@@ -1,28 +1,19 @@
 import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
 import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
-import {
-    WithValueNFocus,
-    IWithOrder,
-    ISendButtonsOutputRef,
-    FormCheckType,
-    ISendCheckboxes,
-    FieldsToSend,
-} from '../../types'
+import { WithValueNFocus, IWithOrder, ISendCheckboxes, FieldsToSend } from '../../types'
 import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
-import FormInput from '../UI/FormInput'
-import CalendarWithTime from '../CalendarWithTime'
-import SendButtons from '../UI/SendButtons'
-import { submitForm, showErrorMessages, getBranchValues } from '../../utilities'
-import { flushSync } from 'react-dom'
-import { useFormInput } from '../../hooks/useFormInput'
-import FormSelect from '../UI/FormSelect'
-import { useFormSelect } from '../../hooks/useFormSelect'
+import { getBranchValues, NullableFieldsToSend, mainSubmitForm } from '../../utilities'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
-import Calendar from '../calendar/Calendar'
-import { CalendarModule, useCalendarData } from '../../store/calendar'
 import { DateTime } from 'luxon'
-import { selectData, workDayStartHours } from '../../accessories/constants'
+import { workDayStartHours } from '../../accessories/constants'
+import NextPrevCheckbox from '../components/NextPrevCheckbox'
+import { useCheckboxFormInput } from '../../hooks/new/useCheckboxFormInput'
+import CheckboxFormInput from '../components/CheckboxFormInput'
+import { useFormSelectWithOther } from '../../hooks/new/useFormSelectWithOther'
+import FormSelectWithOther from '../components/FormSelectWithOther'
+import { useYesNoSelect } from '../../hooks/new/useYesNoSelect'
+import YesNoSelect from '../components/YesNoSelect'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -51,168 +42,113 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
         order,
     })
 
-    const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
-        getResults: () => {},
+    const nextPrevCheckboxData = useCheckboxFormInput({
+        initialValue: true,
     })
 
-    const isContractSentData = useFormInput()
-    const isContractAcceptedData = useFormSelect()
-    const rejectionReasonData = useFormSelect()
-    const otherRejectionData = useFormInput()
+    const isContractSentDataInitValue = isNewBranchComparedByLastStepnameChange
+        ? false
+        : prevStepChangeStep?.contractCreatorStepContractSendingDate
+        ? true
+        : false
 
-    const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
-    const [isPrevFormChecked, setIsPrevFormChecked] = useState<boolean>(false)
+    const isContractSentData = useCheckboxFormInput({
+        title: 'Kontrakt wysłany',
+        initialValue: isContractSentDataInitValue,
+    })
 
-    // const defaultRejectionValue = prevStep?.contractCreatorStepContractRejectionReason ?? 'select'
+    const isContractAcceptedData = useYesNoSelect({
+        title: 'Kontrakt jest podpisany przez klienta?',
+        initialValue: isNewBranchComparedByLastStepnameChange ? null : prevStep?.contractCreatorStepIsContractAccepted,
+    })
 
-    const standardRejValues = ['select', 'time', 'offer', 'contract']
-
-    const defaultRejectionValue = isNewBranchComparedByLastStepnameChange
-        ? 'select'
-        : prevStep?.contractCreatorStepContractRejectionReason
-        ? standardRejValues.includes(prevStep?.contractCreatorStepContractRejectionReason)
-            ? prevStep?.contractCreatorStepContractRejectionReason
-            : 'other'
-        : 'select'
-
-    const defaultOtherRejectionValue = isNewBranchComparedByLastStepnameChange
-        ? ''
-        : prevStep?.contractCreatorStepContractRejectionReason
-        ? prevStep?.contractCreatorStepContractRejectionReason === 'other'
-            ? ''
-            : standardRejValues.includes(prevStep?.contractCreatorStepContractRejectionReason)
-            ? ''
-            : prevStep?.contractStepOfferRejectionReason
-        : ''
-
-    const isMainCondition = isContractSentData.isChecked && isContractAcceptedData.value === 'no' ? false : true
-    console.log({ isMainCondition })
+    const rejectionReasonData = useFormSelectWithOther({
+        options: [
+            ['select', 'Wybierz powód odrzucenia kontraktu'],
+            ['time', 'Klient potrzebuje więcej czasu'],
+            ['offer', 'Wymagane zmiany oferty'],
+            ['contract', 'Wymagane zmiany kontraktu'],
+            ['other', 'Inne'],
+        ],
+        title: 'Przyczyna odrzucenia kontraktu:',
+        initialValue: isNewBranchComparedByLastStepnameChange
+            ? 'select'
+            : prevStep?.contractCreatorStepContractRejectionReason,
+    })
 
     useEffect(() => {
-        console.log('useeffect check')
-        formCheck({ showMessage: false })
-        prevFormCheck({ showMessage: false })
-    }, [
-        isContractSentData.isChecked,
-        isContractAcceptedData.isChecked,
-        rejectionReasonData.isChecked,
-        otherRejectionData.isChecked,
-    ])
+        if (isContractSentData.checkboxValue === false) {
+            isContractAcceptedData.setValue(null)
+            isContractAcceptedData.setErrorValue('')
+        }
+    }, [isContractSentData.checkboxValue])
 
-    const formCheck: FormCheckType = ({ showMessage }) => {
-        console.log('form check')
+    useEffect(() => {
+        if (isContractAcceptedData.value !== true) {
+            rejectionReasonData.formSelectData.setErrorValue('')
+            rejectionReasonData.formSelectData.setValue('select')
+        }
+    }, [isContractAcceptedData.value])
 
-        if (!isContractSentData.isChecked) {
-            showMessage ? isContractSentData.showError!() : null
-            console.log('isContractSentData error')
-            setIsFormChecked(false)
+    const isMainCondition = isContractAcceptedData.value !== false
+    console.log({ isMainCondition })
+
+    const nextCheck = (showMessage: boolean) => {
+        if (!isContractSentData.check(showMessage)) {
             return false
         }
-
-        // if (!sendingDateData.isChecked) {
-        //     console.log('sendingDateData error')
-        //     showMessage ? sendingDateData.showError!() : null
-        //     return setIsFormChecked(false)
-        // }
-        if (!isContractAcceptedData.isChecked) {
-            showMessage ? isContractAcceptedData.showError!() : null
-            console.log('isContractAcceptedData error')
-            setIsFormChecked(false)
+        if (!isContractAcceptedData.check(showMessage)) {
             return false
         }
-
-        if (isContractAcceptedData.value === 'no' && !rejectionReasonData.isChecked) {
-            console.log('rejectionReasonData error')
-            showMessage ? rejectionReasonData.showError!() : null
-            setIsFormChecked(false)
-            return false
-        }
-
-        if (
-            isContractAcceptedData.value === 'no' &&
-            rejectionReasonData.value === 'other' &&
-            !otherRejectionData.isChecked
-        ) {
-            showMessage ? otherRejectionData.showError!() : null
-            console.log('otherRejectionData error')
-            setIsFormChecked(false)
-            return false
-        }
-
-        console.log('form checked')
-
-        setIsFormChecked(true)
         return true
     }
 
-    const prevFormCheck: FormCheckType = ({ showMessage }) => {
-        console.log('prev form check')
-
-        if (!rejectionReasonData.isChecked) {
-            console.log('rejectionReasonData error')
-            showMessage ? rejectionReasonData.showError!() : null
-            setIsPrevFormChecked(false)
+    const prevCheck = (showMessage: boolean) => {
+        if (!rejectionReasonData.check(showMessage)) {
             return false
         }
-
-        if (
-            isContractAcceptedData.value === 'no' &&
-            rejectionReasonData.value === 'other' &&
-            !otherRejectionData.isChecked
-        ) {
-            showMessage ? otherRejectionData.showError!() : null
-            console.log('otherRejectionData error')
-            setIsFormChecked(false)
-            return false
-        }
-
-        setIsPrevFormChecked(true)
         return true
     }
 
-    const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: SyntheticEvent) => {
+        const _createOrder = createOrder as (data: NullableFieldsToSend) => void
+
         e.preventDefault()
-        const target = e.target as typeof e.target & FormType
-        const _createOrder = createOrder as (data: FieldsToSend) => void
+        console.log('on submit')
+        if (isMainCondition && nextPrevCheckboxData.check(false)) {
+            if (!nextCheck(true)) {
+                return
+            }
+        }
+        if (!isMainCondition && nextPrevCheckboxData.check(false)) {
+            if (!prevCheck(true)) {
+                return
+            }
+        }
 
-        const areErrors = showErrorMessages({
-            flushSync,
-            formCheck,
-            prevFormCheck,
-            isFormChecked,
-            isPrevFormChecked,
-            isMainCondition,
-            target,
-        })
-
-        console.log('submit')
-
-        console.log({ areErrors })
-
-        if (areErrors) return
-
-        setIsSpinning(true)
-
-        const contractCreatorStepContractSendingDate = !isContractSentData.value
+        const contractCreatorStepContractSendingDate = !isContractSentData.checkboxValue
             ? null
             : isNewBranchComparedByLastStepnameChange
             ? DateTime.now()
             : prevStep?.contractCreatorStepContractSendingDate || DateTime.now()
 
-        await submitForm({
+        const data = {
+            contractCreatorStepContractSendingDate,
+            contractCreatorStepIsContractAccepted: isContractAcceptedData.value,
+            contractCreatorStepContractRejectionReason: rejectionReasonData.value,
+        }
+
+        setIsSpinning(true)
+
+        await mainSubmitForm({
             branchIdx,
             prevStep: prevStep!,
             user: userData,
             maxPromotion: prevStep!.maxPromotion,
-            target,
+            isNextPrevChecked: nextPrevCheckboxData.check(false),
             isMainCondition,
             curStepName: 'contractCreatorStep',
             passedTo: prevStep!.passedTo,
-            formCheck,
-            isFormChecked,
-            isPrevFormChecked,
-            deadline: prevStep?.nextDeadline,
-            supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             prevToPass:
                 rejectionReasonData.value === 'time'
                     ? 'contractStep'
@@ -221,36 +157,20 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                     : rejectionReasonData.value === 'contract'
                     ? 'contractCheckerStep'
                     : 'lastDecisionStep',
-            toNextSendData: {
+            deadline: prevStep?.nextDeadline,
+            supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
+            sendData: {
                 order,
-                contractCreatorStepContractSendingDate,
-                contractCreatorStepIsContractAccepted:
-                    isContractAcceptedData.value === 'yes'
-                        ? true
-                        : isContractAcceptedData.value === 'no'
-                        ? false
-                        : null,
-                contractCreatorStepContractRejectionReason: null,
-                ...sendButtonsOutputRef.current.getResults(),
-            },
-            toPrevSendData: {
-                order,
-                contractCreatorStepContractSendingDate,
-                contractCreatorStepIsContractAccepted:
-                    isContractAcceptedData.value === 'yes'
-                        ? true
-                        : isContractAcceptedData.value === 'no'
-                        ? false
-                        : null,
-                contractCreatorStepContractRejectionReason: rejectionReasonData.value,
-                ...sendButtonsOutputRef.current.getResults(),
+                ...data,
             },
             createOrder: _createOrder,
             errFn,
         })
 
-        setIsSpinning(false)
+        console.log('submit end')
+
         setIsVisible!(false)
+        setIsSpinning(false)
     }
 
     return (
@@ -258,114 +178,25 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             <div style={{ display: isVisible ? 'block' : 'none' }}>
                 <CreateFormStyled>
                     <FormStyled>
-                        <form ref={formRef} onSubmit={submit}>
+                        <form ref={formRef} onSubmit={onSubmit}>
                             <>
-                                <>
-                                    {/* <p>Data wysłania kontraktu:</p> */}
-                                    {/* <CalendarWithTime
-                                        defaultDate={order && prevStep?.contractCreatorStepContractSendingDate}
-                                        connection={sendingDateData}
-                                        isTimeEnabled={false}
-                                    /> */}
-                                    {/* <Calendar
-                                        calendar={calendar}
-                                        disabled={prevStep && prevStep?.passedTo !== 'contractCreatorStep'}
-                                    /> */}
-                                    <FormInput
-                                        type="checkbox"
-                                        connection={isContractSentData}
-                                        defaultChecked={
-                                            isNewBranchComparedByLastStepnameChange
-                                                ? false
-                                                : prevStepChangeStep?.contractCreatorStepContractSendingDate
-                                                ? true
-                                                : false
-                                        }
-                                        checkFn={(value) => value === true}
-                                    >
-                                        <>Kontrakt wysłany</>
-                                    </FormInput>
-                                </>
+                                <CheckboxFormInput connection={isContractSentData} />
 
-                                {isContractSentData.isChecked && (
-                                    <FormSelect
-                                        options={selectData.standardSelect}
-                                        name="isContractAcceptedData"
-                                        title="Kontrakt jest podpisany przez klienta?"
-                                        connection={isContractAcceptedData}
-                                        defaultValue={
-                                            isNewBranchComparedByLastStepnameChange
-                                                ? 'select'
-                                                : typeof prevStep?.contractCreatorStepIsContractAccepted !== 'boolean'
-                                                ? 'select'
-                                                : prevStep?.contractCreatorStepIsContractAccepted
-                                                ? 'yes'
-                                                : 'no'
-                                        }
-                                    />
-
-                                    // <FormInput
-                                    //     type="checkbox"
-                                    //     connection={isContractAcceptedData}
-                                    //     defaultChecked={
-                                    //         typeof prevStep?.contractCreatorStepIsContractAccepted === 'boolean'
-                                    //             ? prevStep?.contractCreatorStepIsContractAccepted
-                                    //             : false
-                                    //     }
-                                    //     checkFn={(value) => value as boolean}
-                                    // >
-                                    //     <>Kontrakt jest podpisany przez klienta?</>
-                                    // </FormInput>
+                                {isContractSentData.checkboxValue && (
+                                    <YesNoSelect connection={isContractAcceptedData} />
                                 )}
 
-                                {isContractSentData.isChecked && isContractAcceptedData.value === 'no' && (
-                                    <>
-                                        {/* <p>Powód, dla którego kontrakt nie został podpisany:</p> */}
-                                        {/* <FormInput
-                                        placeholder="Napisz tutaj..."
-                                        defaultValue={prevStep?.contractCreatorStepContractRejectionReason}
-                                        connection={rejectionReasonData}
-                                    /> */}
-
-                                        <FormSelect
-                                            options={[
-                                                ['select', 'Wybierz powód odrzucenia kontraktu'],
-                                                ['time', 'Klient potrzebuje więcej czasu'],
-                                                ['offer', 'Wymagane zmiany oferty'],
-                                                ['contract', 'Wymagane zmiany kontraktu'],
-                                                ['other', 'Inne'],
-                                            ]}
-                                            name="rejectionReasons"
-                                            title="Przyczyna odrzucenia kontraktu: "
-                                            connection={rejectionReasonData}
-                                            defaultValue={defaultRejectionValue}
-                                        />
-
-                                        {rejectionReasonData.value === 'other' && (
-                                            <>
-                                                <p>Inna przyczyna odrzucenia kontraktu: </p>
-                                                <FormInput
-                                                    placeholder="Napisz tutaj"
-                                                    defaultValue={defaultOtherRejectionValue}
-                                                    connection={otherRejectionData}
-                                                />
-                                            </>
-                                        )}
-                                    </>
+                                {isContractAcceptedData.value === false && (
+                                    <FormSelectWithOther connection={rejectionReasonData} />
                                 )}
                             </>
 
-                            <SendButtons
+                            <NextPrevCheckbox
+                                connection={nextPrevCheckboxData}
                                 isMainCondition={isMainCondition}
-                                curStepName="contractCreatorStep"
-                                maxPromotion={prevStep!.maxPromotion}
-                                passedTo={prevStep!.passedTo}
-                                dataRef={sendButtonsOutputRef}
-                                isFormChecked={isFormChecked}
-                                isPrevFormChecked={isPrevFormChecked}
-                                step={prevStep}
-                                formCheck={formCheck}
+                                isCurrentStep={prevStep?.passedTo === 'contractCreatorStep'}
                             />
+
                             <input type="submit" value="Zapisz" />
                         </form>
                     </FormStyled>
@@ -376,3 +207,5 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 }
 
 export default CreateContractCreatorStep
+
+// 350

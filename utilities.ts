@@ -287,6 +287,45 @@ export const getPassedTo: GetPassedToType = ({
     return _passedTo
 }
 
+interface _IGetPassedToTypeProps {
+    isMainCondition: boolean
+    isCurrentOrEdit: boolean
+    isNextPrevChecked: boolean
+    nextToPass?: StepName
+    curStepName: StepName
+    passedTo: StepName
+    prevToPass?: StepName
+}
+
+type _GetPassedToType = ({}: _IGetPassedToTypeProps) => StepName
+
+export const _getPassedTo: _GetPassedToType = ({
+    isMainCondition,
+    isCurrentOrEdit,
+    isNextPrevChecked,
+    nextToPass,
+    curStepName,
+    passedTo,
+    prevToPass,
+}) => {
+    if (curStepName === 'lastDecisionStep') {
+        return nextToPass || 'lastDecisionStep'
+    }
+    const _passedTo = isMainCondition
+        ? isCurrentOrEdit
+            ? isNextPrevChecked
+                ? nextToPass || getNextStepName(curStepName)
+                : curStepName
+            : passedTo
+        : isCurrentOrEdit
+        ? isNextPrevChecked
+            ? prevToPass || getPrevStepName(curStepName)
+            : curStepName
+        : passedTo
+
+    return _passedTo
+}
+
 type GetNextDeadlineType = ({}: IGetNextDeadlineProps) => string | DateTime | null | undefined
 
 interface IGetNextDeadlineProps {
@@ -300,6 +339,30 @@ export const getNextDeadline: GetNextDeadlineType = ({ deadline, supposedNextDea
     console.log({ deadline, supposedNextDeadline, isCurrentOrEdit, target })
     const nextDeadline: string | DateTime | null | undefined = isCurrentOrEdit
         ? target.nextCheckbox?.checked
+            ? supposedNextDeadline
+            : deadline
+        : deadline
+
+    return nextDeadline
+}
+
+type _GetNextDeadlineType = ({}: _IGetNextDeadlineProps) => string | DateTime | null | undefined
+
+interface _IGetNextDeadlineProps {
+    deadline: string | DateTime | null | undefined
+    supposedNextDeadline: string | DateTime | null | undefined
+    isCurrentOrEdit: boolean
+    isNextPrevChecked: boolean
+}
+
+export const _getNextDeadline: _GetNextDeadlineType = ({
+    deadline,
+    supposedNextDeadline,
+    isCurrentOrEdit,
+    isNextPrevChecked,
+}) => {
+    const nextDeadline: string | DateTime | null | undefined = isCurrentOrEdit
+        ? isNextPrevChecked
             ? supposedNextDeadline
             : deadline
         : deadline
@@ -527,6 +590,106 @@ export const submitForm: SubmitFormType = async ({
 
     async function submitToPrev() {
         return await createOrder({ ...toPrevSendData, ..._options })
+    }
+}
+
+type Nullable<T> = {
+    [P in keyof T]?: T[P] | null
+}
+
+export type NullableFieldsToSend = Nullable<FieldsToSend>
+
+interface _ISubmitFormProps {
+    prevStep: StepType
+    isMainCondition: boolean
+    curStepName: StepName
+    maxPromotion: StepName
+    passedTo: StepName
+    user: Partial<User>
+    nextToPass?: StepName
+    prevToPass?: StepName
+    formCheck?: FormCheckType
+    isNextPrevChecked: boolean
+    isFormChecked?: boolean
+    isPrevFormChecked?: boolean
+    sendData: NullableFieldsToSend
+    createOrder: (data: NullableFieldsToSend) => void
+    errFn: (error: IServerControllerError) => void
+    branchIdx?: number
+    deadline?: DateTime | string | null
+    supposedNextDeadline?: DateTime | string | null
+}
+
+type _SubmitFormType = ({}: _ISubmitFormProps) => Promise<void>
+
+export const mainSubmitForm: _SubmitFormType = async ({
+    prevStep,
+    isMainCondition,
+    curStepName,
+    maxPromotion,
+    passedTo,
+    user,
+    nextToPass,
+    prevToPass,
+    sendData,
+    createOrder,
+    isNextPrevChecked,
+    errFn,
+    branchIdx = 0,
+    deadline = null,
+    supposedNextDeadline = null,
+}) => {
+    const { isCurrent, isEdit } = getOrderStatus({
+        curStepName,
+        maxPromotion,
+        passedTo,
+    })
+    const isCurrentOrEdit = isCurrent || isEdit
+
+    const nextDeadline = _getNextDeadline({ deadline, supposedNextDeadline, isCurrentOrEdit, isNextPrevChecked })
+
+    const _passedTo = _getPassedTo({
+        nextToPass,
+        isNextPrevChecked,
+        isMainCondition,
+        curStepName,
+        isCurrentOrEdit,
+        passedTo,
+        prevToPass,
+    })
+
+    const returnStep = getReturnStep({
+        isMainCondition,
+        createdByStep: curStepName,
+        passedTo: _passedTo,
+        prevReturnStep: prevStep?.returnStep,
+    })
+
+    const _maxPromotion = getMaxPromotion(_passedTo, maxPromotion)
+    const shouldConfirmView = _passedTo !== curStepName
+
+    const _options = {
+        passedTo: _passedTo,
+        maxPromotion: _maxPromotion,
+        shouldConfirmView,
+        createdByStep: curStepName,
+        stepCreatorId: user.id,
+        userRoles: user.role as Role[],
+        returnStep,
+        branchIdx,
+        deadline,
+        nextDeadline,
+    }
+
+    console.log({ _options })
+
+    await withRtkQueryTokensCheck({
+        cb: submit,
+        err: errFn,
+    })
+
+    async function submit() {
+        return await createOrder({ ...sendData, ..._options })
     }
 }
 
