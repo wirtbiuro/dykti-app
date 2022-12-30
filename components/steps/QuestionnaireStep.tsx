@@ -38,8 +38,8 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
     const {
         prevStep,
         branchIdx,
-        prevStepChangeStep,
-        isNewBranchComparedByLastStepnameChange,
+        lastStepWhereSomethingWasChanged,
+        isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
     } = getBranchValues({
         stepName: 'questionnaireStep',
@@ -258,7 +258,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                                     type="checkbox"
                                     connection={isClientSatisfiedData}
                                     defaultChecked={
-                                        isNewBranchComparedByLastStepnameChange
+                                        isNewBranchComparedByLastStepWhereSomethingWasChanged
                                             ? false
                                             : prevStep?.questionnaireStepSatisfaction &&
                                               prevStep?.questionnaireStepSatisfaction !== ''
@@ -278,7 +278,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                                         title={`Przyczyna zadowolenia klienta: `}
                                         connection={clientSatisfactionData}
                                         defaultValue={
-                                            isNewBranchComparedByLastStepnameChange
+                                            isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                 ? ''
                                                 : prevStep?.questionnaireStepSatisfaction || ''
                                         }
@@ -290,7 +290,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                                             <FormInput
                                                 placeholder="Inna przyczyna zadowolenia klienta"
                                                 defaultValue={
-                                                    isNewBranchComparedByLastStepnameChange
+                                                    isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                         ? ''
                                                         : prevStep?.questionnaireStepOtherSatisfaction
                                                 }
@@ -307,7 +307,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                                     connection={isClientDissatisfiedData}
                                     checkFn={(value) => value === true}
                                     defaultChecked={
-                                        isNewBranchComparedByLastStepnameChange
+                                        isNewBranchComparedByLastStepWhereSomethingWasChanged
                                             ? false
                                             : prevStep?.questionnaireStepDissatisfaction &&
                                               prevStep?.questionnaireStepDissatisfaction !== ''
@@ -326,7 +326,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                                         title={`Przyczyna niezadowolenia klienta: `}
                                         connection={clientDissatisfactionData}
                                         defaultValue={
-                                            isNewBranchComparedByLastStepnameChange
+                                            isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                 ? ''
                                                 : prevStep?.questionnaireStepDissatisfaction || ''
                                         }
@@ -337,7 +337,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
                                             <FormInput
                                                 placeholder="Inna przyczyna niezadowolenia klienta"
                                                 defaultValue={
-                                                    isNewBranchComparedByLastStepnameChange
+                                                    isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                         ? ''
                                                         : prevStep?.questionnaireStepOtherDissatisfaction
                                                 }

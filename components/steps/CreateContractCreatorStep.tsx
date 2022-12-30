@@ -34,8 +34,8 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
     const {
         prevStep,
         branchIdx,
-        prevStepChangeStep,
-        isNewBranchComparedByLastStepnameChange,
+        lastStepWhereSomethingWasChanged,
+        isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
     } = getBranchValues({
         stepName: 'contractCreatorStep',
@@ -46,9 +46,9 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
         initialValue: true,
     })
 
-    const isContractSentDataInitValue = isNewBranchComparedByLastStepnameChange
+    const isContractSentDataInitValue = isNewBranchComparedByLastStepWhereSomethingWasChanged
         ? false
-        : prevStepChangeStep?.contractCreatorStepContractSendingDate
+        : lastStepWhereSomethingWasChanged?.contractCreatorStepContractSendingDate
         ? true
         : false
 
@@ -59,7 +59,9 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
     const isContractAcceptedData = useYesNoSelect({
         title: 'Kontrakt jest podpisany przez klienta?',
-        initialValue: isNewBranchComparedByLastStepnameChange ? null : prevStep?.contractCreatorStepIsContractAccepted,
+        initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
+            ? null
+            : prevStep?.contractCreatorStepIsContractAccepted,
     })
 
     const rejectionReasonData = useFormSelectWithOther({
@@ -71,7 +73,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             ['other', 'Inne'],
         ],
         title: 'Przyczyna odrzucenia kontraktu:',
-        initialValue: isNewBranchComparedByLastStepnameChange
+        initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
             ? 'select'
             : prevStep?.contractCreatorStepContractRejectionReason,
     })
@@ -128,7 +130,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         const contractCreatorStepContractSendingDate = !isContractSentData.checkboxValue
             ? null
-            : isNewBranchComparedByLastStepnameChange
+            : isNewBranchComparedByLastStepWhereSomethingWasChanged
             ? DateTime.now()
             : prevStep?.contractCreatorStepContractSendingDate || DateTime.now()
 

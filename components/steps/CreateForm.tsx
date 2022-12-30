@@ -1,27 +1,20 @@
-import React, { SyntheticEvent, useRef, useEffect, useState, FC } from 'react'
+import React, { SyntheticEvent, useRef, useState, FC } from 'react'
 import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
-import {
-    WithValueNFocus,
-    IWithOrder,
-    FormCheckType,
-    FieldsToSend,
-    ISendCheckboxes,
-    ISendButtonsOutputRef,
-} from '../../types'
+import { WithValueNFocus, IWithOrder, ISendCheckboxes } from '../../types'
 import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
-import FormInput from '../UI/FormInput'
-import { submitForm, getZeroArrElements } from '../../utilities'
-import { useFormInput } from '../../hooks/useFormInput'
-import { flushSync } from 'react-dom'
-import SendButtons from '../UI/SendButtons'
+import { mainSubmitForm, NullableFieldsToSend } from '../../utilities'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
-import Calendar from '../calendar/Calendar'
-import { CalendarModule, useCalendarData } from '../../store/calendar'
+import Calendar from '../../components/components/calendar'
+import { useCalendarData } from '../../hooks/new/useCalendarData'
 import { DateTime } from 'luxon'
 import { selectData, workDayStartHours } from '../../accessories/constants'
-import FormSelect from '../UI/FormSelect'
-import { useFormSelect } from '../../hooks/useFormSelect'
+import { useTextFormInput } from '../../hooks/new/useTextFormInput'
+import TextFormInput from '../components/TextFormInput'
+import { useFormSelectWithOther } from '../../hooks/new/useFormSelectWithOther'
+import FormSelectWithOther from '../components/FormSelectWithOther'
+import { useCheckboxFormInput } from '../../hooks/new/useCheckboxFormInput'
+import NextPrevCheckbox from '../components/NextPrevCheckbox'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 
@@ -32,15 +25,16 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     const prevStep = order?.steps[order.steps.length - 1]
 
-    const [calendar] = useState<CalendarModule>(
-        new CalendarModule({
-            withTime: true,
-            selectedDate: prevStep?.formStepMeetingDate
-                ? DateTime.fromISO(prevStep?.formStepMeetingDate as string)
-                : undefined,
-        })
-    )
-    const calendarData = useCalendarData(calendar)
+    const nextPrevCheckboxData = useCheckboxFormInput({
+        initialValue: true,
+    })
+
+    const calendarData = useCalendarData({
+        withTime: true,
+        selectedDate: prevStep?.formStepMeetingDate
+            ? DateTime.fromISO(prevStep?.formStepMeetingDate as string)
+            : undefined,
+    })
 
     const [createOrder] = useCreateOrderMutation()
 
@@ -52,141 +46,107 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     const errFn = useErrFn()
 
-    const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
-        getResults: () => {},
+    const nameData = useTextFormInput({
+        title: 'Informacja klientów:',
+        placeholder: 'imię i nazwisko klienta',
+        initialTextValue: prevStep?.formStepClientName,
     })
 
-    const nameData = useFormInput()
-    const phoneData = useFormInput()
-    const emailData = useFormInput()
-    const cityData = useFormInput()
-    const addressData = useFormInput()
-    const commentData = useFormInput()
-    const otherWhereClientFoundData = useFormInput()
-    const whereClientFoundData = useFormSelect()
-    const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
+    const phoneData = useTextFormInput({
+        placeholder: 'Numer kontaktowy',
+        initialTextValue: prevStep?.formStepPhone,
+    })
+    const emailData = useTextFormInput({
+        placeholder: 'E-mail',
+        initialTextValue: prevStep?.formStepEmail,
+    })
 
-    useEffect(() => {
-        formCheck({ showMessage: false })
-    }, [
-        nameData.isChecked,
-        phoneData.isChecked,
-        emailData.isChecked,
-        cityData.isChecked,
-        addressData.value,
-        calendarData.dayMonthYear,
-        calendarData.hours,
-        calendarData.minutes,
-        whereClientFoundData.value,
-        otherWhereClientFoundData.isChecked,
-    ])
+    const addressData = useTextFormInput({
+        title: 'Adres zamówienia:',
+        placeholder: 'Adres obiektu',
+        initialTextValue: prevStep?.formStepAddress,
+    })
+    const commentData = useTextFormInput({
+        title: 'Komentarz:',
+        placeholder: 'komentarz',
+        initialTextValue: prevStep?.formStepComment,
+    })
 
-    const formCheck: FormCheckType = ({ showMessage }) => {
-        console.log('form check')
+    const whereClientFoundData = useFormSelectWithOther({
+        options: selectData.formStepWhereClientFound,
+        selectTitle: `Gdzie znaleziono klienta:`,
+        initialValue: prevStep?.formStepWhereClientFound,
+    })
 
-        if (!nameData.isChecked) {
-            console.log('nameData error')
-            showMessage ? nameData.showError!() : null
-            setIsFormChecked(false)
+    const nextCheck = (showMessage: boolean) => {
+        if (!nameData.check(showMessage)) {
             return false
         }
-
-        if (!emailData.isChecked && !phoneData.isChecked) {
-            console.log('emailPhoneData error')
-            showMessage ? phoneData.showError!() : null
-            setIsFormChecked(false)
+        if (!emailData.check(showMessage)) {
             return false
         }
-
-        if (!addressData.isChecked) {
-            console.log('addressData error')
-            showMessage ? addressData.showError!() : null
-            setIsFormChecked(false)
+        if (!phoneData.check(showMessage)) {
             return false
         }
-
-        if (whereClientFoundData.value?.includes('select')) {
-            console.log('whereClientFoundData error')
-            showMessage ? whereClientFoundData?.showError!() : null
-            setIsFormChecked(false)
+        if (!addressData.check(showMessage)) {
             return false
         }
-
-        if (whereClientFoundData.value?.includes('other') && otherWhereClientFoundData.value === '') {
-            console.log('otherWhereClientFoundData error')
-            showMessage ? otherWhereClientFoundData?.showError!() : null
-            setIsFormChecked(false)
+        if (!whereClientFoundData.check(showMessage)) {
             return false
         }
-
-        if (!calendar.getSelectedDate(showMessage)) {
-            console.log('calendar error')
-            setIsFormChecked(false)
+        if (!calendarData.check(showMessage)) {
             return false
         }
-
-        console.log('form checked')
-
-        setIsFormChecked(true)
         return true
     }
 
-    const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: SyntheticEvent) => {
+        const _createOrder = createOrder as (data: NullableFieldsToSend) => void
+
         e.preventDefault()
-        const target = e.target as typeof e.target & FormType
-        const _createOrder = createOrder as (data: FieldsToSend) => void
+        console.log('on submit')
+        if (nextPrevCheckboxData.check(false)) {
+            if (!nextCheck(true)) {
+                return
+            }
+        }
 
-        const uncompleteCondition =
-            target?.uncompleteCheckbox?.checked === false ||
-            target?.nextCheckbox?.checked ||
-            target?.prevCheckbox?.checked
-
-        flushSync(() => {
-            formCheck({ showMessage: uncompleteCondition })
-        })
-
-        if (!isFormChecked && uncompleteCondition) {
-            return
+        const data = {
+            formStepAddress: addressData.textValue,
+            formStepClientName: nameData.textValue,
+            formStepComment: commentData.textValue,
+            formStepWhereClientFound: whereClientFoundData.value,
+            formStepEmail: emailData.textValue,
+            formStepPhone: phoneData.textValue,
+            formStepMeetingDate: calendarData.date,
         }
 
         setIsSpinning(true)
 
-        await submitForm({
+        await mainSubmitForm({
+            isNextPrevChecked: nextPrevCheckboxData.check(false),
             prevStep: prevStep!,
             user: userData,
             maxPromotion: prevStep?.maxPromotion || 'formStep',
-            target,
             isMainCondition: true,
             curStepName: 'formStep',
             passedTo: prevStep?.passedTo || 'formStep',
-            formCheck,
-            isFormChecked,
             deadline: prevStep?.deadline,
-            supposedNextDeadline: calendar
-                .getSelectedDate()
+            supposedNextDeadline: calendarData.date
                 ?.endOf('day')
                 .plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
-            toNextSendData: {
+            sendData: {
                 order,
-                formStepAddress: addressData.value,
-                formStepCity: cityData.value,
-                formStepClientName: nameData.value,
-                formStepComment: commentData.value,
-                formStepWhereClientFound:
-                    whereClientFoundData.value === 'other'
-                        ? otherWhereClientFoundData.value
-                        : whereClientFoundData.value,
-                formStepEmail: emailData.value,
-                formStepPhone: phoneData.value,
-                formStepMeetingDate: calendar.getSelectedDate(),
-                ...sendButtonsOutputRef.current.getResults(),
+                ...data,
             },
             createOrder: _createOrder,
             errFn,
         })
 
-        setIsSpinning(false)
+        console.log('submit end')
+
         setIsVisible!(false)
+        setIsSpinning(false)
     }
 
     const disabled =
@@ -200,100 +160,27 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                 <CreateFormStyled>
                     {!order ? <h2>Nowa Sprawa:</h2> : false}
                     <FormStyled>
-                        <form onSubmit={submit} ref={formRef}>
-                            <p>Informacja klientów: </p>
-                            <FormInput
-                                connection={nameData}
-                                placeholder="imię i nazwisko klienta"
-                                defaultValue={prevStep?.formStepClientName}
-                                disabled={disabled}
-                            />
-                            <FormInput
-                                connection={phoneData}
-                                placeholder="Numer kontaktowy"
-                                defaultValue={prevStep?.formStepPhone}
-                                disabled={disabled}
-                            />
-                            <FormInput
-                                connection={emailData}
-                                placeholder="E-mail"
-                                defaultValue={prevStep?.formStepEmail}
-                                disabled={disabled}
-                            />
-                            <p>Adres zamówienia: </p>
-                            {/* <FormInput connection={cityData} placeholder="Miasto" defaultValue={prevStep?.formStepCity} /> */}
-                            <FormInput
-                                connection={addressData}
-                                placeholder="Adres obiektu"
-                                defaultValue={prevStep?.formStepAddress}
-                                disabled={disabled}
-                            />
-                            {/* <p>Gdzie znaleziono klienta: </p> */}
-                            {/* <FormInput
-                                connection={whereClientFoundData}
-                                placeholder="Gdzie znaleziono klienta"
-                                defaultValue={prevStep?.formStepWhereClientFound}
-                            /> */}
-                            <FormSelect
-                                options={selectData.formStepWhereClientFound}
-                                title={`Gdzie znaleziono klienta: `}
-                                connection={whereClientFoundData}
-                                defaultValue={
-                                    prevStep?.formStepWhereClientFound
-                                        ? getZeroArrElements(selectData.formStepWhereClientFound).includes(
-                                              prevStep?.formStepWhereClientFound
-                                          )
-                                            ? prevStep?.formStepWhereClientFound
-                                            : 'other'
-                                        : 'select'
-                                }
-                                disabled={disabled}
-                            />
-
-                            {whereClientFoundData.value?.includes('other') && (
-                                <>
-                                    <FormInput
-                                        placeholder="Napisz tutaj"
-                                        defaultValue={
-                                            prevStep?.formStepWhereClientFound
-                                                ? getZeroArrElements(selectData.formStepWhereClientFound).includes(
-                                                      prevStep?.formStepWhereClientFound
-                                                  )
-                                                    ? ''
-                                                    : prevStep?.formStepWhereClientFound
-                                                : ''
-                                        }
-                                        connection={otherWhereClientFoundData}
-                                        disabled={disabled}
-                                    />
-                                </>
-                            )}
+                        <form onSubmit={onSubmit} ref={formRef}>
+                            <TextFormInput connection={nameData} disabled={disabled} />
+                            <TextFormInput connection={phoneData} disabled={disabled} />
+                            <TextFormInput connection={emailData} disabled={disabled} />
+                            <TextFormInput connection={addressData} disabled={disabled} />
+                            <FormSelectWithOther connection={whereClientFoundData} disabled={disabled} />
 
                             <p>Czas spotkania:</p>
-
                             <Calendar
-                                calendar={calendar}
+                                connection={calendarData}
                                 // disabled={prevStep && prevStep?.passedTo !== 'formStep'}
                                 disabled={disabled}
                             />
 
-                            <p>Komentarz: </p>
-                            <FormInput
-                                connection={commentData}
-                                placeholder="komentarz"
-                                defaultValue={prevStep?.formStepComment}
-                                disabled={disabled}
-                            />
+                            <TextFormInput connection={commentData} disabled={disabled} />
+
                             {!disabled && (
-                                <SendButtons
-                                    passedTo={prevStep?.passedTo || 'formStep'}
-                                    maxPromotion={prevStep?.maxPromotion || 'formStep'}
-                                    curStepName="formStep"
-                                    dataRef={sendButtonsOutputRef}
-                                    isFormChecked={isFormChecked}
-                                    step={order?.steps[order.steps.length - 1]}
-                                    formCheck={formCheck}
+                                <NextPrevCheckbox
+                                    connection={nextPrevCheckboxData}
                                     isMainCondition={true}
+                                    isCurrentStep={prevStep?.passedTo === 'contractCheckerStep'}
                                 />
                             )}
                             {!disabled && <input type="submit" value="Zapisz" />}
@@ -306,3 +193,5 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 }
 
 export default CreateForm
+
+// 308

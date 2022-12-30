@@ -43,8 +43,8 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
     const {
         prevStep,
         branchIdx,
-        prevStepChangeStep,
-        isNewBranchComparedByLastStepnameChange,
+        lastStepWhereSomethingWasChanged,
+        isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
     } = getBranchValues({
         stepName: 'contractCreatorStep',
@@ -67,7 +67,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
     const standardRejValues = ['select', 'time', 'offer', 'contract']
 
-    const defaultRejectionValue = isNewBranchComparedByLastStepnameChange
+    const defaultRejectionValue = isNewBranchComparedByLastStepWhereSomethingWasChanged
         ? 'select'
         : prevStep?.contractCreatorStepContractRejectionReason
         ? standardRejValues.includes(prevStep?.contractCreatorStepContractRejectionReason)
@@ -75,7 +75,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
             : 'other'
         : 'select'
 
-    const defaultOtherRejectionValue = isNewBranchComparedByLastStepnameChange
+    const defaultOtherRejectionValue = isNewBranchComparedByLastStepWhereSomethingWasChanged
         ? ''
         : prevStep?.contractCreatorStepContractRejectionReason
         ? prevStep?.contractCreatorStepContractRejectionReason === 'other'
@@ -195,7 +195,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
         const contractCreatorStepContractSendingDate = !isContractSentData.value
             ? null
-            : isNewBranchComparedByLastStepnameChange
+            : isNewBranchComparedByLastStepWhereSomethingWasChanged
             ? DateTime.now()
             : prevStep?.contractCreatorStepContractSendingDate || DateTime.now()
 
@@ -275,9 +275,9 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                                         type="checkbox"
                                         connection={isContractSentData}
                                         defaultChecked={
-                                            isNewBranchComparedByLastStepnameChange
+                                            isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                 ? false
-                                                : prevStepChangeStep?.contractCreatorStepContractSendingDate
+                                                : lastStepWhereSomethingWasChanged?.contractCreatorStepContractSendingDate
                                                 ? true
                                                 : false
                                         }
@@ -294,7 +294,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                                         title="Kontrakt jest podpisany przez klienta?"
                                         connection={isContractAcceptedData}
                                         defaultValue={
-                                            isNewBranchComparedByLastStepnameChange
+                                            isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                 ? 'select'
                                                 : typeof prevStep?.contractCreatorStepIsContractAccepted !== 'boolean'
                                                 ? 'select'

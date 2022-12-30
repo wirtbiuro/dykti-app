@@ -54,8 +54,8 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const {
         prevStep,
         branchIdx,
-        prevStepChangeStep,
-        isNewBranchComparedByLastStepnameChange,
+        lastStepWhereSomethingWasChanged,
+        isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
     } = getBranchValues({
         stepName: 'workStep',
@@ -262,7 +262,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                         type="checkbox"
                                         connection={shouldChangeContractData}
                                         defaultChecked={
-                                            isNewBranchComparedByLastStepnameChange
+                                            isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                 ? false
                                                 : prevStep?.workStepContractEdits
                                                 ? true
@@ -280,7 +280,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                         <FormInput
                                             placeholder="Jakich zmian wymaga kontrakt?"
                                             defaultValue={
-                                                isNewBranchComparedByLastStepnameChange
+                                                isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                     ? ''
                                                     : prevStep?.workStepContractEdits
                                             }

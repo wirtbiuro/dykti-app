@@ -39,8 +39,8 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const {
         prevStep,
         branchIdx,
-        prevStepChangeStep,
-        isNewBranchComparedByLastStepnameChange,
+        lastStepWhereSomethingWasChanged,
+        isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
     } = getBranchValues({
         stepName: 'referenceStep',
@@ -169,7 +169,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                     type="checkbox"
                                     connection={wasReferenceRequestSentData}
                                     defaultChecked={
-                                        isNewBranchComparedByLastStepnameChange
+                                        isNewBranchComparedByLastStepWhereSomethingWasChanged
                                             ? false
                                             : typeof prevStep?.referenceStepWasSentRequest === 'boolean'
                                             ? prevStep?.referenceStepWasSentRequest
@@ -202,7 +202,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                         title="Klient wystawil referencje"
                                         connection={isClientReferenceData}
                                         defaultValue={
-                                            isNewBranchComparedByLastStepnameChange
+                                            isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                 ? 'select'
                                                 : typeof prevStep?.referenceStepIsClientReference !== 'boolean'
                                                 ? 'select'
@@ -218,7 +218,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                                             title={`Gdzie wysłano referencję:`}
                                             connection={referenceLocationData}
                                             defaultValue={
-                                                isNewBranchComparedByLastStepnameChange
+                                                isNewBranchComparedByLastStepWhereSomethingWasChanged
                                                     ? ''
                                                     : prevStep?.referenceStepReferenceLocation || ''
                                             }

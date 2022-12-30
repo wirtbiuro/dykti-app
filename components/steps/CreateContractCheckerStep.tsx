@@ -35,8 +35,8 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
     const {
         prevStep,
         branchIdx,
-        prevStepChangeStep,
-        isNewBranchComparedByLastStepnameChange,
+        lastStepWhereSomethingWasChanged,
+        isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
     } = getBranchValues({
         stepName: 'contractCheckerStep',
@@ -45,7 +45,7 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
     const isContractCheckedData = useFormSelect({
         options: selectData.standardSelect,
-        initialValue: isNewBranchComparedByLastStepnameChange
+        initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
             ? 'select'
             : typeof prevStep?.contractCheckerStepIsContractChecked !== 'boolean'
             ? 'select'
@@ -70,7 +70,9 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
     })
 
     const commentsData = useTextFormInput({
-        initialTextValue: isNewBranchComparedByLastStepnameChange ? '' : prevStep?.contractCheckerStepComments,
+        initialTextValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
+            ? ''
+            : prevStep?.contractCheckerStepComments,
         placeholder: isMainCondition ? 'Komentarz' : 'Jakich zmian wymaga kontrakt?',
         title: 'Komentarz:',
     })
@@ -170,9 +172,10 @@ const CreateContractCheckerStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                 <CreateFormStyled>
                     <FormStyled>
                         <form ref={formRef} onSubmit={onSubmit}>
-                            <FormSelect connection={isContractCheckedData} 
-                                    disabled = {prevStep?.passedTo !== 'contractCheckerStep'}
-/>
+                            <FormSelect
+                                connection={isContractCheckedData}
+                                disabled={prevStep?.passedTo !== 'contractCheckerStep'}
+                            />
 
                             {isContractCheckedData.value === 'yes' && (
                                 <>
