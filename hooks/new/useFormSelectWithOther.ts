@@ -73,7 +73,6 @@ export const useFormSelectWithOther = ({
 
     return {
         value,
-        setValue,
         check,
         title,
         ref,

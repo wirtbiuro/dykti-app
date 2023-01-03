@@ -37,12 +37,15 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         initialValue: true,
     })
 
+    const firstLoadRef = useRef<boolean>(true)
+
     const {
         prevStep,
         branchIdx,
         lastStepWhereSomethingWasChanged,
         isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
+        globalStepWhereLastTransitionWas,
     } = getBranchValues({
         stepName: 'contractStep',
         order,
@@ -54,9 +57,10 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         lastStepWhereSomethingWasChanged,
         isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
+        globalStepWhereLastTransitionWas,
     })
 
-    const isOfferSentDefault = lastStepWhereSomethingWasChanged?.contractStepOfferSendingDate ? true : false
+    const isOfferSentDefault = prevStep?.contractStepOfferSendingDate ? true : false
 
     const isOfferSentData = useCheckboxFormInput({
         title: 'Oferta wysłana',
@@ -100,6 +104,56 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         otherPlaceholder: 'Inna przyczyna odrzucenia oferty',
     })
 
+    useEffect(() => {
+        if (!firstLoadRef.current) {
+            isOfferAcceptedData.setValue(null)
+            isOfferAcceptedData.setErrorValue('')
+            offerChangesData.setTextValue('')
+            offerChangesData.setErrorValue('')
+        } else {
+            firstLoadRef.current = false
+        }
+    }, [areOfferChangesData.value, firstLoadRef])
+
+    useEffect(() => {
+        if (!firstLoadRef.current) {
+            sentForVerificationData.setCheckboxValue(false)
+            sentForVerificationData.setErrorValue('')
+            rejectionReasonsData.formSelectData.setValue('select')
+            rejectionReasonsData.formSelectData.setErrorValue('')
+            rejectionReasonsData.textInputData.setErrorValue('')
+        } else {
+            firstLoadRef.current = false
+        }
+    }, [isOfferAcceptedData.value, firstLoadRef])
+
+    const enabled = {
+        isOfferSent:
+            globalStepWhereLastTransitionWas?.createdByStep === 'offerStep' &&
+            globalStepWhereLastTransitionWas.passedTo === 'contractStep' &&
+            !isOfferSentDefault,
+        areOfferChanges: isOfferSentData.checkboxValue && globalStepWhereLastTransitionWas?.passedTo === 'contractStep',
+        offerChanges:
+            areOfferChangesData.value &&
+            (globalStepWhereLastTransitionWas?.passedTo === 'contractStep' ||
+                (prevStep?.passedTo === 'offerStep' && prevStep.createdByStep === 'contractStep')),
+        isOfferAccepted:
+            areOfferChangesData.value === false && globalStepWhereLastTransitionWas?.passedTo === 'contractStep',
+        sentForVerification: isOfferAcceptedData.value && globalStepWhereLastTransitionWas?.passedTo === 'contractStep',
+        rejectionReason:
+            isOfferAcceptedData.value === false &&
+            (globalStepWhereLastTransitionWas?.passedTo === 'contractStep' ||
+                (prevStep?.passedTo === 'offerStep' && prevStep.createdByStep === 'contractStep')),
+    }
+
+    const isSendEnabled =
+        enabled.areOfferChanges ||
+        enabled.isOfferAccepted ||
+        enabled.isOfferSent ||
+        enabled.offerChanges ||
+        enabled.rejectionReason ||
+        enabled.sentForVerification
+
     const nextCheck = (showMessage: boolean) => {
         if (!isOfferSentDefault) {
             return true
@@ -109,6 +163,9 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
             return false
         }
         if (!areOfferChangesData.check(showMessage)) {
+            return false
+        }
+        if (areOfferChangesData.value && offerChangesData.check(showMessage)) {
             return false
         }
         if (!isOfferAcceptedData.check(showMessage)) {
@@ -125,6 +182,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
 
     const prevCheck = (showMessage: boolean) => {
         if (!offerChangesData.check(showMessage)) {
+            console.log('offerChangesData error')
             return false
         }
         return true
@@ -134,7 +192,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         if (!isOfferSentDefault) {
             return true
         }
-        return !isOfferSentData.checkboxValue || areOfferChangesData.value === true
+        return areOfferChangesData.value !== true
     }
 
     const isMainCondition = getIsMainCondition()
@@ -157,9 +215,9 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
 
         const contractStepOfferSendingDate = !isOfferSentData.checkboxValue
             ? null
-            : isNewBranchComparedByLastStepWhereSomethingWasChanged
-            ? DateTime.now()
-            : prevStep?.contractStepOfferSendingDate || DateTime.now()
+            : // : isNewBranchComparedByLastStepWhereSomethingWasChanged
+              // ? DateTime.now()
+              prevStep?.contractStepOfferSendingDate || DateTime.now()
 
         const contractStepSentForVerificationDate = !sentForVerificationData.checkboxValue
             ? null
@@ -213,10 +271,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                             <CheckboxFormInput connection={isOfferSentData} disabled={isOfferSentDefault} />
 
                             {isOfferSentDefault && isOfferSentData.checkboxValue && (
-                                <YesNoSelect
-                                    connection={areOfferChangesData}
-                                    disabled={prevStep && prevStep.passedTo !== 'contractStep'}
-                                />
+                                <YesNoSelect connection={areOfferChangesData} disabled={!enabled.areOfferChanges} />
                             )}
                             {isOfferSentDefault && areOfferChangesData.value && (
                                 <>
@@ -226,31 +281,18 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                             propName="contractStepOfferChangesComment"
                                         />
                                     )}
-                                    <TextFormInput
-                                        connection={offerChangesData}
-                                        disabled={
-                                            prevStep &&
-                                            prevStep.passedTo !== 'contractStep' &&
-                                            !(
-                                                prevStep?.passedTo === 'offerStep' &&
-                                                prevStep?.createdByStep === 'contractStep'
-                                            )
-                                        }
-                                    />
+                                    <TextFormInput connection={offerChangesData} disabled={!enabled.offerChanges} />
                                 </>
                             )}
                             {isOfferSentDefault && areOfferChangesData.value === false && (
                                 <>
-                                    <YesNoSelect
-                                        connection={isOfferAcceptedData}
-                                        disabled={prevStep && prevStep.passedTo !== 'contractStep'}
-                                    />
+                                    <YesNoSelect connection={isOfferAcceptedData} disabled={!enabled.isOfferAccepted} />
 
                                     {isOfferAcceptedData.value && (
                                         <>
                                             <CheckboxFormInput
                                                 connection={sentForVerificationData}
-                                                disabled={prevStep && prevStep.passedTo !== 'contractStep'}
+                                                disabled={!enabled.sentForVerification}
                                             />
                                         </>
                                     )}
@@ -259,21 +301,25 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                         <>
                                             <FormSelectWithOther
                                                 connection={rejectionReasonsData}
-                                                disabled={prevStep && prevStep.passedTo !== 'contractStep'}
+                                                disabled={!enabled.rejectionReason}
                                             />
                                         </>
                                     )}
                                 </>
                             )}
 
-                            <SendButtonsWrapper visible={isOfferSentDefault}>
-                                <NextPrevCheckbox
-                                    connection={nextPrevCheckboxData}
-                                    isMainCondition={isMainCondition}
-                                    isCurrentStep={prevStep?.passedTo === 'contractStep'}
-                                />
-                            </SendButtonsWrapper>
-                            <input type="submit" value="Zapisz" />
+                            {isSendEnabled && (
+                                <>
+                                    <SendButtonsWrapper visible={isOfferSentDefault}>
+                                        <NextPrevCheckbox
+                                            connection={nextPrevCheckboxData}
+                                            isMainCondition={isMainCondition}
+                                            isCurrentStep={prevStep?.passedTo === 'contractStep'}
+                                        />
+                                    </SendButtonsWrapper>
+                                    <input type="submit" value="Zapisz" />
+                                </>
+                            )}
                         </form>
                     </FormStyled>
                 </CreateFormStyled>

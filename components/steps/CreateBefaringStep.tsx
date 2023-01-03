@@ -1,6 +1,6 @@
 import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
 import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
-import { IOrder, WithValueNFocus, IWithOrder, StepType, ISendCheckboxes } from '../../types'
+import { WithValueNFocus, IWithOrder, ISendCheckboxes } from '../../types'
 import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import { getBranchValues, NullableFieldsToSend, mainSubmitForm } from '../../utilities'
 import { DateTime } from 'luxon'
@@ -17,9 +17,6 @@ import { useTextFormInput } from '../../hooks/new/useTextFormInput'
 import TextFormInput from '../components/TextFormInput'
 import NextPrevCheckbox from '../components/NextPrevCheckbox'
 
-type FieldsToSend = StepType & {
-    order?: IOrder
-}
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
@@ -99,10 +96,10 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
     })
 
     useEffect(() => {
-        if (meetingCalendarData.date) {
+        if (meetingCalendarData.date && offerCalendarData.setDate) {
             offerCalendarData.setDate(meetingCalendarData.date.endOf('day').plus({ days: 7 }))
         }
-    }, [meetingCalendarData.date])
+    }, [meetingCalendarData.date, offerCalendarData.setDate])
 
     const nextCheck = (showMessage: boolean) => {
         if (!meetingCalendarData.check(showMessage)) {
@@ -183,7 +180,6 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
 
     return (
         <Spin spinning={isSpinning}>
-            {' '}
             <div style={{ display: isVisible ? 'block' : 'none' }}>
                 <CreateFormStyled>
                     <FormStyled>
@@ -202,7 +198,7 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                 />
                             )}
 
-                            {wasThereMeeting.check(false) && (
+                            {wasThereMeeting.checkboxValue === true && (
                                 <div>
                                     <CheckboxFormInput
                                         connection={wereDocsSent}
@@ -215,7 +211,6 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                                 </div>
                             )}
 
-                            <p>Komentarz: </p>
                             {prevBranchOnProp && (
                                 <PrevBranchProp prevStepChangeStep={prevBranchOnProp} propName="beffaringStepComment" />
                             )}

@@ -108,6 +108,7 @@ export const useCalendarData = ({ selectedDate, withTime = false, zone = 'Europe
         hours,
         minutes,
         setDay,
+        setDate,
         prevMonth,
         nextMonth,
         check,

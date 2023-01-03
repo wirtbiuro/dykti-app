@@ -1016,17 +1016,17 @@ export const getPrevBranchStep = (order: IOrder): StepType | null => {
 }
 
 interface IGetBranchIdxProps {
-    prevStep?: StepType
+    globalStepWhereLastTransitionWas?: StepType | null
     stepName: StepName
 }
-export const getBranchIdx: (props: IGetBranchIdxProps) => number = ({ prevStep, stepName }) => {
-    if (!prevStep) return 0
+export const getBranchIdx: (props: IGetBranchIdxProps) => number = ({ globalStepWhereLastTransitionWas, stepName }) => {
+    if (!globalStepWhereLastTransitionWas) return 0
     const branchIdx =
-        prevStep.returnStep === prevStep.createdByStep &&
-        prevStep.returnStep !== prevStep.passedTo &&
-        prevStep.createdByStep !== stepName
-            ? prevStep.branchIdx! + 1
-            : prevStep.branchIdx
+        globalStepWhereLastTransitionWas.returnStep === globalStepWhereLastTransitionWas.createdByStep &&
+        globalStepWhereLastTransitionWas.returnStep !== globalStepWhereLastTransitionWas.passedTo &&
+        globalStepWhereLastTransitionWas.createdByStep !== stepName
+            ? globalStepWhereLastTransitionWas.branchIdx! + 1
+            : globalStepWhereLastTransitionWas.branchIdx
     console.log({ branchIdx })
     return branchIdx || 0
 }
@@ -1036,7 +1036,7 @@ interface IGetPrevStepChangeStep {
     order?: IOrder
 }
 
-export const getGlobalStepWhereLastTransitionWas: (props: IGetPrevStepChangeStep) => StepType | null = ({ order }) => {
+export const getGlobalStepWhereLastTransitionWas: ({ order }: { order?: IOrder }) => StepType | null = ({ order }) => {
     if (!order) return null
     const orderSteps = Array.from(order.steps)
     const steps = orderSteps.sort((a, b) => {
@@ -1084,10 +1084,13 @@ interface IGetBranchValuesProps {
 export const getBranchValues = ({ stepName, order }: IGetBranchValuesProps) => {
     const prevStep = order?.steps[order.steps.length - 1]
 
-    const branchIdx = getBranchIdx({ prevStep, stepName })
     const lastStepWhereSomethingWasChanged = getLastStepWhereSomethingWasChanged({ order, stepName })
 
     const lastStepWherePassedToWasChanged = getLastStepWherePassedToWasChanged({ order, stepName })
+
+    const globalStepWhereLastTransitionWas = getGlobalStepWhereLastTransitionWas({ order })
+
+    const branchIdx = getBranchIdx({ globalStepWhereLastTransitionWas, stepName })
 
     const isNewBranchComparedByLastStepWhereSomethingWasChanged =
         branchIdx !== 0 && branchIdx !== lastStepWhereSomethingWasChanged?.branchIdx!
@@ -1109,5 +1112,6 @@ export const getBranchValues = ({ stepName, order }: IGetBranchValuesProps) => {
         isNewBranchComparedByLastStepWhereSomethingWasChanged,
         isNewBranchComparedByPrevStep,
         prevBranchOnProp,
+        globalStepWhereLastTransitionWas,
     }
 }

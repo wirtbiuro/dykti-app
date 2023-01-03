@@ -225,7 +225,11 @@ export const ChangesStyled = styled.div`
     }
 `
 
-export const OtherRoleBtnStyled = styled.div`
+interface OtherRoleBtnStyledProps {
+    isSelected: boolean
+}
+
+export const OtherRoleBtnStyled = styled.div<OtherRoleBtnStyledProps>`
     font-weight: ${(props) => (props.isSelected ? 'bold' : 'normal')};
     cursor: pointer;
 `
@@ -275,7 +279,11 @@ export const CreatorFormPanelStyled = styled.div`
     }
 `
 
-export const CloseOrderStyled = styled.div`
+interface CloseOrderStyledProps {
+    isModalOpen: boolean
+}
+
+export const CloseOrderStyled = styled.div<CloseOrderStyledProps>`
     display: ${(props) => (props.isModalOpen ? 'block' : 'none')};
     margin-top: 20px;
     input {
@@ -352,7 +360,11 @@ export const PrevBranchPropStyled = styled.div`
     font-size: 9px;
 `
 
-export const SendButtonsWrapper = styled.div`
+interface SendButtonsWrapperProps {
+    visible: boolean
+}
+
+export const SendButtonsWrapper = styled.div<SendButtonsWrapperProps>`
     overflow: hidden;
     max-height: ${(props) => (props.visible ? 'auto' : '0px')};
 `
