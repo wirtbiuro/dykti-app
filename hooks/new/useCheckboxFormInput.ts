@@ -14,7 +14,7 @@ export const useCheckboxFormInput = ({ initialValue = false, title = '', checkFn
             setErrorValue('')
             return true
         } else if (showMessage) {
-            setErrorValue('Required Field')
+            setErrorValue('Pole wymagane')
             ref.current?.focus()
         }
         return false

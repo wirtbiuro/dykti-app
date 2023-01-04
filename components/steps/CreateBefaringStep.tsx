@@ -30,6 +30,7 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         lastStepWherePassedToWasChanged,
         isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
+        globalStepWhereLastTransitionWas,
     } = getBranchValues({
         stepName: 'beffaringStep',
         order,
@@ -41,6 +42,7 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         isNewBranchComparedByLastStepWhereSomethingWasChanged,
         lastStepWherePassedToWasChanged,
         prevBranchOnProp,
+        globalStepWhereLastTransitionWas,
     })
 
     const getUser = dyktiApi.endpoints.getUser as any
@@ -75,8 +77,8 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
             : undefined,
     })
 
-    const isMeetingDataChecked = meetingCalendarData.date
-    DateTime.now().toMillis() > (meetingCalendarData.date?.toMillis() || 0)
+    const isMeetingDataChecked =
+        DateTime.now().toMillis() > (meetingCalendarData.date?.toMillis() || DateTime.now().plus({ day: 1 }).toMillis())
 
     const wereDocsSent = useCheckboxFormInput({
         title: 'Dokumenty zostały wysłane',
@@ -96,10 +98,47 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
     })
 
     useEffect(() => {
-        if (meetingCalendarData.date && offerCalendarData.setDate) {
-            offerCalendarData.setDate(meetingCalendarData.date.endOf('day').plus({ days: 7 }))
+        if (meetingCalendarData.date && offerCalendarData.setDay) {
+            offerCalendarData.setDay(meetingCalendarData.date.endOf('day').plus({ days: 7 }))
         }
-    }, [meetingCalendarData.date, offerCalendarData.setDate])
+    }, [meetingCalendarData.date])
+
+    useEffect(() => {
+        if (!isMeetingDataChecked) {
+            wasThereMeeting.setCheckboxValue(false)
+            wasThereMeeting.setErrorValue('')
+            wereDocsSent.setCheckboxValue(false)
+            wereDocsSent.setErrorValue('')
+            offerCalendarData.setDate(null)
+            offerCalendarData.setErrorValue('')
+        }
+        if (isMeetingDataChecked) {
+            offerCalendarData.setDay(meetingCalendarData.date!.endOf('day').plus({ days: 7 }))
+            offerCalendarData.setErrorValue('')
+        }
+    }, [isMeetingDataChecked])
+
+    const enabled = {
+        meetingCalendar:
+            globalStepWhereLastTransitionWas?.passedTo === 'beffaringStep' &&
+            globalStepWhereLastTransitionWas.createdByStep === 'formStep',
+        wasThereMeeting:
+            globalStepWhereLastTransitionWas?.passedTo === 'beffaringStep' &&
+            globalStepWhereLastTransitionWas.createdByStep === 'formStep',
+        wereDocsSent: wasThereMeeting.checkboxValue && globalStepWhereLastTransitionWas?.passedTo === 'beffaringStep',
+        offerCalendar:
+            wasThereMeeting.checkboxValue &&
+            globalStepWhereLastTransitionWas?.passedTo === 'beffaringStep' &&
+            globalStepWhereLastTransitionWas?.createdByStep === 'formStep',
+        comment: globalStepWhereLastTransitionWas?.passedTo === 'beffaringStep',
+    }
+
+    const isSendEnabled =
+        enabled.meetingCalendar ||
+        enabled.wasThereMeeting ||
+        enabled.wereDocsSent ||
+        enabled.offerCalendar ||
+        enabled.comment
 
     const nextCheck = (showMessage: boolean) => {
         if (!meetingCalendarData.check(showMessage)) {
@@ -173,11 +212,6 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         setIsSpinning(false)
     }
 
-    const disabled =
-        prevStep &&
-        prevStep?.passedTo !== 'beffaringStep' &&
-        !(prevStep?.passedTo === 'offerStep' && prevStep?.createdByStep === 'beffaringStep')
-
     return (
         <Spin spinning={isSpinning}>
             <div style={{ display: isVisible ? 'block' : 'none' }}>
@@ -186,45 +220,38 @@ const CreateBefaringStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                         <form ref={formRef} onSubmit={onSubmit}>
                             <p>Termin spotkania: </p>
 
-                            <Calendar
-                                connection={meetingCalendarData}
-                                disabled={prevStep?.maxPromotion !== 'beffaringStep'}
-                            />
+                            <Calendar connection={meetingCalendarData} disabled={!enabled.meetingCalendar} />
 
                             {isMeetingDataChecked && (
-                                <CheckboxFormInput
-                                    connection={wasThereMeeting}
-                                    disabled={prevStep?.maxPromotion !== 'beffaringStep'}
-                                />
+                                <CheckboxFormInput connection={wasThereMeeting} disabled={!enabled.wasThereMeeting} />
                             )}
 
                             {wasThereMeeting.checkboxValue === true && (
                                 <div>
-                                    <CheckboxFormInput
-                                        connection={wereDocsSent}
-                                        disabled={prevStep && prevStep?.passedTo !== 'beffaringStep'}
-                                    />
+                                    <CheckboxFormInput connection={wereDocsSent} disabled={!enabled.wereDocsSent} />
 
                                     <p>Kiedy należy przygotować ofertę?</p>
 
-                                    <Calendar connection={offerCalendarData} disabled={disabled} />
+                                    <Calendar connection={offerCalendarData} disabled={!enabled.offerCalendar} />
                                 </div>
                             )}
 
                             {prevBranchOnProp && (
                                 <PrevBranchProp prevStepChangeStep={prevBranchOnProp} propName="beffaringStepComment" />
                             )}
-                            <TextFormInput connection={commentData} disabled={disabled} />
+                            <TextFormInput connection={commentData} disabled={!enabled.comment} />
 
-                            {!disabled && (
-                                <NextPrevCheckbox
-                                    connection={nextPrevCheckboxData}
-                                    isMainCondition={isMainCondition}
-                                    isCurrentStep={prevStep?.passedTo === 'beffaringStep'}
-                                />
+                            {isSendEnabled && (
+                                <>
+                                    <NextPrevCheckbox
+                                        connection={nextPrevCheckboxData}
+                                        isMainCondition={isMainCondition}
+                                        isCurrentStep={prevStep?.passedTo === 'beffaringStep'}
+                                    />
+
+                                    <input type="submit" value="Zapisz" />
+                                </>
                             )}
-
-                            {!disabled && <input type="submit" value="Zapisz" />}
                         </form>
                     </FormStyled>
                 </CreateFormStyled>

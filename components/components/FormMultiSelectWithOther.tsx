@@ -1,22 +1,18 @@
-import React, { useEffect, FC } from "react";
-import FormSelect from "./FormSelect";
-import { useFormSelect } from "../hooks/useFormSelect";
-import { useTextFormInput } from "../hooks/useTextFormInput";
+import React, { FC } from "react";
 import TextFormInput from "./TextFormInput";
-import { FormMultiSelectWithOtherProps } from "../hooks/useFormMultiSelectWithOther";
+import { FormMultiSelectWithOtherProps } from '../../hooks/new/useFormMultiSelectWithOther'
 import FormMultiSelect from "./FormMultiSelect";
-import { divider } from "../hooks/useMultiSelect";
+import { divider } from "../../hooks/new/useMultiSelect";
 
 const FormMultiSelectWithOther: FC<{
-  connection: FormMultiSelectWithOtherProps;
-}> = ({ connection }) => {
+  connection: FormMultiSelectWithOtherProps, disabled?: boolean
+}> = ({ connection, disabled = false }) => {
   const {
     value,
     setValue,
     check,
     title,
     ref,
-    disabled,
     options,
     formMultiSelectData,
     textInputData,
@@ -34,8 +30,8 @@ const FormMultiSelectWithOther: FC<{
 
   return (
     <div>
-      <FormMultiSelect connection={formMultiSelectData} />
-      {isOtherInMultiSelect && <TextFormInput connection={textInputData} />}
+      <FormMultiSelect connection={formMultiSelectData} disabled={disabled}/>
+      {isOtherInMultiSelect && <TextFormInput connection={textInputData} disabled={disabled}/>}
     </div>
   );
 };

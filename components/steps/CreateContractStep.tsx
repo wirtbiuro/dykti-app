@@ -155,12 +155,11 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
         enabled.sentForVerification
 
     const nextCheck = (showMessage: boolean) => {
-        if (!isOfferSentDefault) {
-            return true
-        }
-
         if (!isOfferSentData.check(showMessage)) {
             return false
+        }
+        if (isOfferSentData.check(showMessage) && !isOfferSentDefault) {
+            return true
         }
         if (!areOfferChangesData.check(showMessage)) {
             return false
@@ -237,7 +236,9 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
             curStepName: 'contractStep',
             passedTo: prevStep!.passedTo,
             deadline: prevStep?.nextDeadline,
-            supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
+            supposedNextDeadline: !isOfferSentDefault
+                ? null
+                : DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             nextToPass: !isOfferSentDefault
                 ? 'contractStep'
                 : isOfferAcceptedData.value === false && rejectionReasonsData.check(false)
@@ -268,7 +269,7 @@ const CreateContractStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) 
                 <CreateFormStyled>
                     <FormStyled>
                         <form ref={formRef} onSubmit={onSubmit}>
-                            <CheckboxFormInput connection={isOfferSentData} disabled={isOfferSentDefault} />
+                            <CheckboxFormInput connection={isOfferSentData} disabled={!enabled.isOfferSent} />
 
                             {isOfferSentDefault && isOfferSentData.checkboxValue && (
                                 <YesNoSelect connection={areOfferChangesData} disabled={!enabled.areOfferChanges} />

@@ -1,6 +1,6 @@
 import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
 import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
-import { WithValueNFocus, IWithOrder, ISendCheckboxes, FieldsToSend } from '../../types'
+import { WithValueNFocus, IWithOrder, ISendCheckboxes } from '../../types'
 import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
 import { getBranchValues, NullableFieldsToSend, mainSubmitForm } from '../../utilities'
 import useErrFn from '../../hooks/useErrFn'
@@ -35,8 +35,10 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
         prevStep,
         branchIdx,
         lastStepWhereSomethingWasChanged,
+        lastStepWherePassedToWasChanged,
         isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
+        globalStepWhereLastTransitionWas,
     } = getBranchValues({
         stepName: 'contractCreatorStep',
         order,
@@ -94,6 +96,18 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
 
     const isMainCondition = isContractAcceptedData.value !== false
     console.log({ isMainCondition })
+
+    const enabled = {
+        isContractSent: globalStepWhereLastTransitionWas?.passedTo === 'contractCreatorStep',
+        isContractAccepted:
+            isContractSentData.checkboxValue === true &&
+            globalStepWhereLastTransitionWas?.passedTo === 'contractCreatorStep',
+        rejectionReason:
+            isContractAcceptedData.value === false &&
+            globalStepWhereLastTransitionWas?.passedTo === 'contractCreatorStep',
+    }
+
+    const isSendEnabled = enabled.isContractSent || enabled.isContractAccepted || enabled.rejectionReason
 
     const nextCheck = (showMessage: boolean) => {
         if (!isContractSentData.check(showMessage)) {
@@ -159,7 +173,7 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                     : rejectionReasonData.value === 'contract'
                     ? 'contractCheckerStep'
                     : 'lastDecisionStep',
-            deadline: prevStep?.nextDeadline,
+            deadline: isContractSentData.checkboxValue ? null : lastStepWherePassedToWasChanged?.nextDeadline,
             supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             sendData: {
                 order,
@@ -182,10 +196,13 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                     <FormStyled>
                         <form ref={formRef} onSubmit={onSubmit}>
                             <>
-                                <CheckboxFormInput connection={isContractSentData} />
+                                <CheckboxFormInput connection={isContractSentData} disabled={!enabled.isContractSent} />
 
                                 {isContractSentData.checkboxValue && (
-                                    <YesNoSelect connection={isContractAcceptedData} />
+                                    <YesNoSelect
+                                        connection={isContractAcceptedData}
+                                        disabled={!enabled.isContractAccepted}
+                                    />
                                 )}
 
                                 {isContractAcceptedData.value === false && (
@@ -193,13 +210,17 @@ const CreateContractCreatorStep: FC<IWithOrder> = ({ order, isVisible, setIsVisi
                                 )}
                             </>
 
-                            <NextPrevCheckbox
-                                connection={nextPrevCheckboxData}
-                                isMainCondition={isMainCondition}
-                                isCurrentStep={prevStep?.passedTo === 'contractCreatorStep'}
-                            />
+                            {isSendEnabled && (
+                                <>
+                                    <NextPrevCheckbox
+                                        connection={nextPrevCheckboxData}
+                                        isMainCondition={isMainCondition}
+                                        isCurrentStep={prevStep?.passedTo === 'contractCreatorStep'}
+                                    />
 
-                            <input type="submit" value="Zapisz" />
+                                    <input type="submit" value="Zapisz" />
+                                </>
+                            )}
                         </form>
                     </FormStyled>
                 </CreateFormStyled>

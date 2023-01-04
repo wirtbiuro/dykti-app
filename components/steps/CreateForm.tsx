@@ -2,7 +2,7 @@ import React, { SyntheticEvent, useRef, useState, FC } from 'react'
 import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
 import { WithValueNFocus, IWithOrder, ISendCheckboxes } from '../../types'
 import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
-import { mainSubmitForm, NullableFieldsToSend } from '../../utilities'
+import { mainSubmitForm, NullableFieldsToSend, getBranchValues } from '../../utilities'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
 import Calendar from '../../components/components/calendar'
@@ -23,7 +23,10 @@ type FormElement = HTMLFormElement & FormType
 const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [isSpinning, setIsSpinning] = useState(false)
 
-    const prevStep = order?.steps[order.steps.length - 1]
+    const { prevStep, globalStepWhereLastTransitionWas } = getBranchValues({
+        stepName: 'formStep',
+        order,
+    })
 
     const nextPrevCheckboxData = useCheckboxFormInput({
         initialValue: true,
@@ -149,10 +152,29 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         setIsSpinning(false)
     }
 
-    const disabled =
-        prevStep &&
-        prevStep?.passedTo !== 'formStep' &&
-        !(prevStep?.passedTo === 'beffaringStep' && prevStep?.createdByStep === 'formStep')
+    const enabledIfCurrentStepEqualesFormStepOrBefaringStepWithNoRecords =
+        !prevStep ||
+        globalStepWhereLastTransitionWas?.passedTo === 'formStep' ||
+        (prevStep?.passedTo === 'beffaringStep' && prevStep.createdByStep === 'formStep')
+
+    const enabled = {
+        name: enabledIfCurrentStepEqualesFormStepOrBefaringStepWithNoRecords,
+        phone: enabledIfCurrentStepEqualesFormStepOrBefaringStepWithNoRecords,
+        email: enabledIfCurrentStepEqualesFormStepOrBefaringStepWithNoRecords,
+        address: enabledIfCurrentStepEqualesFormStepOrBefaringStepWithNoRecords,
+        whereClientFound: enabledIfCurrentStepEqualesFormStepOrBefaringStepWithNoRecords,
+        calendar: !prevStep || globalStepWhereLastTransitionWas?.passedTo === 'formStep',
+        comment: enabledIfCurrentStepEqualesFormStepOrBefaringStepWithNoRecords,
+    }
+
+    const isSendEnabled =
+        enabled.name ||
+        enabled.phone ||
+        enabled.email ||
+        enabled.address ||
+        enabled.whereClientFound ||
+        enabled.calendar ||
+        enabled.comment
 
     return (
         <Spin spinning={isSpinning}>
@@ -161,29 +183,30 @@ const CreateForm: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                     {!order ? <h2>Nowa Sprawa:</h2> : false}
                     <FormStyled>
                         <form onSubmit={onSubmit} ref={formRef}>
-                            <TextFormInput connection={nameData} disabled={disabled} />
-                            <TextFormInput connection={phoneData} disabled={disabled} />
-                            <TextFormInput connection={emailData} disabled={disabled} />
-                            <TextFormInput connection={addressData} disabled={disabled} />
-                            <FormSelectWithOther connection={whereClientFoundData} disabled={disabled} />
-
-                            <p>Czas spotkania:</p>
-                            <Calendar
-                                connection={calendarData}
-                                // disabled={prevStep && prevStep?.passedTo !== 'formStep'}
-                                disabled={disabled}
+                            <TextFormInput connection={nameData} disabled={!enabled.name} />
+                            <TextFormInput connection={phoneData} disabled={!enabled.phone} />
+                            <TextFormInput connection={emailData} disabled={!enabled.email} />
+                            <TextFormInput connection={addressData} disabled={!enabled.address} />
+                            <FormSelectWithOther
+                                connection={whereClientFoundData}
+                                disabled={!enabled.whereClientFound}
                             />
 
-                            <TextFormInput connection={commentData} disabled={disabled} />
+                            <p>Czas spotkania:</p>
+                            <Calendar connection={calendarData} disabled={!enabled.calendar} />
 
-                            {!disabled && (
-                                <NextPrevCheckbox
-                                    connection={nextPrevCheckboxData}
-                                    isMainCondition={true}
-                                    isCurrentStep={prevStep?.passedTo === 'contractCheckerStep'}
-                                />
+                            <TextFormInput connection={commentData} disabled={!enabled.comment} />
+
+                            {isSendEnabled && (
+                                <>
+                                    <NextPrevCheckbox
+                                        connection={nextPrevCheckboxData}
+                                        isMainCondition={true}
+                                        isCurrentStep={prevStep?.passedTo === 'formStep' || !prevStep}
+                                    />
+                                    <input type="submit" value="Zapisz" />
+                                </>
                             )}
-                            {!disabled && <input type="submit" value="Zapisz" />}
                         </form>
                     </FormStyled>
                 </CreateFormStyled>

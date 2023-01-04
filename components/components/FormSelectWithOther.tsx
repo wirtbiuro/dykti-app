@@ -9,12 +9,12 @@ const FormSelectWithOther: FC<{ connection: FormSelectWithOtherProps; disabled?:
     connection,
     disabled = false,
 }) => {
-    const { value, setValue, check, title, ref, options, formSelectData, textInputData } = connection
+    const { value, check, title, ref, options, formSelectData, textInputData } = connection
 
     return (
         <div>
-            <FormSelect connection={formSelectData} />
-            {formSelectData.value === 'other' && <TextFormInput connection={textInputData} />}
+            <FormSelect connection={formSelectData} disabled={disabled} />
+            {formSelectData.value === 'other' && <TextFormInput connection={textInputData} disabled={disabled} />}
         </div>
     )
 }

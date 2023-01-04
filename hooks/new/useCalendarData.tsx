@@ -18,8 +18,6 @@ export const useCalendarData = ({ selectedDate, withTime = false, zone = 'Europe
     const [minutes, setMinutes] = useState<number | 'mm'>(withTime ? (selectedDate ? selectedDate.minute : 'mm') : 0)
     const [errorValue, setErrorValue] = useState<string>()
 
-    const [isReset, setIsReset] = useState<boolean>(false)
-
     const [viewDate, setViewDate] = useState<DateTime | null>(initialDate)
 
     const hoursChanged = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -27,7 +25,9 @@ export const useCalendarData = ({ selectedDate, withTime = false, zone = 'Europe
         if (e.target.value === 'hh') {
             setDate(null)
         }
-        setIsReset(false)
+        if (e.target.value !== 'hh' && minutes !== 'mm' && viewDate && bufferDate) {
+            setDate(bufferDate.set({ minute: minutes, hour: Number(e.target.value) }))
+        }
     }
 
     const minutesChanged = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -35,7 +35,9 @@ export const useCalendarData = ({ selectedDate, withTime = false, zone = 'Europe
         if (e.target.value === 'mm') {
             setDate(null)
         }
-        setIsReset(false)
+        if (e.target.value !== 'mm' && hours !== 'hh' && viewDate && bufferDate) {
+            setDate(bufferDate.set({ hour: hours, minute: Number(e.target.value) }))
+        }
     }
 
     const setDay = (selectedDate: DateTime) => {
@@ -44,8 +46,10 @@ export const useCalendarData = ({ selectedDate, withTime = false, zone = 'Europe
             return
         }
         setBufferDate(selectedDate)
+        if (minutes !== 'mm' && hours !== 'hh') {
+            setDate(selectedDate!.set({ hour: hours, minute: minutes }))
+        }
         setViewDate(selectedDate)
-        setIsReset(false)
     }
 
     const nextMonth = () => {
@@ -53,40 +57,31 @@ export const useCalendarData = ({ selectedDate, withTime = false, zone = 'Europe
         const selectedDate = bufferDate || DateTime.now().setZone(zone)
         const currentMillis: number = DateTime.now().setZone(zone).startOf('day').toMillis()
         const _selectedDate = selectedDate.plus({ month: 1 })
-        setBufferDate(_selectedDate.toMillis() < currentMillis ? DateTime.now().setZone(zone) : _selectedDate)
+        const date = _selectedDate.toMillis() < currentMillis ? DateTime.now().setZone(zone) : _selectedDate
+        setBufferDate(date)
+        setViewDate(date)
+        if (minutes !== 'mm' && hours !== 'hh') {
+            setDate(date.set({ hour: hours, minute: minutes }))
+        }
     }
 
     const prevMonth = () => {
         const selectedDate = bufferDate || DateTime.now().setZone(zone)
         const currentMillis: number = DateTime.now().setZone(zone).startOf('day').toMillis()
         const _selectedDate = selectedDate.minus({ month: 1 })
-        setBufferDate(_selectedDate.toMillis() < currentMillis ? DateTime.now().setZone(zone) : _selectedDate)
+        const date = _selectedDate.toMillis() < currentMillis ? DateTime.now().setZone(zone) : _selectedDate
+        setBufferDate(date)
+        setViewDate(date)
+        if (minutes !== 'mm' && hours !== 'hh') {
+            setDate(date.set({ hour: hours, minute: minutes }))
+        }
     }
 
     useEffect(() => {
-        console.log('use effect 1')
-        console.log({ viewDate, date })
-        if (withTime && viewDate !== null && minutes !== 'mm' && hours !== 'hh') {
-            setDate(bufferDate)
+        if (date) {
             setErrorValue('')
         }
-        if (!withTime && viewDate !== null) {
-            setDate(bufferDate)
-            setErrorValue('')
-        }
-    }, [bufferDate, minutes, hours, viewDate])
-
-    useEffect(() => {
-        console.log('use effect 2')
-        if (isReset) {
-            setDate(null)
-            setViewDate(null)
-            if (withTime) {
-                setHours('hh')
-                setMinutes('mm')
-            }
-        }
-    }, [isReset])
+    }, [date])
 
     const check: (showMessage?: boolean) => boolean = (showMessage = false) => {
         if (date === null) {
@@ -99,9 +94,13 @@ export const useCalendarData = ({ selectedDate, withTime = false, zone = 'Europe
     }
 
     const reset = () => {
-        console.log('reset')
-        setIsReset(true)
+        setMinutes('mm')
+        setHours('hh')
+        setDate(null)
+        setViewDate(null)
     }
+
+    console.log({ date, bufferDate })
 
     return {
         date,

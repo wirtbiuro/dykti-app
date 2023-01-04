@@ -36,6 +36,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
         isNewBranchComparedByLastStepWhereSomethingWasChanged,
         isNewBranchComparedByPrevStep,
         prevBranchOnProp,
+        globalStepWhereLastTransitionWas,
     } = getBranchValues({
         stepName: 'offerStep',
         order,
@@ -48,6 +49,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
         isNewBranchComparedByLastStepWhereSomethingWasChanged,
         isNewBranchComparedByPrevStep,
         prevBranchOnProp,
+        globalStepWhereLastTransitionWas,
     })
 
     const errFn = useErrFn()
@@ -91,11 +93,13 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
     useEffect(() => {
         if (areDocsGoodData.value || areDocsGoodData.value === null) {
             befCommentsData.setTextValue('')
+            befCommentsData.setErrorValue('')
         }
         if (!areDocsGoodData.value) {
-            console.log('no good docs')
             isOfferReadyData.setCheckboxValue(false)
+            isOfferReadyData.setErrorValue('')
             commentData.setTextValue('')
+            commentData.setErrorValue('')
         }
     }, [areDocsGoodData.value])
 
@@ -167,10 +171,22 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
         setIsSpinning(false)
     }
 
-    const disabled =
-        prevStep &&
-        prevStep?.passedTo !== 'offerStep' &&
-        !(prevStep?.passedTo === 'contractStep' && prevStep?.createdByStep === 'offerStep')
+    const enabled = {
+        areDocsGood:
+            globalStepWhereLastTransitionWas?.createdByStep === 'beffaringStep' &&
+            globalStepWhereLastTransitionWas.passedTo === 'offerStep',
+        befComments:
+            areDocsGoodData.value === false &&
+            (globalStepWhereLastTransitionWas?.passedTo === 'offerStep' ||
+                (prevStep?.passedTo === 'beffaringStep' && prevStep.createdByStep === 'offerStep')),
+        isOfferReady: areDocsGoodData.value === true && globalStepWhereLastTransitionWas?.passedTo === 'offerStep',
+        comment:
+            areDocsGoodData.value &&
+            (globalStepWhereLastTransitionWas?.passedTo === 'offerStep' ||
+                (prevStep?.passedTo === 'contractStep' && prevStep.createdByStep === 'offerStep')),
+    }
+
+    const isSendEnabled = enabled.areDocsGood || enabled.befComments || enabled.isOfferReady || enabled.comment
 
     return (
         <Spin spinning={isSpinning}>
@@ -179,10 +195,7 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                 <CreateFormStyled>
                     <FormStyled>
                         <form ref={formRef} onSubmit={onSubmit}>
-                            <YesNoSelect
-                                connection={areDocsGoodData}
-                                disabled={prevStep && prevStep?.passedTo !== 'offerStep'}
-                            />
+                            <YesNoSelect connection={areDocsGoodData} disabled={!enabled.areDocsGood} />
 
                             {areDocsGoodData.value === false && (
                                 <>
@@ -193,25 +206,12 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                                         />
                                     )}
 
-                                    <TextFormInput
-                                        connection={befCommentsData}
-                                        disabled={
-                                            prevStep &&
-                                            prevStep?.passedTo !== 'offerStep' &&
-                                            !(
-                                                prevStep?.passedTo === 'beffaringStep' &&
-                                                prevStep?.createdByStep === 'offerStep'
-                                            )
-                                        }
-                                    />
+                                    <TextFormInput connection={befCommentsData} disabled={enabled.befComments} />
                                 </>
                             )}
                             {areDocsGoodData.value === true && (
                                 <>
-                                    <CheckboxFormInput
-                                        connection={isOfferReadyData}
-                                        disabled={prevStep && prevStep?.passedTo !== 'offerStep'}
-                                    />
+                                    <CheckboxFormInput connection={isOfferReadyData} disabled={!enabled.isOfferReady} />
 
                                     {prevBranchOnProp && (
                                         <PrevBranchProp
@@ -220,17 +220,21 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
                                         />
                                     )}
 
-                                    <TextFormInput connection={commentData} disabled={disabled} />
+                                    <TextFormInput connection={commentData} disabled={!enabled.comment} />
                                 </>
                             )}
 
-                            <NextPrevCheckbox
-                                connection={nextPrevCheckboxData}
-                                isMainCondition={isMainCondition}
-                                isCurrentStep={prevStep?.passedTo === 'offerStep'}
-                            />
+                            {isSendEnabled && (
+                                <>
+                                    <NextPrevCheckbox
+                                        connection={nextPrevCheckboxData}
+                                        isMainCondition={isMainCondition}
+                                        isCurrentStep={prevStep?.passedTo === 'offerStep'}
+                                    />
 
-                            <input type="submit" value="Zapisz" />
+                                    <input type="submit" value="Zapisz" />
+                                </>
+                            )}
                         </form>
                     </FormStyled>
                 </CreateFormStyled>
