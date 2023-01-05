@@ -18,8 +18,12 @@ export const WorkerStyled = styled.div`
         padding-left: 10px;
     }
 `
+interface WorkerOrderStyledProps {
+    freeDays: number
+    orderId: number
+}
 
-export const WorkerOrderStyled = styled.div`
+export const WorkerOrderStyled = styled.div<WorkerOrderStyledProps>`
     display: flex;
     .freedays {
         display: flex;
@@ -82,7 +86,11 @@ export const MonthsStyled = styled.div`
     }
 `
 
-export const MonthStyled = styled.div`
+interface MonthStyledProps {
+    days: number
+}
+
+export const MonthStyled = styled.div<MonthStyledProps>`
     min-width: ${(props) => props.days * cellWidth + 'px'};
     text-align: center;
     border: 1px solid #cccccc;

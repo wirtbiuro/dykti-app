@@ -34,7 +34,7 @@ const WorkerOrder: FC<IWorkerOrderProps> = ({ order, freeDays, workDays }) => {
     const [showHint, setShowHint] = useState(false)
 
     return (
-        <WorkerOrderStyled freeDays={freeDays} orderId={order?.id}>
+        <WorkerOrderStyled freeDays={freeDays} orderId={order!.id}>
             <div className="freedays">
                 {freeDaysIdxArr.map((idx) => {
                     return freeDays > 0 ? (
