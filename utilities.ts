@@ -308,9 +308,9 @@ export const _getPassedTo: _GetPassedToType = ({
     passedTo,
     prevToPass,
 }) => {
-    if (curStepName === 'lastDecisionStep') {
-        return nextToPass || 'lastDecisionStep'
-    }
+    // if (curStepName === 'lastDecisionStep') {
+    //     return nextToPass || 'lastDecisionStep'
+    // }
     const _passedTo = isMainCondition
         ? isCurrentOrEdit
             ? isNextPrevChecked

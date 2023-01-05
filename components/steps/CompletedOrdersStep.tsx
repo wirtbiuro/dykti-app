@@ -25,7 +25,7 @@ import { useFormSelect } from '../../hooks/new/useFormSelect'
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
 
-const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
+const CompletedOrdersStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const [createOrder] = useCreateOrderMutation()
 
     const getUser = dyktiApi.endpoints.getUser as any
@@ -37,7 +37,7 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
     const formRef = useRef<FormElement>(null)
 
     const { prevStep, branchIdx, prevBranchOnProp } = getBranchValues({
-        stepName: 'lastDecisionStep',
+        stepName: 'completedOrdersStep',
         order,
     })
 
@@ -53,31 +53,12 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
             return [getStepnameByRole(role), roleTitles[role]]
         })
 
-    const closeConfirmationData = useYesNoSelect({
-        title: 'Potwierdźić zamknięcie sprawy',
-        initialValue: null,
-    })
     const nextToPassData = useFormSelect({
         options: [['select', 'Wybierz'], ..._roles],
         title: `Na jaki poziom należy przenieść sprawę?`,
     })
 
-    useEffect(() => {
-        if (closeConfirmationData.value !== false) {
-            nextToPassData.setValue('select')
-            nextToPassData.setErrorValue('')
-        }
-    }, [closeConfirmationData.value])
-
-    const isMainCondition = closeConfirmationData.value !== false
-
-    const nextCheck = (showMessage: boolean) => {
-        console.log('next check')
-        if (!closeConfirmationData.check(showMessage)) {
-            return false
-        }
-        return true
-    }
+    const isMainCondition = false
 
     const prevCheck = (showMessage: boolean) => {
         console.log('prev check')
@@ -92,11 +73,7 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
 
         e.preventDefault()
         console.log('on submit')
-        if (isMainCondition && nextPrevCheckboxData.check(false)) {
-            if (!nextCheck(true)) {
-                return
-            }
-        }
+
         if (!isMainCondition && nextPrevCheckboxData.check(false)) {
             console.log('no mainCondition')
             if (!prevCheck(true)) {
@@ -113,16 +90,15 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
             maxPromotion: prevStep!.maxPromotion,
             isNextPrevChecked: nextPrevCheckboxData.check(false),
             isMainCondition,
-            curStepName: 'lastDecisionStep',
+            curStepName: 'rejectedOrdersStep',
             passedTo: prevStep!.passedTo,
             deadline: prevStep?.nextDeadline,
             nextToPass: 'rejectedOrdersStep',
             prevToPass: nextToPassData.value as StepName,
-            supposedNextDeadline: isMainCondition
-                ? null
-                : DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
+            supposedNextDeadline: DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             sendData: {
                 order,
+                isCompleted: false,
             },
             createOrder: _createOrder,
             errFn,
@@ -135,21 +111,26 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
     }
 
     return (
+        <div style={{ display: isVisible ? 'block' : 'none', paddingTop: '20px' }}>
+            <h3>Serwisy:</h3>
+            <p>Lista Serwisow</p>
+            <button>Dodać Serwis</button>
+        </div>
+    )
+
+    return (
         <Spin spinning={isSpinning}>
             <div style={{ display: isVisible ? 'block' : 'none' }}>
                 <CreateFormStyled>
                     <FormStyled>
                         <form ref={formRef} onSubmit={onSubmit}>
-                            <YesNoSelect connection={closeConfirmationData} />
-
-                            {closeConfirmationData.value === false && <FormSelect connection={nextToPassData} />}
-
+                            <FormSelect connection={nextToPassData} />
                             <>
                                 <SendButtonsWrapper visible={false}>
                                     <NextPrevCheckbox
                                         connection={nextPrevCheckboxData}
                                         isMainCondition={isMainCondition}
-                                        isCurrentStep={prevStep?.passedTo === 'lastDecisionStep'}
+                                        isCurrentStep={prevStep?.passedTo === 'completedOrdersStep'}
                                     />
                                 </SendButtonsWrapper>
                                 <input type="submit" value="Zapisz" />
@@ -162,6 +143,4 @@ const LastDecisionStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =>
     )
 }
 
-export default LastDecisionStep
-
-// 148
+export default CompletedOrdersStep

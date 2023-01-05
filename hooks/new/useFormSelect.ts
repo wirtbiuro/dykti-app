@@ -14,7 +14,7 @@ export const useFormSelect = ({ initialValue = 'select', title = '', options }: 
     const ref = useRef<HTMLSelectElement>(null)
 
     const check: (showMessage: boolean) => boolean = (showMessage) => {
-        console.log('useFormSelect check')
+        console.log('useFormSelect check value', value)
         if (value !== 'select') {
             console.log('not equal select')
             setErrorValue('')

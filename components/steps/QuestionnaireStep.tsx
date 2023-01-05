@@ -137,10 +137,10 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
         if (!arePaymentsReceivedData.check(showMessage)) {
             return false
         }
-        if (isClientSatisfiedData.checkboxValue === true && clientSatisfactionData.check(showMessage)) {
+        if (isClientSatisfiedData.checkboxValue === true && !clientSatisfactionData.check(showMessage)) {
             return false
         }
-        if (isClientDissatisfiedData.checkboxValue === true && clientDissatisfactionData.check(showMessage)) {
+        if (isClientDissatisfiedData.checkboxValue === true && !clientDissatisfactionData.check(showMessage)) {
             return false
         }
         return true
@@ -172,7 +172,6 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
             questionnaireStepSatisfaction: clientSatisfactionData.value,
             questionnaireStepDissatisfaction: clientDissatisfactionData.value,
         }
-
         setIsSpinning(true)
 
         await mainSubmitForm({

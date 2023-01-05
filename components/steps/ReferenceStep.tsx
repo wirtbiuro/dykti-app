@@ -1,26 +1,19 @@
 import React, { SyntheticEvent, useRef, useState, FC, useEffect } from 'react'
 import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
-import {
-    WithValueNFocus,
-    IWithOrder,
-    ISendButtonsOutputRef,
-    FormCheckType,
-    ISendCheckboxes,
-    FieldsToSend,
-} from '../../types'
+import { WithValueNFocus, IWithOrder, ISendCheckboxes } from '../../types'
 import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
-import FormInput from '../UI/FormInput'
-import SendButtons from '../UI/SendButtons'
-import { submitForm, showErrorMessages, getBranchValues } from '../../utilities'
-import { useFormInput } from '../../hooks/useFormInput'
-import { flushSync } from 'react-dom'
+import { getBranchValues, mainSubmitForm, NullableFieldsToSend } from '../../utilities'
 import useErrFn from '../../hooks/useErrFn'
 import { Spin } from 'antd'
-import FormMultiSelect from '../UI/FormMultiSelect'
-import { useFormMultiSelect } from '../../hooks/useFormMultiSelect'
-import { selectData } from '../../accessories/constants'
-import FormSelect from '../UI/FormSelect'
-import { useFormSelect } from '../../hooks/useFormSelect'
+import FormMultiSelect from '../components/FormMultiSelect'
+import { useMultiSelect } from '../../hooks/new/useMultiSelect'
+import { selectData, workDayStartHours } from '../../accessories/constants'
+import { useCheckboxFormInput } from '../../hooks/new/useCheckboxFormInput'
+import CheckboxFormInput from '../components/CheckboxFormInput'
+import YesNoSelect from '../components/YesNoSelect'
+import { useYesNoSelect } from '../../hooks/new/useYesNoSelect'
+import NextPrevCheckbox from '../components/NextPrevCheckbox'
+import { DateTime } from 'luxon'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -42,6 +35,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         lastStepWhereSomethingWasChanged,
         isNewBranchComparedByLastStepWhereSomethingWasChanged,
         prevBranchOnProp,
+        globalStepWhereLastTransitionWas,
     } = getBranchValues({
         stepName: 'referenceStep',
         order,
@@ -49,195 +43,153 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     const errFn = useErrFn()
 
-    const wasReferenceRequestSentData = useFormInput()
-    const isClientReferenceData = useFormSelect()
-    const referenceLocationData = useFormMultiSelect()
-
-    const sendButtonsOutputRef = useRef<ISendButtonsOutputRef>({
-        getResults: () => {},
+    const nextPrevCheckboxData = useCheckboxFormInput({
+        initialValue: true,
     })
 
-    const [isFormChecked, setIsFormChecked] = useState<boolean>(false)
+    const wasReferenceRequestSentData = useCheckboxFormInput({
+        title: 'Prośba o referencję do klienta jest wysłana',
+        initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
+            ? false
+            : prevStep?.referenceStepWasSentRequest,
+    })
+    const isClientReferenceData = useYesNoSelect({
+        title: 'Klient wystawil referencje',
+        initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
+            ? null
+            : prevStep?.referenceStepIsClientReference,
+    })
+    const referenceLocationData = useMultiSelect({
+        options: selectData.referenceStepReferenceLocation,
+        title: `Gdzie wysłano referencję:`,
+        initialSelectedIdxsString: isNewBranchComparedByLastStepWhereSomethingWasChanged
+            ? ''
+            : prevStep?.referenceStepReferenceLocation,
+    })
 
     useEffect(() => {
-        formCheck({ showMessage: false })
-    }, [wasReferenceRequestSentData.isChecked, isClientReferenceData.isChecked, referenceLocationData.isChecked])
+        if (wasReferenceRequestSentData.checkboxValue === false) {
+            isClientReferenceData.setValue(null)
+            isClientReferenceData.setErrorValue('')
+        }
+    }, [wasReferenceRequestSentData.checkboxValue])
 
-    const formCheck: FormCheckType = ({ showMessage }) => {
-        console.log('form check')
+    useEffect(() => {
+        if (!isClientReferenceData.value) {
+            referenceLocationData.setSelectedIdxsString('')
+            referenceLocationData.setErrorValue('')
+        }
+    }, [isClientReferenceData.value])
 
-        if (!wasReferenceRequestSentData.isChecked) {
-            console.log('wasReferenceRequestSentData error')
-            showMessage ? wasReferenceRequestSentData?.showError!() : null
-            setIsFormChecked(false)
+    const enabled = {
+        wasReferenceRequestSent:
+            !prevStep?.referenceStepWasSentRequest && globalStepWhereLastTransitionWas?.passedTo === 'referenceStep',
+        isClientReference:
+            wasReferenceRequestSentData.checkboxValue && globalStepWhereLastTransitionWas?.passedTo === 'referenceStep',
+        referenceLocation:
+            isClientReferenceData.value && globalStepWhereLastTransitionWas?.passedTo === 'referenceStep',
+    }
+
+    const isSendEnabled = enabled.wasReferenceRequestSent || enabled.isClientReference || enabled.referenceLocation
+
+    const nextCheck = (showMessage: boolean) => {
+        if (!wasReferenceRequestSentData.check(showMessage)) {
             return false
         }
-
-        if (!isClientReferenceData.isChecked) {
-            console.log('isClientReferenceData error')
-            showMessage ? isClientReferenceData?.showError!() : null
-            setIsFormChecked(false)
+        if (!isClientReferenceData.check(showMessage)) {
             return false
         }
-
-        console.log('isClientReferenceData.isChecked', isClientReferenceData.isChecked)
-        console.log('referenceLocationData.value', referenceLocationData.value)
-
-        if (isClientReferenceData.value === 'yes' && !referenceLocationData.isChecked) {
-            console.log('referenceLocationData error')
-            showMessage ? referenceLocationData?.showError!() : null
-            setIsFormChecked(false)
+        if (isClientReferenceData.value && !referenceLocationData.check(showMessage)) {
             return false
         }
-
-        console.log('form checked')
-
-        setIsFormChecked(true)
         return true
     }
 
     // const isMainCondition = wasReferenceRequestSentData.isChecked && isClientReferenceData.value === 'yes'
     const isMainCondition = true
 
-    const submit = async (e: SyntheticEvent<HTMLFormElement>) => {
+    const onSubmit = async (e: SyntheticEvent) => {
+        const _createOrder = createOrder as (data: NullableFieldsToSend) => void
+
         e.preventDefault()
-        const target = e.target as typeof e.target & FormType
-        const _createOrder = createOrder as (data: FieldsToSend) => void
-
-        console.log(target)
-
-        const areErrors = showErrorMessages({
-            flushSync,
-            formCheck,
-            isFormChecked,
-            isMainCondition,
-            target,
-        })
-
-        console.log('submit')
-
-        if (areErrors) return
+        console.log('on submit')
+        if (isMainCondition && nextPrevCheckboxData.check(false)) {
+            if (!nextCheck(true)) {
+                return
+            }
+        }
 
         setIsSpinning(true)
 
-        const isNextChecked = target.nextCheckbox !== undefined && target.nextCheckbox.checked
-
-        await submitForm({
+        await mainSubmitForm({
             branchIdx,
             prevStep: prevStep!,
             user: userData,
             maxPromotion: prevStep!.maxPromotion,
-            target,
+            isNextPrevChecked: nextPrevCheckboxData.check(false),
             isMainCondition,
             curStepName: 'referenceStep',
             passedTo: prevStep!.passedTo,
-            formCheck,
-            isFormChecked,
+            deadline: prevStep?.nextDeadline,
             nextToPass: 'completedOrdersStep',
-            toNextSendData: {
+            supposedNextDeadline:
+                wasReferenceRequestSentData.checkboxValue === true
+                    ? DateTime.now().endOf('day').plus({ days: 14, hours: workDayStartHours, minutes: 1 })
+                    : DateTime.now().endOf('day').plus({ days: 2, hours: workDayStartHours, minutes: 1 }),
+            sendData: {
                 order,
-                isCompleted:
-                    wasReferenceRequestSentData.value &&
-                    ((isClientReferenceData.value === 'yes' && referenceLocationData.value) ||
-                        isClientReferenceData.value === 'no') &&
-                    isNextChecked
-                        ? true
-                        : false,
-                referenceStepWasSentRequest: wasReferenceRequestSentData.value,
-                referenceStepIsClientReference:
-                    isClientReferenceData.value === 'yes' ? true : isClientReferenceData.value === 'no' ? false : null,
-                referenceStepReferenceLocation:
-                    isClientReferenceData.value === 'yes' ? referenceLocationData.value : null,
-                ...sendButtonsOutputRef.current.getResults(),
+                isCompleted: wasReferenceRequestSentData.checkboxValue && isClientReferenceData.value,
+                referenceStepWasSentRequest: wasReferenceRequestSentData.checkboxValue,
+                referenceStepIsClientReference: isClientReferenceData.value,
+                referenceStepReferenceLocation: referenceLocationData.selectedIdxsString,
             },
             createOrder: _createOrder,
             errFn,
         })
 
-        setIsSpinning(false)
         setIsVisible!(false)
+        setIsSpinning(false)
     }
-
     return (
         <Spin spinning={isSpinning}>
             <div style={{ display: isVisible ? 'block' : 'none' }}>
                 <CreateFormStyled>
                     <FormStyled>
-                        <form ref={formRef} onSubmit={submit}>
-                            <>
-                                <FormInput
-                                    type="checkbox"
-                                    connection={wasReferenceRequestSentData}
-                                    defaultChecked={
-                                        isNewBranchComparedByLastStepWhereSomethingWasChanged
-                                            ? false
-                                            : typeof prevStep?.referenceStepWasSentRequest === 'boolean'
-                                            ? prevStep?.referenceStepWasSentRequest
-                                            : false
-                                    }
-                                    checkFn={(value) => value === true}
-                                >
-                                    <>Prośba o referencję do klienta jest wysłana</>
-                                </FormInput>
-                            </>
+                        <form ref={formRef} onSubmit={onSubmit}>
+                            <CheckboxFormInput
+                                connection={wasReferenceRequestSentData}
+                                disabled={!enabled.wasReferenceRequestSent}
+                            />
 
-                            {wasReferenceRequestSentData.isChecked && (
+                            {wasReferenceRequestSentData.checkboxValue && (
                                 <>
-                                    {/* <FormInput
-                                        type="checkbox"
+                                    <YesNoSelect
                                         connection={isClientReferenceData}
-                                        defaultChecked={
-                                            typeof prevStep?.referenceStepWasSentRequest === 'boolean'
-                                                ? prevStep?.referenceStepWasSentRequest
-                                                : false
-                                        }
-                                        checkFn={(value) => value === true}
-                                    >
-                                        <>Klient wystawil referencje</>
-                                    </FormInput> */}
-
-                                    <FormSelect
-                                        options={selectData.standardSelect}
-                                        name="referenceStepIsClientReference"
-                                        title="Klient wystawil referencje"
-                                        connection={isClientReferenceData}
-                                        defaultValue={
-                                            isNewBranchComparedByLastStepWhereSomethingWasChanged
-                                                ? 'select'
-                                                : typeof prevStep?.referenceStepIsClientReference !== 'boolean'
-                                                ? 'select'
-                                                : prevStep?.referenceStepIsClientReference
-                                                ? 'yes'
-                                                : 'no'
-                                        }
+                                        disabled={!enabled.isClientReference}
                                     />
 
-                                    {isClientReferenceData.value === 'yes' && (
-                                        <FormMultiSelect
-                                            options={selectData.referenceStepReferenceLocation}
-                                            title={`Gdzie wysłano referencję:`}
-                                            connection={referenceLocationData}
-                                            defaultValue={
-                                                isNewBranchComparedByLastStepWhereSomethingWasChanged
-                                                    ? ''
-                                                    : prevStep?.referenceStepReferenceLocation || ''
-                                            }
-                                        />
+                                    {isClientReferenceData.value && (
+                                        <>
+                                            <FormMultiSelect
+                                                connection={referenceLocationData}
+                                                disabled={!enabled.isClientReference}
+                                            />
+                                        </>
                                     )}
                                 </>
                             )}
 
-                            <SendButtons
-                                curStepName="referenceStep"
-                                maxPromotion={prevStep!.maxPromotion}
-                                passedTo={prevStep!.passedTo}
-                                dataRef={sendButtonsOutputRef}
-                                isFormChecked={isFormChecked}
-                                step={order?.steps[order.steps.length - 1]}
-                                formCheck={formCheck}
-                                isMainCondition={isMainCondition}
-                            />
-                            <input type="submit" value="Zapisz" />
+                            {isSendEnabled && (
+                                <>
+                                    <NextPrevCheckbox
+                                        connection={nextPrevCheckboxData}
+                                        isMainCondition={isMainCondition}
+                                        isCurrentStep={prevStep?.passedTo === 'referenceStep'}
+                                    />
+
+                                    <input type="submit" value="Zapisz" />
+                                </>
+                            )}
                         </form>
                     </FormStyled>
                 </CreateFormStyled>
@@ -247,3 +199,5 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 }
 
 export default ReferenceStep
+
+// 236

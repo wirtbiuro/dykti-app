@@ -1,14 +1,13 @@
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useState } from 'react'
 import { IOrder, StepType, StepName } from '../types'
 import { StepStyled, CloseOrderStyled } from '../styles/styled-components'
 import Step from './Step'
-import { withRtkQueryTokensCheck, getDatas } from '../utilities'
+import { withRtkQueryTokensCheck } from '../utilities'
 import { useCreateOrderMutation, dyktiApi } from '../state/apiSlice'
 import useErrFn from '../hooks/useErrFn'
 import FormInput from './UI/FormInput'
 import { useFormInput } from '../hooks/useFormInput'
 import { Spin } from 'antd'
-import { useSimpleStore } from '../simple-store/store'
 import HistoryStep from './HistoryStep'
 import CreateBefaringStep from '../components/steps/CreateBefaringStep'
 import CreateContractCheckerStep from './steps/CreateContractCheckerStep'
@@ -20,6 +19,8 @@ import CreateOfferStep from './steps/CreateOfferStep'
 import QuestionnaireStep from './steps/QuestionnaireStep'
 import ReferenceStep from './steps/ReferenceStep'
 import CreateWorkStep from './steps/CreateWorkStep'
+import RejectedOrdersStep from './steps/RejectedOrdersStep'
+import CompletedOrdersStep from './steps/CompletedOrdersStep'
 
 interface IOrderProps {
     order: IOrder
@@ -49,8 +50,8 @@ const Order: FC<IOrderProps> = ({ order, stepName }) => {
         questionnaireStep: <QuestionnaireStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
         referenceStep: <ReferenceStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
         workStep: <CreateWorkStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
-        completedOrdersStep: <></>,
-        rejectedOrdersStep: <></>,
+        completedOrdersStep: <CompletedOrdersStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
+        rejectedOrdersStep: <RejectedOrdersStep isVisible={isViewing} setIsVisible={setIsViewing} order={order} />,
     }
 
     const step = order.steps[order.steps.length - 1]
@@ -158,9 +159,9 @@ const Order: FC<IOrderProps> = ({ order, stepName }) => {
                 {!isHistory && <button onClick={onShowHistory}>Pokaż historię zmian</button>}
                 {isHistory && <button onClick={onHideHistory}>Zamknij histoię zmian</button>}
 
-                {stepName !== 'lastDecisionStep' && isCurrent && !isModalOpen && (
-                    <button onClick={() => onClose(order)}>Zamknąć sprawę</button>
-                )}
+                {!['lastDecisionStep', 'rejectedOrdersStep', 'completedOrdersStep'].includes(stepName) &&
+                    isCurrent &&
+                    !isModalOpen && <button onClick={() => onClose(order)}>Zamknąć sprawę</button>}
                 <CloseOrderStyled isModalOpen={isModalOpen}>
                     Podaj powód, dla którego zamierzasz zamknąć sprawę:
                     <FormInput

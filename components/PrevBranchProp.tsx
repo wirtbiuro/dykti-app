@@ -1,5 +1,5 @@
 import React, { FC } from 'react'
-import { getPrevBranchStep, getPrevStepChangeStep, getStepPropValue } from '../utilities'
+import { getStepPropValue } from '../utilities'
 import { IOrder, StepType } from '../types'
 import { PrevBranchPropStyled } from '../styles/styled-components'
 

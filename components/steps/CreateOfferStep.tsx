@@ -56,9 +56,11 @@ const CreateOfferStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => 
 
     const areDocsGoodData = useYesNoSelect({
         title: 'Dokumenty od Befaringowca są w porządku:',
-        initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
-            ? null
-            : prevStep?.offerStepAreBefDocsGood || null,
+        initialValue:
+            // isNewBranchComparedByLastStepWhereSomethingWasChanged
+            //     ? null
+            //     :
+            prevStep?.offerStepAreBefDocsGood || null,
     })
 
     const befCommentsData = useTextFormInput({

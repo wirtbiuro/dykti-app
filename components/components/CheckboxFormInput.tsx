@@ -19,7 +19,13 @@ const CheckboxFormInput: FC<{ connection: CheckboxFormInputProps; disabled?: boo
         <FormStyled>
             <div className="formError">{errorValue}</div>
             <div className="checkbox-styled">
-                <input type="checkbox" checked={checkboxValue} onChange={onChange} ref={ref} disabled={disabled} />
+                <input
+                    type="checkbox"
+                    checked={checkboxValue || false}
+                    onChange={onChange}
+                    ref={ref}
+                    disabled={disabled}
+                />
                 <div className="title">{title}</div>
             </div>
         </FormStyled>

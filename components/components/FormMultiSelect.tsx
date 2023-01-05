@@ -8,6 +8,8 @@ const FormMultiSelect: FC<{ connection: MultiSelectProps; disabled?: boolean }> 
 }) => {
     const { selectedIdxsString, setSelectedIdxsString, errorValue, setErrorValue, title, ref, options } = connection
 
+    console.log({ selectedIdxsString })
+
     const clicked = (e: SyntheticEvent<HTMLOptionElement>) => {
         e.preventDefault()
         const target = e.target as EventTarget & {
