@@ -21,6 +21,7 @@ import NextPrevCheckbox from '../components/NextPrevCheckbox'
 import { DateTime } from 'luxon'
 import { workDayStartHours } from '../../accessories/constants'
 import { useFormSelect } from '../../hooks/new/useFormSelect'
+import ServiceStep from './ServiceStep'
 
 type FormType = WithValueNFocus<ISendCheckboxes>
 type FormElement = HTMLFormElement & FormType
@@ -115,6 +116,7 @@ const CompletedOrdersStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible })
             <h3>Serwisy:</h3>
             <p>Lista Serwisow</p>
             <button>Dodać Serwis</button>
+            <ServiceStep order={order} isVisible={isVisible} setIsVisible={setIsVisible} />
         </div>
     )
 
