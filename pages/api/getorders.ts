@@ -100,10 +100,13 @@ async function getorders(req: NextApiRequest, res: NextApiResponse) {
                     },
                 },
                 currentStep: { include: { stepCreator: true, workStepTeam: true, currentOrder: true } },
-                services: {
-                    include: { current: { include: { team: true } }, all: { include: { team: true } } },
-                    orderBy: { createdAt: 'desc' },
-                },
+                services:
+                    _role === 'CompletedOrdersViewer'
+                        ? {
+                              include: { current: { include: { team: true } }, all: { include: { team: true } } },
+                              orderBy: { createdAt: 'desc' },
+                          }
+                        : undefined,
             },
         })
 
