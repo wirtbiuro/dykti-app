@@ -27,7 +27,7 @@ const CompletedOrdersStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible })
                         <>
                             <h3>Serwisy:</h3>
                             {order?.services?.map((service) => (
-                                <ServiceProps order={order} service={service} />
+                                <ServiceProps order={order} service={service} key={service.id} />
                             ))}
                         </>
                     )}
