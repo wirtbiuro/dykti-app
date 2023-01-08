@@ -3,21 +3,21 @@ import { useState, useRef } from 'react'
 export const divider = '<;;;>'
 
 interface IuseMultiSelectProps {
-    initialSelectedIdxsString?: string
+    initialSelectedIdxs?: string[]
     title?: string
     options: string[][]
     disabled?: boolean
 }
 
-export const useMultiSelect = ({ initialSelectedIdxsString = '', title = '', options }: IuseMultiSelectProps) => {
+export const useMultiSelect = ({ initialSelectedIdxs = [], title = '', options }: IuseMultiSelectProps) => {
     const ref = useRef<HTMLSelectElement>(null)
 
-    const [selectedIdxsString, setSelectedIdxsString] = useState<string>(initialSelectedIdxsString)
+    const [selectedIdxs, setSelectedIdxs] = useState<string[]>(initialSelectedIdxs)
 
     const [errorValue, setErrorValue] = useState<string>('')
 
     const check: (showMessage: boolean) => boolean = (showMessage) => {
-        if (selectedIdxsString !== '') {
+        if (selectedIdxs.length !== 0) {
             setErrorValue('')
             return true
         } else if (showMessage) {
@@ -28,8 +28,8 @@ export const useMultiSelect = ({ initialSelectedIdxsString = '', title = '', opt
     }
 
     return {
-        selectedIdxsString,
-        setSelectedIdxsString,
+        selectedIdxs,
+        setSelectedIdxs,
         errorValue,
         setErrorValue,
         check,

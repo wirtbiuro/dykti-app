@@ -1,7 +1,7 @@
 import React, { SyntheticEvent, useState, FC } from 'react'
 import { FormStyled, CreateFormStyled } from '../../styles/styled-components'
-import { IWithOrder } from '../../types'
-import { useCreateOrderMutation, dyktiApi } from '../../state/apiSlice'
+import { IWithOrder, IServiceStep, IWorker, IOrder, IService } from '../../types'
+import { useCreateServiceMutation, dyktiApi } from '../../state/apiSlice'
 import FormMultiSelect from '../components/FormMultiSelect'
 import useErrFn from '../../hooks/useErrFn'
 import { useMultiSelect } from '../../hooks/new/useMultiSelect'
@@ -10,9 +10,17 @@ import { useCalendarData } from '../../hooks/new/useCalendarData'
 import Calendar from '../components/calendar'
 import { useTextFormInput } from '../../hooks/new/useTextFormInput'
 import TextFormInput from '../components/TextFormInput'
+import { withRtkQueryTokensCheck } from '../../utilities'
+import { DateTime } from 'luxon'
 
-const ServiceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
-    const [createOrder] = useCreateOrderMutation()
+type ServiceStepProps = IWithOrder & {
+    service?: IService
+    order?: IOrder
+    currentServiceStep?: IServiceStep
+}
+
+const ServiceStep: FC<ServiceStepProps> = ({ order, service, isVisible, setIsVisible, currentServiceStep }) => {
+    const [createService] = useCreateServiceMutation()
 
     const getUser = dyktiApi.endpoints.getUser as any
     const getUserQueryData = getUser.useQuery()
@@ -31,25 +39,28 @@ const ServiceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     const errFn = useErrFn()
 
-    // const workTeam = (prevStep?.workStepTeam as IWorker[]) || []
-    // const workTeamString = workTeam.map((worker) => worker.username).join('; ')
-
     const damageData = useTextFormInput({
-        initialTextValue: '',
+        initialTextValue: currentServiceStep?.damage,
         title: 'Co jest uszkodzone',
         placeholder: 'Co jest uszkodzone...',
     })
 
+    const team = currentServiceStep?.team as IWorker[]
+
     const teamData = useMultiSelect({
         options: workersOptions,
-        initialSelectedIdxsString: '',
+        initialSelectedIdxs: team?.map((worker) => worker.username),
         title: 'Kto będzie naprawiać',
     })
 
-    const calendarData = useCalendarData({})
+    const calendarData = useCalendarData({
+        selectedDate: currentServiceStep?.fixingDate
+            ? DateTime.fromISO(currentServiceStep.fixingDate as string)
+            : undefined,
+    })
 
     const commentData = useTextFormInput({
-        initialTextValue: '',
+        initialTextValue: currentServiceStep?.comment,
         title: 'Komentarz',
         placeholder: 'Komentarz',
     })
@@ -75,11 +86,24 @@ const ServiceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             return
         }
 
+        console.log({ service }, 'service id', service?.orderId)
+
         const data = {
             damage: damageData.textValue,
-            team: teamData.selectedIdxsString,
+            team: teamData.selectedIdxs,
             fixingDate: calendarData.date,
             comment: commentData.textValue,
+            orderId: order?.id,
+            serviceId: service?.id,
+        }
+
+        await withRtkQueryTokensCheck({
+            cb: submit,
+            err: errFn,
+        })
+
+        async function submit() {
+            return await createService({ ...data })
         }
 
         setIsSpinning(true)
@@ -92,7 +116,7 @@ const ServiceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     return (
         <Spin spinning={isSpinning}>
-            <div style={{ display: isVisible ? 'block' : 'none' }}>
+            {isVisible && (
                 <CreateFormStyled>
                     <FormStyled>
                         <form onSubmit={onSubmit}>
@@ -109,7 +133,7 @@ const ServiceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                         </form>
                     </FormStyled>
                 </CreateFormStyled>
-            </div>
+            )}
         </Spin>
     )
 }

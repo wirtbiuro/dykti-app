@@ -61,7 +61,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
         title: 'Klient jest zadowolony',
         initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
             ? false
-            : prevStep?.questionnaireStepSatisfaction && prevStep?.questionnaireStepSatisfaction !== ''
+            : prevStep?.questionnaireStepSatisfaction && prevStep?.questionnaireStepSatisfaction.length > 0
             ? true
             : false,
     })
@@ -69,8 +69,8 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
         options: selectData.questionnaireStepSatisfaction,
         selectTitle: `Przyczyna zadowolenia klienta: `,
         initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
-            ? ''
-            : prevStep?.questionnaireStepSatisfaction || '',
+            ? []
+            : prevStep?.questionnaireStepSatisfaction || [],
         otherTitle: 'Inna przyczyna zadowolenia klienta:',
         otherPlaceholder: 'Inna przyczyna zadowolenia klienta:',
     })
@@ -79,7 +79,7 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
         title: 'Klient jest niezadowolony',
         initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
             ? false
-            : prevStep?.questionnaireStepDissatisfaction && prevStep?.questionnaireStepDissatisfaction !== ''
+            : prevStep?.questionnaireStepDissatisfaction && prevStep?.questionnaireStepDissatisfaction.length > 0
             ? true
             : false,
     })
@@ -87,21 +87,21 @@ const QuestionnaireStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) =
         options: selectData.questionnaireStepDissatisfaction,
         selectTitle: `Przyczyna niezadowolenia klienta: `,
         initialValue: isNewBranchComparedByLastStepWhereSomethingWasChanged
-            ? ''
-            : prevStep?.questionnaireStepDissatisfaction || '',
+            ? []
+            : prevStep?.questionnaireStepDissatisfaction || [],
         otherTitle: 'Inna przyczyna niezadowolenia klienta:',
         otherPlaceholder: 'Inna przyczyna niezadowolenia klienta:',
     })
 
     useEffect(() => {
         if (isClientSatisfiedData.checkboxValue === false) {
-            clientSatisfactionData.setValue('')
+            clientSatisfactionData.setValue([])
         }
     }, [isClientSatisfiedData.checkboxValue])
 
     useEffect(() => {
         if (isClientDissatisfiedData.checkboxValue === false) {
-            clientDissatisfactionData.setValue('')
+            clientDissatisfactionData.setValue([])
         }
     }, [isClientDissatisfiedData.checkboxValue])
 

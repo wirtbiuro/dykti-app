@@ -94,8 +94,10 @@ export const useCalendarData = ({ selectedDate, withTime = false, zone = 'Europe
     }
 
     const reset = () => {
-        setMinutes('mm')
-        setHours('hh')
+        if (withTime) {
+            setMinutes('mm')
+            setHours('hh')
+        }
         setDate(null)
         setViewDate(null)
     }

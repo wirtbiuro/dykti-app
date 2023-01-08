@@ -59,7 +59,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     })
 
     const workTeam = (prevStep?.workStepTeam as IWorker[]) || []
-    const workTeamString = workTeam.map((worker) => worker.username).join('; ')
+    const workTeamString = workTeam.map((worker) => worker.username)
 
     const shouldChangeContractData = useCheckboxFormInput({
         checkFn: (value: boolean) => value === false,
@@ -72,7 +72,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     })
     const teamData = useMultiSelect({
         options: workersOptions,
-        initialSelectedIdxsString: workTeamString,
+        initialSelectedIdxs: workTeamString,
         title: 'Ekipa',
     })
 
@@ -104,7 +104,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
         if (
             startCalendarData.date &&
             endCalendarData.date &&
-            startCalendarData.date.toMillis() - endCalendarData.date.toMillis() < 0
+            startCalendarData.date.toMillis() - endCalendarData.date.toMillis() > 0
         ) {
             endCalendarData.setDay(startCalendarData.date)
         }
@@ -116,7 +116,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             startCalendarData.setErrorValue('')
             endCalendarData.reset()
             endCalendarData.setErrorValue('')
-            teamData.setSelectedIdxsString('')
+            teamData.setSelectedIdxs([])
             teamData.setErrorValue('')
         }
         if (shouldChangeContractData.checkboxValue === false) {
@@ -186,7 +186,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             }
         }
         const data = {
-            workStepTeam: teamData.selectedIdxsString,
+            workStepTeam: teamData.selectedIdxs,
             workStepWorkStartDate: startCalendarData.date,
             workStepContractEdits: contractEditsData.textValue,
             workStepWorkEndDate: endCalendarData.date,
@@ -205,7 +205,7 @@ const CreateWorkStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
             passedTo: prevStep!.passedTo,
             deadline: prevStep?.nextDeadline,
             supposedNextDeadline: isMainCondition
-                ? endCalendarData.date!.endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 })
+                ? endCalendarData.date?.endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 })
                 : DateTime.now().endOf('day').plus({ days: 1, hours: workDayStartHours, minutes: 1 }),
             sendData: {
                 order,

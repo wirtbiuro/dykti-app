@@ -911,16 +911,15 @@ export const getStepPropValue: (step: StepType, prop: keyof StepType) => any = (
             'contractStepOfferRejectionReason',
         ].includes(key)
     ) {
-        type keyType = keyof typeof selectData
-        const _value = value as string
-        const values = _value.split('; ')
-        let _values: string[] = []
-
-        values.map((value) => {
-            const row = selectData[key as keyType].find((row) => row[0] === value)
-            if (row) _values.push(row[1])
-        })
-        value = _values.join('; ')
+        // type keyType = keyof typeof selectData
+        // const _value = value as string
+        // const values = _value.split('; ')
+        // let _values: string[] = []
+        // values.map((value) => {
+        //     const row = selectData[key as keyType].find((row) => row[0] === value)
+        //     if (row) _values.push(row[1])
+        // })
+        // value = _values.join('; ')
     }
     return value
 }

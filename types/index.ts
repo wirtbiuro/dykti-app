@@ -137,6 +137,7 @@ export interface IOrder {
     createdAt: string
     steps: Array<StepType>
     currentStep?: StepType
+    services?: IService[]
 }
 
 export interface IOutputRef {
@@ -226,7 +227,7 @@ export interface IContractCreatorStep {
 }
 
 export interface IWorkStep {
-    workStepTeam?: IWorker[] | string | { connect: { username: string }[] }
+    workStepTeam?: IWorker[] | string[] | { connect: { username: string }[] }
     workStepWorkStartDate?: DateTime | string
     workStepContractEdits?: string
     workStepWorkEndDate?: DateTime | string
@@ -238,15 +239,15 @@ export interface IQuestionnaireStep {
     questionnaireStepArePaymentsReceived?: boolean
     questionnaireStepIsClientSatisfied?: boolean
     questionnaireStepOtherSatisfaction?: string
-    questionnaireStepSatisfaction?: string
+    questionnaireStepSatisfaction?: string[]
     questionnaireStepOtherDissatisfaction?: string
-    questionnaireStepDissatisfaction?: string
+    questionnaireStepDissatisfaction?: string[]
 }
 
 export interface IReferenceStep {
     referenceStepWasSentRequest?: boolean
     referenceStepIsClientReference?: boolean
-    referenceStepReferenceLocation?: string
+    referenceStepReferenceLocation?: string[]
 }
 
 export interface IWorker {
@@ -362,3 +363,22 @@ export type CheckStepPropErrorsType = Partial<
         [P in StepPropType]: (step: StepType) => boolean
     }
 >
+
+export interface IService {
+    id: number
+    createdAt: string
+    orderId: number
+    order?: IOrder
+    currentServiceStepId: number
+    current: IServiceStep
+    all: IServiceStep[]
+}
+
+export interface IServiceStep {
+    id?: number
+    comment?: string
+    damage?: string
+    fixingDate?: DateTime | string
+    team?: IWorker[] | string[]
+    orderId?: number
+}

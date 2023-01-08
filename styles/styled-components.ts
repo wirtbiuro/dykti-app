@@ -355,6 +355,8 @@ export const StepPropsStyled = styled.div`
     }
 `
 
+export const ServicePropsStyled = styled.div``
+
 export const PrevBranchPropStyled = styled.div`
     color: orange;
     font-size: 9px;
@@ -367,4 +369,11 @@ interface SendButtonsWrapperProps {
 export const SendButtonsWrapper = styled.div<SendButtonsWrapperProps>`
     overflow: hidden;
     max-height: ${(props) => (props.visible ? 'auto' : '0px')};
+`
+
+export const CompletedOrdersStepStyled = styled.div`
+    padding-top: 20px;
+    .add-service-btn {
+        border: 2px solid orange;
+    }
 `

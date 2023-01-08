@@ -4,7 +4,7 @@ import { useTextFormInput } from './useTextFormInput'
 import { useMultiSelect, divider } from './useMultiSelect'
 
 interface IuseMultiSelectProps {
-    initialValue?: string
+    initialValue?: string[]
     title?: string
     selectTitle?: string
     options: string[][]
@@ -14,7 +14,7 @@ interface IuseMultiSelectProps {
 }
 
 export const useFormMultiSelectWithOther = ({
-    initialValue = '',
+    initialValue = [],
     title = '',
     selectTitle = '',
     disabled = false,
@@ -22,29 +22,23 @@ export const useFormMultiSelectWithOther = ({
     otherPlaceholder = '',
     otherTitle = '',
 }: IuseMultiSelectProps) => {
-    const [value, setValue] = useState<string>(initialValue)
+    const [value, setValue] = useState<string[]>(initialValue)
 
     const ref = useRef<HTMLSelectElement>(null)
 
     const optionKeys = options.map((option) => option[0])
 
-    const initialSelectedIdxs = initialValue ? initialValue.split(`${divider} `) : []
-
-    console.log({ initialValue, initialSelectedIdxs })
-
-    const initialSelectedIdxsString = initialSelectedIdxs
-        .map((item) => {
-            return optionKeys.includes(item) ? item : 'other'
-        })
-        .join(`${divider} `)
+    const initialSelectedIdxs = value.map((item) => {
+        return optionKeys.includes(item) ? item : 'other'
+    })
 
     const formMultiSelectData = useMultiSelect({
         options,
         title: selectTitle,
-        initialSelectedIdxsString,
+        initialSelectedIdxs,
     })
 
-    const initialTextValue = initialSelectedIdxs.find((item) => !optionKeys.includes(item))
+    const initialTextValue = value.find((item) => !optionKeys.includes(item))
 
     const textInputData = useTextFormInput({
         placeholder: otherPlaceholder,
@@ -52,34 +46,25 @@ export const useFormMultiSelectWithOther = ({
         initialTextValue,
     })
 
-    const regex = new RegExp('other(' + divider + `\\s|$)`)
-
-    const isOtherInMultiSelect = formMultiSelectData.selectedIdxsString.match(
-        // /other(;\s|$)/
-        regex
-    )
+    const otherIdx = formMultiSelectData.selectedIdxs.findIndex((item) => item === 'other')
 
     useEffect(() => {
-        if (!isOtherInMultiSelect) {
-            console.log('setTextValue to nothing')
+        if (otherIdx < 0) {
             textInputData.setTextValue('')
             textInputData.setErrorValue('')
         }
-    }, [formMultiSelectData.selectedIdxsString])
+    }, [formMultiSelectData.selectedIdxs])
 
     useEffect(() => {
-        if (isOtherInMultiSelect && textInputData.textValue) {
-            console.log(`isOtherInMultiSelect && textInputData.textValue`)
-            console.log('formMultiSelectData.selectedIdxsString', formMultiSelectData.selectedIdxsString)
-            setValue(
-                formMultiSelectData.selectedIdxsString
-                    .replace(`other${divider}`, textInputData.textValue + divider)
-                    .replace(/other$/, textInputData.textValue)
-            )
+        if (otherIdx >= 0 && textInputData.textValue) {
+            const selectedIdxs = [...formMultiSelectData.selectedIdxs]
+            const _selectedIdxs = [...formMultiSelectData.selectedIdxs]
+            selectedIdxs.splice(otherIdx, 1, textInputData.textValue)
+            setValue(selectedIdxs)
         } else {
-            setValue(formMultiSelectData.selectedIdxsString)
+            setValue(formMultiSelectData.selectedIdxs)
         }
-    }, [formMultiSelectData.selectedIdxsString, textInputData.textValue])
+    }, [formMultiSelectData.selectedIdxs, textInputData.textValue])
 
     const check: (showMessage?: boolean) => boolean = (showMessage = false) => {
         if (!formMultiSelectData.check(false)) {
@@ -88,7 +73,7 @@ export const useFormMultiSelectWithOther = ({
             }
             return false
         }
-        if (isOtherInMultiSelect && !textInputData.check(false)) {
+        if (otherIdx >= 0 && !textInputData.check(false)) {
             if (showMessage) {
                 textInputData.check(true)
             }

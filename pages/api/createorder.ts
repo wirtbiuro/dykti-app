@@ -25,16 +25,14 @@ async function createorder(req: NextApiRequest, res: NextApiResponse) {
         delete input.userRoles
 
         if (input.workStepTeam) {
-            let workersString = input.workStepTeam as string
-            console.log({ workersString })
-            const workers = workersString.split('; ')
+            let workers = input.workStepTeam as string[]
             const prismaWorkersArr: { username: string }[] = []
             workers.forEach((worker) => {
                 prismaWorkersArr.push({ username: worker })
             })
             console.log({ workers })
             input.workStepTeam =
-                workers.length > 0 && workers[0] !== ''
+                workers.length > 0
                     ? {
                           connect: prismaWorkersArr,
                       }

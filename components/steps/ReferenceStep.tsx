@@ -62,8 +62,8 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
     const referenceLocationData = useMultiSelect({
         options: selectData.referenceStepReferenceLocation,
         title: `Gdzie wysłano referencję:`,
-        initialSelectedIdxsString: isNewBranchComparedByLastStepWhereSomethingWasChanged
-            ? ''
+        initialSelectedIdxs: isNewBranchComparedByLastStepWhereSomethingWasChanged
+            ? []
             : prevStep?.referenceStepReferenceLocation,
     })
 
@@ -76,7 +76,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
 
     useEffect(() => {
         if (!isClientReferenceData.value) {
-            referenceLocationData.setSelectedIdxsString('')
+            referenceLocationData.setSelectedIdxs([])
             referenceLocationData.setErrorValue('')
         }
     }, [isClientReferenceData.value])
@@ -141,7 +141,7 @@ const ReferenceStep: FC<IWithOrder> = ({ order, isVisible, setIsVisible }) => {
                 isCompleted: wasReferenceRequestSentData.checkboxValue && isClientReferenceData.value,
                 referenceStepWasSentRequest: wasReferenceRequestSentData.checkboxValue,
                 referenceStepIsClientReference: isClientReferenceData.value,
-                referenceStepReferenceLocation: referenceLocationData.selectedIdxsString,
+                referenceStepReferenceLocation: referenceLocationData.selectedIdxs,
             },
             createOrder: _createOrder,
             errFn,

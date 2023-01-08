@@ -14,7 +14,7 @@ export const dyktiApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: `/api/`,
     }),
-    tagTypes: ['User', 'Order'],
+    tagTypes: ['User', 'Order', 'Worker', 'Service'],
     endpoints: (build: any) => ({
         getUser: build.query({
             query: () => `getuser`,
@@ -26,7 +26,6 @@ export const dyktiApi = createApi({
         }),
         getOrders: build.query({
             query: (role: Role) => `getorders?role=${role}`,
-
             providesTags: [{ type: 'User' }, ...getOrderProvidesTags()],
         }),
         getWorkers: build.query({
@@ -109,6 +108,18 @@ export const dyktiApi = createApi({
                 return [{ type: 'Order', id: args.role }]
             },
         }),
+        createService: build.mutation({
+            query(order: FieldsToSend) {
+                return {
+                    url: 'createservice',
+                    method: 'POST',
+                    body: order,
+                }
+            },
+            invalidatesTags: (result: any, error: any, args: FieldsToSend) => {
+                return [{ type: 'Order', id: 'CompletedOrdersViewer' }]
+            },
+        }),
         createBefaringStep: build.mutation({
             query(data: any) {
                 return {
@@ -139,6 +150,7 @@ export const {
     useCreateUserMutation,
     useLoginMutation,
     useCreateOrderMutation,
+    useCreateServiceMutation,
     useCreateBefaringStepMutation,
     useConfirmViewingByPerfomerMutation,
     useGetLastDecisionOrdersQuery,

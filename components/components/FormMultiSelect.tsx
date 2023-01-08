@@ -1,14 +1,14 @@
 import React, { SyntheticEvent, FC } from 'react'
 import { MultiSelectProps, divider } from '../../hooks/new/useMultiSelect'
-// import { MultiFormStyled } from '../../styles/styled-components'
+import { MultiFormStyled } from '../../styles/styled-components'
 
 const FormMultiSelect: FC<{ connection: MultiSelectProps; disabled?: boolean }> = ({
     connection,
     disabled = false,
 }) => {
-    const { selectedIdxsString, setSelectedIdxsString, errorValue, setErrorValue, title, ref, options } = connection
+    const { selectedIdxs, setSelectedIdxs, errorValue, setErrorValue, title, ref, options } = connection
 
-    console.log({ selectedIdxsString })
+    console.log({ selectedIdxs })
 
     const clicked = (e: SyntheticEvent<HTMLOptionElement>) => {
         e.preventDefault()
@@ -21,22 +21,22 @@ const FormMultiSelect: FC<{ connection: MultiSelectProps; disabled?: boolean }> 
         const value = target.value
         setErrorValue('')
 
-        const selectedIdxs = selectedIdxsString !== '' ? selectedIdxsString.split(`${divider} `) : []
-        const idx = selectedIdxs.findIndex((cur) => cur === value)
-        idx >= 0 ? selectedIdxs.splice(idx, 1) : selectedIdxs.push(value)
+        const _selectedIdxs = [...selectedIdxs]
+
+        const idx = _selectedIdxs.findIndex((cur) => cur === value)
+        idx >= 0 ? _selectedIdxs.splice(idx, 1) : _selectedIdxs.push(value)
+
         if (idx >= 0) {
             target.selected = false
             console.log(target)
         }
-        const _selectedIdxs = selectedIdxs.join(`${divider} `)
         console.log({ _selectedIdxs })
-        setSelectedIdxsString(_selectedIdxs)
+        setSelectedIdxs(_selectedIdxs)
     }
 
     const getValues = () => {
-        const idxs = selectedIdxsString.split(`${divider} `)
         const htmls: Array<JSX.Element> = []
-        idxs.forEach((idx) => {
+        selectedIdxs.forEach((idx) => {
             const optionIdx = options.findIndex((option) => option[0] === idx)
             if (optionIdx >= 0) {
                 htmls.push(<div key={options[optionIdx][0]}>{options[optionIdx][1]}</div>)
@@ -46,8 +46,7 @@ const FormMultiSelect: FC<{ connection: MultiSelectProps; disabled?: boolean }> 
     }
 
     const getIsSelected: (idx: string) => boolean = (idx) => {
-        const idxs = selectedIdxsString.split(`${divider} `)
-        return idxs.includes(idx)
+        return selectedIdxs.includes(idx)
     }
 
     const onTouschStart = (e: SyntheticEvent<HTMLOptionElement>) => {
@@ -55,8 +54,7 @@ const FormMultiSelect: FC<{ connection: MultiSelectProps; disabled?: boolean }> 
     }
 
     return (
-        // <MultiFormStyled>
-        <div>
+        <MultiFormStyled>
             <p>{title}</p>
             <div className="formError">{errorValue}</div>
             <div className="multiple-values">{getValues()}</div>
@@ -76,8 +74,7 @@ const FormMultiSelect: FC<{ connection: MultiSelectProps; disabled?: boolean }> 
                     ))}
                 </>
             </select>
-        </div>
-        // </MultiFormStyled>
+        </MultiFormStyled>
     )
 }
 

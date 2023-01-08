@@ -77,13 +77,13 @@ model Step{
   questionnaireStepIsAcceptanceReport Boolean?
   questionnaireStepHaveClientReceviedDocs Boolean?
   questionnaireStepArePaymentsReceived Boolean?
-  questionnaireStepSatisfaction String?
+  questionnaireStepSatisfaction String[]
   questionnaireStepOtherSatisfaction String?
-  questionnaireStepDissatisfaction String?
+  questionnaireStepDissatisfaction String[]
   questionnaireStepOtherDissatisfaction String?
   referenceStepWasSentRequest Boolean?
   referenceStepIsClientReference Boolean?
-  referenceStepReferenceLocation String?
+  referenceStepReferenceLocation String[]
   createdAt DateTime @default(now())
   passedTo String?
   createdByStep String?
@@ -102,14 +102,14 @@ model Order{
   steps Step[] @relation("OrderSteps")
   currentStep Step @relation("OrderCurrentStep", fields: [currentStepId], references: [id])
   currentStepId Int @unique
-  serviceId Int? @unique
-  service Service? @relation("OrderService", fields: [serviceId], references: [id])
+  services Service[] @relation("OrderServices")
 }
 
 model Service{
   id Int @id @default(autoincrement())
   createdAt DateTime @default(now())
-  order Order? @relation("OrderService")
+  orderId Int?
+  order Order? @relation("OrderServices", fields: [orderId], references: [id])
   currentServiceStepId Int @unique
   current ServiceStep @relation("ServiceCurrent", fields: [currentServiceStepId], references: [id])
   all ServiceStep[] @relation("ServiceAll")
@@ -123,8 +123,8 @@ model ServiceStep{
   fixingDate DateTime?
   team Worker[]
   currentService Service? @relation("ServiceCurrent")
-  serviceId Int @unique
-  service Service @relation("ServiceAll", fields: [serviceId], references: [id])
+  serviceId Int?
+  service Service? @relation("ServiceAll", fields: [serviceId], references: [id])
 }
 
 model Worker{

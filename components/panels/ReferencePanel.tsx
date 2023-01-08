@@ -1,5 +1,5 @@
 import React from 'react'
-import { IQuery, IOrder, StepName } from '../../types'
+import { IQuery, IOrder, StepName, Role, getStepnameByRole } from '../../types'
 import { useGetOrdersQuery } from '../../state/apiSlice'
 import Orders from '../Orders'
 import { getDatas } from '../../utilities'
@@ -10,9 +10,11 @@ import useGetOrders from '../../hooks/useGetOrders'
 import AllCategoryOrders from '../AllCategoryOrders'
 
 const ReferencePanel = () => {
-    const currentStep: StepName = 'referenceStep'
+    const role: Role = 'ReferenceUser'
 
-    const { data, isError }: IQuery<IOrder> = useGetOrders('WorkRespUser')
+    const currentStep: StepName = getStepnameByRole(role)
+
+    const { data, isError }: IQuery<IOrder> = useGetOrders(role)
 
     const {
         completedOrdersData,
