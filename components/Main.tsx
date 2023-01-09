@@ -17,6 +17,7 @@ import { useAppDispatch } from '../state/hooks'
 import Workers from './Workers'
 import CompletedOrdersPanel from './panels/CompletedOrdersPanel'
 import RejectedOrdersPanel from './panels/RejectedOrdersPanel'
+import Link from 'next/link'
 
 type RoleStrategyType = Record<Role | OtherRoles, JSX.Element>
 
@@ -123,7 +124,7 @@ const Main = () => {
                         if (role === 'RoleChanger') {
                             return (
                                 <li className="role" key={role}>
-                                    <a href="/change-roles">{extendedRoleTitles.RoleChanger}</a>
+                                    <Link href="/change-roles">{extendedRoleTitles.RoleChanger}</Link>
                                 </li>
                             )
                         }
