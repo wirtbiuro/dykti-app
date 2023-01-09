@@ -46,6 +46,7 @@ export default async function createuser(req: NextApiRequestWithHeaders, res: Ne
         const user = await prisma.user.create({
             data: {
                 username: username.trim(),
+                name: username.trim(),
                 password: hashedPassword,
                 refreshes: {
                     create: {},

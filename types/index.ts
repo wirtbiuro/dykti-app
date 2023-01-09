@@ -62,7 +62,7 @@ export type Role = StepNamesRelationsType[0]
 
 export type StepName = StepNamesRelationsType[1]
 
-export type OtherRole = 'WorkerViewer'
+export type OtherRoles = 'WorkerViewer' | 'RoleChanger'
 
 export const getStepNames: (stepNamesRelations: StepNamesRelationsArrType) => StepName[] = (stepNamesRelations) => {
     const stepNames: StepName[] = []
@@ -104,6 +104,12 @@ export const roleTitles: RoleTitleType = {
     LastDecisionUser: 'Potwierdzenie zakończenia',
     RejectedOrdersViewer: 'Odrzucone sprawy',
     CompletedOrdersViewer: 'Zrealizowane projekty',
+}
+
+export const extendedRoleTitles: Record<Role | OtherRoles, string> = {
+    ...roleTitles,
+    WorkerViewer: 'Przeglądarka pracowników.',
+    RoleChanger: 'Zmiana ról',
 }
 
 // export const stepNames = [

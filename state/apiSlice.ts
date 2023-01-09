@@ -33,6 +33,10 @@ export const dyktiApi = createApi({
 
             providesTags: [{ type: 'Worker' }],
         }),
+        getUsers: build.query({
+            query: () => `getusers`,
+            providesTags: [{ type: 'User' }],
+        }),
         getLastDecisionOrders: build.query({
             query: (role: Role) => `getorders?role=LastDecisionUser`,
 
@@ -66,6 +70,18 @@ export const dyktiApi = createApi({
             transformResponse: (response: any, meta: any, arg: any) => {
                 console.log({ response })
                 return response.user
+            },
+        }),
+        updateUserRoles: build.mutation({
+            query(user: any) {
+                return {
+                    url: 'updateuserroles',
+                    method: 'POST',
+                    body: user,
+                }
+            },
+            invalidatesTags: (res: any, err: any, arg: any) => {
+                return [{ type: 'User' }]
             },
         }),
         login: build.mutation({
@@ -150,6 +166,7 @@ export const {
     useCreateUserMutation,
     useLoginMutation,
     useCreateOrderMutation,
+    useUpdateUserRolesMutation,
     useCreateServiceMutation,
     useCreateBefaringStepMutation,
     useConfirmViewingByPerfomerMutation,

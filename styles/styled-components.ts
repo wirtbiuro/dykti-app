@@ -375,5 +375,61 @@ export const CompletedOrdersStepStyled = styled.div`
     padding-top: 20px;
     .add-service-btn {
         border: 2px solid orange;
+`
+
+export const UserRoleChangerStyled = styled.div`
+    padding: 20px;
+    width: 100vw;
+    .wrapper {
+        max-width: 1200px;
+        margin: auto;
+    }
+    #user-select {
+        width: 200px;
+        height: 30px;
+        font-size: 16px;
+        margin-bottom: 20px;
+        margin-left: 20px;
+    }
+    .roles {
+        display: flex;
+        gap: 20px;
+    }
+    .selected-roles,
+    .unselected-roles {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        min-width: 200px;
+    }
+
+    .selected-roles > div,
+    .unselected-roles > div {
+        background-color: #eee;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px 12px;
+        margin: 10px;
+        cursor: pointer;
+        min-height: 300px;
+    }
+
+    .selected-roles > div:hover,
+    .unselected-roles > div:hover {
+        background-color: #ddd;
+    }
+
+    .selected-roles > div:active,
+    .unselected-roles > div:active {
+        background-color: #ccc;
+    }
+    h3 {
+        padding-left: 12px;
+        padding-top: 12px;
+    }
+    button {
+        color: white;
+        padding: 5px 10px;
     }
 `

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { dyktiApi } from '../state/apiSlice'
-import { Role, roleTitles, OtherRole } from '../types'
+import { Role, roleTitles, OtherRoles, extendedRoleTitles } from '../types'
 import BefaringPanel from './panels/BefaringPanel'
 import CreatorFormPanel from './panels/CreatorFormPanel'
 import OfferCreatorPanel from './panels/OfferCreatorPanel'
@@ -18,7 +18,7 @@ import Workers from './Workers'
 import CompletedOrdersPanel from './panels/CompletedOrdersPanel'
 import RejectedOrdersPanel from './panels/RejectedOrdersPanel'
 
-type RoleStrategyType = Record<Role | OtherRole, JSX.Element>
+type RoleStrategyType = Record<Role | OtherRoles, JSX.Element>
 
 const roleStrategy: RoleStrategyType = {
     FormCreator: <CreatorFormPanel />,
@@ -31,9 +31,10 @@ const roleStrategy: RoleStrategyType = {
     QuestionnaireUser: <QuestionnairePanel />,
     ReferenceUser: <ReferencePanel />,
     LastDecisionUser: <LastDecisionPanel />,
-    WorkerViewer: <Workers />,
     CompletedOrdersViewer: <CompletedOrdersPanel />,
     RejectedOrdersViewer: <RejectedOrdersPanel />,
+    WorkerViewer: <Workers />,
+    RoleChanger: <></>,
 }
 
 const Main = () => {
@@ -80,7 +81,7 @@ const Main = () => {
 
     // const { isError, data }: IQuery<IUser> = useGetUserQuery()
 
-    const [visibleRole, setVisibleRole] = useState<Role | OtherRole>()
+    const [visibleRole, setVisibleRole] = useState<Role | OtherRoles>()
 
     console.log({ visibleRole })
 
@@ -90,7 +91,7 @@ const Main = () => {
         }
     }, [data, isError])
 
-    const roleClicked = (role: Role | OtherRole) => {
+    const roleClicked = (role: Role | OtherRoles) => {
         setVisibleRole(role)
     }
 
@@ -104,12 +105,26 @@ const Main = () => {
         return (
             <MainStyled>
                 <ul className="roles">
-                    {data.role.map((role: Role | OtherRole) => {
+                    {data.role.map((role: Role | OtherRoles) => {
                         if (role === 'WorkerViewer') {
                             return (
-                                <OtherRoleBtnStyled key={role} isSelected={visibleRole === role}>
+                                <li
+                                    key={role}
+                                    className="role"
+                                    style={{
+                                        color: 'orange',
+                                        fontWeight: visibleRole === role ? 'bold' : 'normal',
+                                    }}
+                                >
                                     <div onClick={() => roleClicked(role)}>Robotnicy</div>
-                                </OtherRoleBtnStyled>
+                                </li>
+                            )
+                        }
+                        if (role === 'RoleChanger') {
+                            return (
+                                <li className="role" key={role}>
+                                    <a href="/change-roles">{extendedRoleTitles.RoleChanger}</a>
+                                </li>
                             )
                         }
 
@@ -122,7 +137,7 @@ const Main = () => {
                                 }}
                                 className="role"
                             >
-                                {roleTitles[role]}
+                                {extendedRoleTitles[role]}
                                 {role === 'LastDecisionUser' && (
                                     <span className="last-decision-quantity">
                                         {!currentData ? '...' : currentData.length}
